@@ -363,15 +363,15 @@
     animation: loginIn .5s cubic-bezier(.2,.8,.2,1);
   }
   @keyframes loginIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-  .login-badge-icon {
-    width: 60px; height: 60px; border-radius: 16px;
-    background: rgba(255,255,255,.14);
-    border: 1px solid rgba(255,255,255,.32);
-    backdrop-filter: blur(6px);
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 22px; color: #fff; letter-spacing: .02em;
-    margin-bottom: 18px;
-    box-shadow: 0 8px 24px rgba(176,24,16,.35);
+  .login-mascot {
+    width: 108px; height: auto;
+    margin-bottom: 14px;
+    filter: drop-shadow(0 10px 22px rgba(0,0,0,.28));
+    animation: mascotBreathe 3.2s ease-in-out infinite;
+  }
+  @keyframes mascotBreathe {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.05) translateY(-4px); }
   }
   .login-eyebrow {
     font-size: 11.5px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
@@ -462,7 +462,7 @@
     <!-- ============ PANEL: LOGIN (premium, toàn màn hình) ============ -->
     <section class="panel" id="panel-login">
       <div class="login-shell">
-        <div class="login-badge-icon">PT</div>
+        <img class="login-mascot" src="https://s3.hn-2.cloud.cmctelecom.vn/rop/prod/UploadFile/2026/06/30/20260630144839679671baa808.png" alt="PTVH Mascot">
         <div class="login-eyebrow">WinCommerce · Phòng PTVH</div>
         <div class="login-heading">Cổng quản lý nội bộ</div>
         <div class="login-sub">Không còn trang công khai cho người ngoài — đăng nhập bằng email nội bộ để vào khu vực quản lý công việc, sự kiện và KPI của Phòng.</div>
@@ -472,7 +472,7 @@
           <div class="field">
             <label>Email nội bộ</label>
             <div class="email-input-row">
-              <input type="text" id="f-email" placeholder="ten.taikhoan" autocomplete="username" onkeydown="if(event.key==='Enter')submitEmailStep()">
+              <input type="text" id="f-email" placeholder="ten.taikhoan" autocomplete="off" name="ptvh_login_field_no_autofill" onkeydown="if(event.key==='Enter')submitEmailStep()">
               <span class="email-domain-suffix">@winmart.masangroup.com</span>
             </div>
           </div>
@@ -2931,6 +2931,9 @@ initAllMangSelects();
 renderSidebar();
 initOwnerSelects();
 go('login');
+// Ép xoá trắng ô email nếu trình duyệt tự autofill trước khi script kịp chạy (Chrome đôi khi autofill ngay khi vẽ xong DOM)
+setTimeout(() => { const f = document.getElementById('f-email'); if (f) f.value = ''; }, 0);
+window.addEventListener('pageshow', () => { const f = document.getElementById('f-email'); if (f) f.value = ''; });
 </script>
 </body>
 </html>
