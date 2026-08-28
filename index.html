@@ -564,7 +564,7 @@
         <p class="sub">Khối lượng công việc đang được phân bổ cho từng người trong Phòng</p>
         <div class="table-wrap">
         <table class="staff-stats-table">
-          <thead><tr><th>Nhân sự</th><th class="num">Mới tiếp nhận</th><th class="num">Đang xử lý</th><th class="num">Đã hoàn thành</th><th class="num">Xác nhận (TN/TP)</th><th class="num">Tổng CV</th></tr></thead>
+          <thead><tr><th>Nhân sự</th><th class="num">Chưa triển khai</th><th class="num">Đang thực hiện</th><th class="num">Đã hoàn thành</th><th class="num">Xác nhận (TN/TP)</th><th class="num">Tổng CV</th></tr></thead>
           <tbody id="staff-stats-body"></tbody>
         </table>
         </div>
@@ -1199,33 +1199,29 @@ function metaLine(obj) {
 }
 
 let staffCounter = 7;
-let STAFF = [
-  {name:'Ngô T. Minh Nguyệt — Trưởng phòng', email:'nguyet.ngo@wincommerce.vn'},
-  {name:'Nguyễn Thái Dương — Trưởng nhóm', email:'duong.nguyen@wincommerce.vn'},
-  {name:'Chuyên viên TTNB', email:'ttnb@wincommerce.vn'},
-  {name:'Chuyên viên Thi đua', email:'thidua@wincommerce.vn'},
-  {name:'Chuyên viên Sự kiện', email:'sukien@wincommerce.vn'},
-  {name:'Nhân viên PTVH', email:'nhanvien.ptvh@wincommerce.vn'},
-  {name:'Cộng tác viên', email:'ctv@wincommerce.vn'},
-];
+// STAFF nạp từ 02b.NhanSu (thật) ngay sau khi đăng nhập — xem refreshStaffList().
+// Mảng dưới đây chỉ là giá trị khởi tạo tạm trước khi đăng nhập (màn hình login chưa cần STAFF).
+let STAFF = [];
 function staffNames() { return STAFF.map(s => s.name); }
+
+/** Nạp danh sách nhân sự thật từ Google Sheet (thay cho danh sách demo cũ) — gọi ngay sau khi đăng nhập. */
+async function refreshStaffList() {
+  const r = await callPtvhApi('getActiveStaffList', {});
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không tải được danh sách nhân sự');
+    return;
+  }
+  STAFF = (r.data || []).map(s => ({ name: s.hoTen, email: s.email, msnv: s.msnv, vaiTro: s.vaiTro }));
+  initOwnerSelects(); // nạp lại dropdown Người phụ trách với tên thật
+}
 
 const MANG_LIST = ['Truyền thông nội bộ', 'Sự kiện & Phong trào', 'EB', 'Thi đua', 'Thiết kế & Media', 'Khác'];
 
 const SLA = { A: 10, B: 5, C: 2 };
 
-let workCounter = 9;
-let workItems = [
-  {ma:'CV-001', mang:'Thi đua', ten:'Thiết kế + phát hành thi đua push sale tuần 33', phanLoai:'B', boPhan:'Vận hành Miền Nam', nguoi:['Chuyên viên Thi đua'], han:'11/08/2026', trangThai:'Hoàn thành', chuongTrinh:'', linkThuMuc:'https://drive.google.com/drive/folders/thidua-t33', xacNhan:true, ngayTao:'01/08/2026', nguoiTao:'Chuyên viên Thi đua', nguoiCapNhat:'Nguyễn Thái Dương — Trưởng nhóm', ngayCapNhat:'11/08/2026'},
-  {ma:'CV-002', mang:'Thiết kế & Media', ten:'Infographic chính sách phúc lợi mới', phanLoai:'B', boPhan:'Nhân sự', nguoi:['Nhân viên PTVH'], han:'12/08/2026', trangThai:'Hoàn thành', chuongTrinh:'', linkThuMuc:'', xacNhan:false, ngayTao:'02/08/2026', nguoiTao:'Nhân viên PTVH', nguoiCapNhat:'Nhân viên PTVH', ngayCapNhat:'12/08/2026'},
-  {ma:'CV-003', mang:'Sự kiện & Phong trào', ten:'Sự kiện khai trương WinMart+ / Đêm nhạc Cà Mau', phanLoai:'A', boPhan:'', nguoi:['Nguyễn Thái Dương — Trưởng nhóm'], han:'08/08/2026', trangThai:'Hoàn thành', chuongTrinh:'Khai trương WinMart+/WiN+ & Đêm nhạc Cà Mau', linkThuMuc:'https://drive.google.com/drive/folders/camau-2026', xacNhan:true, ngayTao:'20/07/2026', nguoiTao:'Nguyễn Thái Dương — Trưởng nhóm', nguoiCapNhat:'Nguyễn Thái Dương — Trưởng nhóm', ngayCapNhat:'08/08/2026'},
-  {ma:'CV-004', mang:'Truyền thông nội bộ', ten:'Bài viết tổng kết Hành trình triệu phú Hồ Tràm', phanLoai:'B', boPhan:'Marketing', nguoi:['Chuyên viên TTNB'], han:'14/08/2026', trangThai:'Đang xử lý', chuongTrinh:'Hành trình triệu phú Hồ Tràm', linkThuMuc:'', xacNhan:false, ngayTao:'09/08/2026', nguoiTao:'Chuyên viên TTNB', nguoiCapNhat:'Chuyên viên TTNB', ngayCapNhat:'09/08/2026'},
-  {ma:'CV-005', mang:'EB', ten:'Cung cấp nội dung WCM cho Tạp chí Masan số T9', phanLoai:'A', boPhan:'Ban VHDN — Tập đoàn', nguoi:['Chuyên viên TTNB'], han:'25/08/2026', trangThai:'Mới tiếp nhận', chuongTrinh:'', linkThuMuc:'', xacNhan:false, ngayTao:'15/08/2026', nguoiTao:'Chuyên viên TTNB', nguoiCapNhat:'Chuyên viên TTNB', ngayCapNhat:'15/08/2026'},
-  {ma:'CV-006', mang:'Truyền thông nội bộ', ten:'Chuỗi bài Masan Puzzle 17/08 – 11/09', phanLoai:'A', boPhan:'', nguoi:['Chuyên viên TTNB', 'Cộng tác viên'], han:'11/09/2026', trangThai:'Đang xử lý', chuongTrinh:'', linkThuMuc:'', xacNhan:false, ngayTao:'10/08/2026', nguoiTao:'Chuyên viên TTNB', nguoiCapNhat:'Chuyên viên TTNB', ngayCapNhat:'10/08/2026'},
-  {ma:'CV-007', mang:'Thiết kế & Media', ten:'Bộ ấn phẩm Trung thu 25/09', phanLoai:'A', boPhan:'', nguoi:['Nhân viên PTVH'], han:'15/09/2026', trangThai:'Đang xử lý', chuongTrinh:'Trung thu 2026', linkThuMuc:'', xacNhan:false, ngayTao:'12/08/2026', nguoiTao:'Nhân viên PTVH', nguoiCapNhat:'Nhân viên PTVH', ngayCapNhat:'12/08/2026'},
-  {ma:'CV-008', mang:'Sự kiện & Phong trào', ten:'Bổ sung Drone show cho khai trương Cà Mau', phanLoai:'C', boPhan:'Ban Lãnh đạo', nguoi:['Nguyễn Thái Dương — Trưởng nhóm'], han:'07/08/2026', trangThai:'Hoàn thành', chuongTrinh:'Khai trương WinMart+/WiN+ & Đêm nhạc Cà Mau', linkThuMuc:'https://drive.google.com/drive/folders/camau-drone', xacNhan:true, ngayTao:'05/08/2026', nguoiTao:'Nguyễn Thái Dương — Trưởng nhóm', nguoiCapNhat:'Nguyễn Thái Dương — Trưởng nhóm', ngayCapNhat:'07/08/2026'},
-  {ma:'CV-009', mang:'Khác', ten:'Rà soát quy trình lưu trữ hồ sơ nội bộ', phanLoai:'B', boPhan:'', nguoi:['Cộng tác viên'], han:'', trangThai:'Đang xử lý', chuongTrinh:'', linkThuMuc:'', xacNhan:false, ngayTao:'10/08/2026', nguoiTao:'Cộng tác viên', nguoiCapNhat:'Cộng tác viên', ngayCapNhat:'10/08/2026'},
-];
+// Module 2 đã nối API thật — workItems giờ nạp từ Google Sheet qua getCongViecList() (xem refreshCongViec()),
+// không còn dữ liệu mock. Mảng khởi tạo rỗng, điền ngay sau khi đăng nhập thành công.
+let workItems = [];
 
 let programCounter = 3;
 let programs = [
@@ -1553,13 +1549,15 @@ async function submitPinStep() {
   loginSuccess(r.user, r.token);
 }
 
-function loginSuccess(user, token) {
+async function loginSuccess(user, token) {
   sessionToken = token;
   currentUser = { name: user.hoTen, role: user.vaiTro, email: user.email, msnv: user.msnv };
   showToast('Đăng nhập thành công — ' + currentUser.name);
   backToEmailStep();
   initAllMangSelects();
   renderSidebar();
+  await refreshStaffList();  // nạp nhân sự thật trước — Công việc cần đúng tên để khớp thống kê
+  await refreshCongViec();   // tải dữ liệu Công việc thật trước khi vào Dashboard
   go('dashboard');
 }
 
@@ -1586,8 +1584,8 @@ function saveGasApiConfig() {
 function renderDashboard() {
   const total = workItems.length;
   const done = workItems.filter(w => w.trangThai === 'Hoàn thành').length;
-  const pending = workItems.filter(w => w.trangThai === 'Mới tiếp nhận').length;
-  const doing = workItems.filter(w => w.trangThai === 'Đang xử lý').length;
+  const pending = workItems.filter(w => w.trangThai === 'Chưa triển khai').length;
+  const doing = workItems.filter(w => w.trangThai === 'Đang thực hiện').length;
   const confirmed = workItems.filter(w => w.xacNhan).length;
 
   const nsNamTong = budgetYearRef.reduce((s,b)=>s+b.nsNam,0);
@@ -1597,8 +1595,8 @@ function renderDashboard() {
 
   const timelineNodes = [
     {cls:'total', ic:total, lbl:'Tổng đầu việc', sub:'Lũy kế toàn bộ'},
-    {cls:'pending', ic:pending, lbl:'Mới tiếp nhận', sub:'Chưa bắt đầu xử lý'},
-    {cls:'doing', ic:doing, lbl:'Đang xử lý', sub:'Chưa đóng trạng thái'},
+    {cls:'pending', ic:pending, lbl:'Chưa triển khai', sub:'Chưa bắt đầu xử lý'},
+    {cls:'doing', ic:doing, lbl:'Đang thực hiện', sub:'Chưa đóng trạng thái'},
     {cls:'done', ic:done, lbl:'Đã hoàn thành', sub:done + '/' + total + ' đầu việc'},
     {cls:'confirmed', ic:confirmed, lbl:'Đã xác nhận', sub:'Trưởng nhóm/Trưởng phòng'},
   ];
@@ -1746,10 +1744,46 @@ function setWorkView(mode) {
   else renderStaffTasks();
 }
 
+let congViecLoaded = false;
+async function refreshCongViec(showLoadingToast) {
+  if (showLoadingToast) showToast('Đang tải danh sách công việc...');
+  const r = await callPtvhApi('getCongViecList', {});
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không tải được danh sách công việc');
+    return;
+  }
+  workItems = (r.data || []).map(mapCongViecFromApi_);
+  congViecLoaded = true;
+  renderWork();
+}
+
+/** Chuyển object trả về từ API (schema thật, xem CongViec.gs) sang đúng field mà UI đang dùng. */
+function mapCongViecFromApi_(it) {
+  return {
+    ma: it.maViec,
+    mang: it.mang,
+    ten: it.ten,
+    moTa: it.moTa || '',
+    phanLoai: it.phanLoai || 'B',
+    nguoi: it.nguoiPhuTrach || [],
+    han: it.hanHoanThanhSLA ? fmtDate(new Date(it.hanHoanThanhSLA)) : '',
+    linkThuMuc: it.linkLuuTru || '',
+    trangThai: it.trangThai || 'Chưa triển khai',
+    chuongTrinh: it.thuocSuKien || '',
+    xacNhan: !!it.xacNhanHT,
+    boPhan: '', // báo cáo thật không có trường "bộ phận yêu cầu" riêng — mô tả hiển thị thay thế
+    ngayTao: it.ngayTao,
+    nguoiTao: it.nguoiTao,
+    nguoiCapNhat: it.nguoiCapNhat,
+    ngayCapNhat: it.ngayCapNhat,
+  };
+}
+
 function renderWork() {
   document.querySelectorAll('#work-view-filter .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.v === workViewMode));
   document.getElementById('work-view-task').style.display = workViewMode === 'task' ? 'block' : 'none';
   document.getElementById('work-view-staff').style.display = workViewMode === 'staff' ? 'block' : 'none';
+  if (!congViecLoaded) { refreshCongViec(); return; } // lần đầu vào tab: tải từ API rồi tự render lại
   if (workViewMode === 'task') renderWorkTaskView();
   else renderStaffTasks();
 }
@@ -1759,13 +1793,13 @@ function renderWorkTaskView() {
   const term = (document.getElementById('work-search')?.value || '').toLowerCase().trim();
   const rows = workItems
     .map((w, i) => ({w, i}))
-    .filter(({w}) => !term || [w.ma, w.mang, w.ten, w.phanLoai, w.nguoi.join(' '), w.chuongTrinh, w.trangThai, w.boPhan].join(' ').toLowerCase().includes(term));
+    .filter(({w}) => !term || [w.ma, w.mang, w.ten, w.phanLoai, w.nguoi.join(' '), w.chuongTrinh, w.trangThai, w.moTa].join(' ').toLowerCase().includes(term));
   document.getElementById('work-body').innerHTML = rows.length ? rows.map(({w, i}) => `
     <tr>
       <td style="font-weight:700;">${w.ma}</td>
       <td>${w.mang}</td>
       <td>${w.ten}
-        ${w.boPhan ? `<div class="subtext">YC từ: ${w.boPhan}</div>` : ''}
+        ${w.moTa ? `<div class="subtext">${w.moTa}</div>` : ''}
         ${w.chuongTrinh ? `<div class="subtext tag-prog">🎪 ${w.chuongTrinh}</div>` : ''}
         ${metaLine(w)}
       </td>
@@ -1775,47 +1809,52 @@ function renderWorkTaskView() {
       <td><input class="inline" style="width:150px" value="${w.linkThuMuc || ''}" placeholder="Dán link thư mục..." onchange="updateWorkLink(${i}, this.value)"></td>
       <td>
         <select class="inline" id="wt-${i}" onchange="updateWorkStatus(${i})">
-          <option ${w.trangThai==='Mới tiếp nhận'?'selected':''}>Mới tiếp nhận</option>
-          <option ${w.trangThai==='Đang xử lý'?'selected':''}>Đang xử lý</option>
+          <option ${w.trangThai==='Chưa triển khai'?'selected':''}>Chưa triển khai</option>
+          <option ${w.trangThai==='Đang thực hiện'?'selected':''}>Đang thực hiện</option>
           <option ${w.trangThai==='Hoàn thành'?'selected':''}>Hoàn thành</option>
         </select>
       </td>
       <td>${xacNhanCellHTML(w, i)}</td>
     </tr>`).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy đầu việc phù hợp</td></tr>';
 }
-function addWork() {
+async function addWork() {
   const ten = document.getElementById('w-ten').value.trim();
   const owners = [...document.querySelectorAll('#w-owners .owner-select')].map(s => s.value);
   if (!ten) { showToast('Vui lòng nhập Tên công việc'); return; }
 
   const selPill = document.querySelector('#w-phanloai .pill[data-selected="1"]');
   const phanLoai = selPill ? selPill.dataset.v : 'B';
-  const hanRaw = document.getElementById('w-han').value;
-  const han = hanRaw ? fmtDate(new Date(hanRaw)) : '';
+  const hanRaw = document.getElementById('w-han').value; // chỉ dùng làm gợi ý client-side, backend tự tính lại theo SLA
 
-  workCounter++;
-  workItems.unshift({
-    ma: 'CV-' + String(workCounter).padStart(3,'0'),
-    mang: document.getElementById('w-mang').value,
-    ten,
-    phanLoai,
-    boPhan: document.getElementById('w-bophan').value.trim(),
-    nguoi: owners,
-    han,
-    trangThai: 'Mới tiếp nhận',
-    chuongTrinh: document.getElementById('w-chuongtrinh').value || '',
-    linkThuMuc: '',
-    xacNhan: false,
+  const btn = document.querySelector('#work-form button[onclick="addWork()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Đang lưu...'; }
+
+  const r = await callPtvhApi('addCongViec', {
+    payload: {
+      mang: document.getElementById('w-mang').value,
+      ten,
+      moTa: document.getElementById('w-mota').value.trim(),
+      phanLoai,
+      nguoiPhuTrach: owners,
+      thuocSuKien: document.getElementById('w-chuongtrinh').value || '',
+      ngayNhanTask: hanRaw || undefined,
+    },
   });
-  stampMeta(workItems[0]);
 
-  ['w-ten','w-bophan','w-han','w-mota'].forEach(id => document.getElementById(id).value = '');
+  if (btn) { btn.disabled = false; btn.textContent = 'Thêm vào bảng theo dõi'; }
+
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Thêm đầu việc thất bại');
+    return;
+  }
+
+  ['w-ten','w-bophan','w-han','w-mota'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('w-chuongtrinh').value = '';
   [...document.querySelectorAll('#w-phanloai .pill')].forEach(p => { p.className = 'pill'; delete p.dataset.selected; });
   initOwnerSelects();
-  showToast('Đã thêm đầu việc — email thông báo sẽ gửi cho ' + owners.join(', ') + ' (mô phỏng)');
+  showToast('Đã thêm đầu việc ' + r.maViec + ' — email thông báo đã gửi cho ' + owners.join(', '));
   closeForm('work-form');
-  renderWork();
+  await refreshCongViec();
 }
 function overdueWarnHTML(w) {
   if (w.han) return '';
@@ -1825,25 +1864,39 @@ function overdueWarnHTML(w) {
   if (days < 7) return '';
   return `<div class="subtext" style="color:var(--danger); font-weight:700;">⚠️ Chưa có hạn HT — quá ${days} ngày, cần cảnh báo tiến độ</div>`;
 }
-function updateWorkStatus(i) {
+async function updateWorkStatus(i) {
   const val = document.getElementById('wt-' + i).value;
-  workItems[i].trangThai = val;
-  if (val !== 'Hoàn thành') workItems[i].xacNhan = false;
-  stampMeta(workItems[i]);
-  showToast('Đã cập nhật trạng thái ' + workItems[i].ma);
-  renderWork();
+  const maViec = workItems[i].ma;
+  const r = await callPtvhApi('updateCongViecTrangThai', { maViec, trangThaiMoi: val });
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Cập nhật trạng thái thất bại');
+    renderWork(); // khôi phục lại lựa chọn cũ trên dropdown
+    return;
+  }
+  showToast('Đã cập nhật trạng thái ' + maViec + (val === 'Hoàn thành' ? ' — đã báo Trưởng nhóm/Trưởng phòng xác nhận' : ''));
+  await refreshCongViec();
 }
-function updateWorkLink(i, val) {
+async function updateWorkLink(i, val) {
+  const maViec = workItems[i].ma;
+  const r = await callPtvhApi('updateCongViecLinkLuuTru', { maViec, link: val.trim() });
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Lưu link thất bại');
+    return;
+  }
   workItems[i].linkThuMuc = val.trim();
-  stampMeta(workItems[i]);
-  showToast('Đã lưu link thư mục lưu trữ cho ' + workItems[i].ma);
+  showToast('Đã lưu link thư mục lưu trữ cho ' + maViec);
 }
-function confirmWork(i) {
-  workItems[i].xacNhan = true;
-  stampMeta(workItems[i]);
-  showToast('Đã xác nhận hoàn thành ' + workItems[i].ma);
-  renderWork();
+async function confirmWork(i) {
+  const maViec = workItems[i].ma;
+  const r = await callPtvhApi('xacNhanHoanThanhCongViec', { maViec });
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Xác nhận thất bại');
+    return;
+  }
+  showToast('Đã xác nhận hoàn thành ' + maViec + ' — đã báo người phụ trách');
+  await refreshCongViec();
 }
+
 
 /* ---------------- SU KIEN (truoc day: Chuong trinh) ---------------- */
 function linkRowHTML(l) {
@@ -2078,7 +2131,7 @@ function previewCompetitionPoster(event) {
   reader.readAsDataURL(file);
 }
 function statusBadgeWork(status) {
-  const map = { 'Mới tiếp nhận': 'muted', 'Đang xử lý': 'warning', 'Hoàn thành': 'good' };
+  const map = { 'Chưa triển khai': 'muted', 'Đang thực hiện': 'warning', 'Hoàn thành': 'good' };
   return `<span class="badge"><span class="dot ${map[status]||'muted'}"></span>${status}</span>`;
 }
 function statusBadge2(status) {
@@ -2772,8 +2825,8 @@ function renderStaffStats() {
   if (!el) return;
   el.innerHTML = STAFF.map(s => {
     const mine = workItems.filter(w => w.nguoi.includes(s.name));
-    const pending = mine.filter(w => w.trangThai === 'Mới tiếp nhận').length;
-    const doing = mine.filter(w => w.trangThai === 'Đang xử lý').length;
+    const pending = mine.filter(w => w.trangThai === 'Chưa triển khai').length;
+    const doing = mine.filter(w => w.trangThai === 'Đang thực hiện').length;
     const done = mine.filter(w => w.trangThai === 'Hoàn thành').length;
     const confirmed = mine.filter(w => w.xacNhan).length;
     return `
@@ -2791,13 +2844,13 @@ function renderStaffStats() {
 function renderWorkPipeline() {
   const el = document.getElementById('work-pipeline');
   if (!el) return;
-  const pending = workItems.filter(w => w.trangThai === 'Mới tiếp nhận').length;
-  const doing = workItems.filter(w => w.trangThai === 'Đang xử lý').length;
+  const pending = workItems.filter(w => w.trangThai === 'Chưa triển khai').length;
+  const doing = workItems.filter(w => w.trangThai === 'Đang thực hiện').length;
   const done = workItems.filter(w => w.trangThai === 'Hoàn thành').length;
   const confirmed = workItems.filter(w => w.xacNhan).length;
   const stages = [
-    {cls:'st-pending', lbl:'Mới tiếp nhận', n:pending},
-    {cls:'st-doing', lbl:'Đang xử lý', n:doing},
+    {cls:'st-pending', lbl:'Chưa triển khai', n:pending},
+    {cls:'st-doing', lbl:'Đang thực hiện', n:doing},
     {cls:'st-done', lbl:'Đã hoàn thành', n:done},
     {cls:'st-confirmed', lbl:'Đã xác nhận (TN/TP)', n:confirmed},
   ];
