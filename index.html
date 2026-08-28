@@ -1,0 +1,2936 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PTVH — Demo luồng hệ thống (Sheet + GAS + Web)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap');
+
+  :root.viz-root, .viz-root {
+    color-scheme: light;
+    --font: 'Be Vietnam Pro', system-ui, -apple-system, "Segoe UI", sans-serif;
+
+    /* ==== Bảng màu theo Design Guideline "Đăng ký sự kiện" ==== */
+    --primary: #E2231A;
+    --primary-dark: #B01810;
+    --success: #0e9f6e;
+    --danger: #f05252;
+    --warning: #e3a008;
+
+    --surface-1: #ffffff;
+    --page: #faf6f5;
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --gridline: #e2e8f0;
+    --border: #e2e8f0;
+
+    --good: #0e9f6e;
+    --critical: #f05252;
+
+    --radius-lg: 16px;
+    --radius-md: 10px;
+    --radius-pill: 100px;
+    --shadow-card: 0 4px 24px rgba(0,0,0,.08);
+    --shadow-tabs: 0 2px 10px rgba(0,0,0,.05);
+    --header-h: 66px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    background: var(--page);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body.is-login header.app,
+  body.is-login .sidebar,
+  body.is-login .sidebar-backdrop { display: none; }
+
+  /* ---------- HEADER ---------- */
+  header.app {
+    background: linear-gradient(160deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
+    padding: 13px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+    height: var(--header-h);
+  }
+  header.app::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 140% 140% at 10% -40%, rgba(255,255,255,.18) 0%, transparent 55%);
+    pointer-events: none;
+  }
+  header.app .left-group { display: flex; align-items: center; gap: 12px; position: relative; }
+  .hamburger-btn {
+    display: none; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.3);
+    color: #fff; width: 36px; height: 36px; border-radius: 8px;
+    align-items: center; justify-content: center; cursor: pointer; font-size: 16px; flex: none;
+  }
+  header.app .brand { display: flex; align-items: center; gap: 12px; }
+  header.app .brand .logo {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: rgba(255,255,255,0.16);
+    border: 1px solid rgba(255,255,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px; letter-spacing: .02em;
+  }
+  header.app h1 { font-size: 15.5px; margin: 0; font-weight: 800; }
+  header.app p { margin: 2px 0 0; font-size: 12px; color: rgba(255,255,255,.82); }
+  header.app .badge-demo {
+    position: relative;
+    font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-pill);
+    background: rgba(255,255,255,0.16); color: #fff; letter-spacing: .02em;
+    border: 1px solid rgba(255,255,255,0.28); white-space: nowrap;
+  }
+
+  /* ---------- APP BODY: SIDEBAR + MAIN ---------- */
+  .app-body { display: flex; align-items: flex-start; min-height: calc(100vh - var(--header-h)); }
+
+  .sidebar {
+    width: 224px; flex: none; background: var(--surface-1);
+    border-right: 1px solid var(--gridline);
+    padding: 16px 12px 20px;
+    align-self: stretch;
+  }
+  .sidebar-close { display: none; }
+  .sidebar-nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px;
+    font-size: 13px; font-weight: 700; color: var(--text-secondary); cursor: pointer;
+    margin-bottom: 4px; border: none; background: none; width: 100%; text-align: left;
+    font-family: var(--font);
+  }
+  .sidebar-nav-item .ic { width: 20px; text-align: center; font-size: 15px; flex: none; }
+  .sidebar-nav-item:hover { background: var(--page); color: var(--primary); }
+  .sidebar-nav-item.active { background: #fdeceb; color: var(--primary-dark); }
+  .sidebar-foot {
+    margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--gridline);
+  }
+  .sidebar-foot .sidebar-nav-item { color: var(--text-muted); }
+  .sidebar-user {
+    font-size: 11.5px; color: var(--text-muted); padding: 6px 12px 12px; line-height: 1.5;
+  }
+  .sidebar-user b { color: var(--text-primary); display: block; font-size: 12.5px; }
+
+  .sidebar-backdrop { display: none; }
+
+  @media (max-width: 880px) {
+    .hamburger-btn { display: inline-flex; }
+    .sidebar {
+      position: fixed; top: 0; left: -270px; height: 100vh; z-index: 60; width: 250px;
+      transition: left .25s ease; overflow-y: auto; padding-top: 18px;
+    }
+    .sidebar.open { left: 0; box-shadow: 10px 0 34px rgba(0,0,0,.18); }
+    .sidebar-close {
+      display: flex; align-items: center; justify-content: space-between; width: 100%;
+      padding: 0 4px 14px; font-size: 13px; font-weight: 800; color: var(--text-primary);
+    }
+    .sidebar-close button { border: none; background: var(--page); border-radius: 8px; width: 30px; height: 30px; cursor: pointer; font-size: 15px; color: var(--text-secondary); }
+    .sidebar-backdrop.show {
+      display: block; position: fixed; inset: 0; background: rgba(15,15,15,.4); z-index: 50;
+    }
+  }
+
+  main { flex: 1; min-width: 0; padding: 26px 24px 60px; }
+  body.is-login main { max-width: none; padding: 0; }
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeIn .18s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px);} to { opacity:1; transform:none;} }
+
+  .card {
+    background: var(--surface-1); border: 1px solid var(--gridline);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-card);
+    padding: 22px 24px; margin-bottom: 18px;
+  }
+  .card h2 { font-size: 16px; margin: 0 0 4px; font-weight: 800; }
+  .card .sub { font-size: 12.5px; color: var(--text-muted); margin: 0 0 18px; }
+  .card-head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  @media (max-width: 640px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+  label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+  input[type=text], input[type=email], input[type=date], input[type=number], input[type=url], select, textarea {
+    width: 100%; padding: 11px 14px; border: 2px solid var(--border); border-radius: var(--radius-md);
+    font-size: 14px; font-family: var(--font); background: #fff; color: var(--text-primary);
+    outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+  textarea { resize: vertical; min-height: 64px; }
+  .field { margin-bottom: 14px; }
+
+  .pills { display: flex; gap: 8px; }
+  .pill {
+    flex: 1; text-align: center; padding: 10px 8px; border: 1.5px solid var(--border);
+    border-radius: 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; color: var(--text-secondary);
+    background: #fff;
+  }
+  .pill.selected-A { background: #fdeceb; border-color: var(--primary); color: var(--primary-dark); }
+  .pill.selected-B { background: #fdf3d8; border-color: var(--warning); color: #8a5a00; }
+  .pill.selected-C { background: #fde3e3; border-color: var(--danger); color: #b3271f; }
+
+  button.btn, a.btn {
+    display: inline-block; border: none; border-radius: var(--radius-md); padding: 10px 18px; font-size: 13px; font-weight: 700;
+    cursor: pointer; background: var(--primary); color: #fff; font-family: var(--font); text-decoration: none;
+  }
+  button.btn:hover, a.btn:hover { background: var(--primary-dark); color: #fff; }
+  button.btn.secondary, a.btn.secondary { background: #fff; color: var(--primary); border: 1.5px solid var(--primary); }
+  button.btn.secondary:hover, a.btn.secondary:hover { background: var(--page); color: var(--primary); }
+  button.btn.ghost, a.btn.ghost { background: #fff; color: var(--text-secondary); border: 1.5px solid var(--border); }
+  button.btn.ghost:hover, a.btn.ghost:hover { background: var(--page); }
+  button.btn.sm, a.btn.sm { padding: 7px 12px; font-size: 12px; }
+  button.btn:disabled { opacity: .6; cursor: not-allowed; }
+
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+  .stat-row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 760px) { .stat-row, .stat-row-3 { grid-template-columns: repeat(2, 1fr); } }
+  .stat-tile {
+    background: var(--surface-1); border: 1.5px solid var(--gridline); border-radius: var(--radius-lg);
+    padding: 16px 18px; box-shadow: var(--shadow-card);
+  }
+  .stat-tile .lbl { font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .stat-tile .val { font-size: 26px; font-weight: 800; margin-top: 6px; font-variant-numeric: tabular-nums; color: var(--primary); }
+  .stat-tile .delta { font-size: 11.5px; margin-top: 4px; color: var(--text-secondary); }
+  .stat-tile.warn .val { color: var(--danger); }
+  .stat-tile.flat { box-shadow: none; background: var(--page); border-color: var(--gridline); }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.8px; min-width: 560px; }
+  th { text-align: left; font-size: 11.5px; color: var(--primary-dark); padding: 10px 10px; font-weight: 700; white-space: nowrap; }
+  thead th { background: #fdeceb; border-bottom: 2px solid #f3c6c2; }
+  thead th:first-child { border-top-left-radius: 8px; }
+  thead th:last-child { border-top-right-radius: 8px; }
+  td { padding: 10px 10px; border-bottom: 1px solid var(--gridline); vertical-align: middle; }
+  tbody tr:hover { background: var(--page); }
+  tr:last-child td { border-bottom: none; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--text-primary); white-space: nowrap; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .dot.muted { background: var(--text-muted); }
+  .dot.warning { background: var(--warning); }
+  .dot.good { background: var(--success); }
+  .dot.critical { background: var(--danger); }
+  select.inline { padding: 6px 26px 6px 10px; font-size: 12px; border-radius: 8px; min-width: 128px; border-width: 1.5px; }
+  input.inline { padding: 6px 10px; font-size: 12px; border-radius: 8px; border-width: 1.5px; }
+  .subtext { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .subtext.tag-prog { color: var(--primary-dark); }
+
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .bar-row .name { width: 190px; font-size: 12.5px; color: var(--text-secondary); flex: none; }
+  .bar-track { flex: 1; height: 10px; background: var(--gridline); border-radius: 6px; overflow: hidden; }
+  .bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--primary-dark)); border-radius: 6px; }
+  .bar-row .n { width: 28px; text-align: right; font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .hint { font-size: 12px; color: var(--text-muted); margin-top: 10px; text-align: center; }
+  .toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    background: var(--text-primary); color: #fff; padding: 12px 20px; border-radius: var(--radius-md);
+    font-size: 13px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,.2);
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 90; max-width: 90vw;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+
+  .kpi-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .kpi-total {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 14px; padding: 14px 16px; border-radius: var(--radius-md); background: #fdeceb;
+  }
+  .kpi-total .lbl { font-size: 13px; font-weight: 700; color: var(--primary-dark); }
+  .kpi-total .val { font-size: 22px; font-weight: 800; color: var(--primary-dark); font-variant-numeric: tabular-nums; }
+
+  .flow-note {
+    font-size: 12px; color: var(--text-muted); background: #fff; border: 1px dashed var(--gridline);
+    border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 18px;
+  }
+  .flow-note b { color: var(--text-secondary); }
+
+  .filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .filter-btn {
+    padding: 7px 16px; border-radius: var(--radius-pill); border: 1.5px solid var(--border);
+    background: #fff; font-family: var(--font); font-size: 12.5px; font-weight: 700; color: var(--text-muted);
+    cursor: pointer;
+  }
+  .filter-btn.active { border-color: var(--primary); background: #fdeceb; color: var(--primary-dark); }
+
+  .status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 700; }
+  .status-pill.plan { background: #eef2ff; color: #3730a3; }
+  .status-pill.done { background: #f0fdf4; color: #166534; }
+
+  .edit-card { border: 1.5px dashed var(--primary); background: #fff8f7; }
+  .collapsible-form { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--gridline); }
+  .staff-stats-table td.num, .staff-stats-table th.num { text-align: center; }
+  .webapp-link { font-weight: 700; color: var(--primary-dark); text-decoration: none; }
+  .webapp-link:hover { text-decoration: underline; }
+  .webapp-type-tag { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); background: var(--page); color: var(--text-secondary); border: 1px solid var(--gridline); white-space: nowrap; }
+
+  .search-bar { position: relative; margin-bottom: 14px; max-width: 320px; }
+  .search-bar input { padding-left: 34px; }
+  .search-bar .search-ic { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--text-muted); pointer-events: none; }
+
+  .pipeline-row { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; }
+  .pipeline-stage { flex: 1; min-width: 130px; background: var(--page); border: 1.5px solid var(--gridline); border-radius: var(--radius-md); padding: 16px; text-align: center; }
+  .pipeline-stage .n { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text-primary); }
+  .pipeline-stage .lbl { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .03em; }
+  .pipeline-arrow { display: flex; align-items: center; justify-content: center; width: 30px; color: var(--text-muted); font-size: 18px; flex: none; }
+  .pipeline-stage.st-pending .n { color: var(--text-muted); }
+  .pipeline-stage.st-doing .n { color: var(--warning); }
+  .pipeline-stage.st-done .n { color: var(--success); }
+  .pipeline-stage.st-confirmed .n { color: var(--primary); }
+  @media (max-width: 760px) { .pipeline-arrow { display: none; } .pipeline-row { gap: 10px; } }
+
+  /* ---------- TIMELINE TIẾN ĐỘ CÔNG VIỆC (dashboard, đầu trang) ---------- */
+  .work-timeline { display: flex; align-items: flex-start; padding: 12px 4px 4px; }
+  .work-timeline-node { flex: 1; min-width: 0; position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .work-timeline-node .connector {
+    position: absolute; top: 23px; right: 50%; width: 100%; height: 4px;
+    background: var(--gridline); z-index: 0; border-radius: 2px;
+  }
+  .work-timeline-node:first-child .connector { display: none; }
+  .work-timeline-dot {
+    width: 46px; height: 46px; border-radius: 50%; z-index: 1;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; font-weight: 800; color: #fff;
+    box-shadow: 0 3px 10px rgba(0,0,0,.14); border: 3px solid var(--surface-1);
+  }
+  .work-timeline-node.total .work-timeline-dot { background: linear-gradient(160deg, var(--text-primary), #334155); font-size: 15px; }
+  .work-timeline-node.pending .work-timeline-dot { background: var(--text-muted); }
+  .work-timeline-node.doing .work-timeline-dot { background: var(--warning); }
+  .work-timeline-node.done .work-timeline-dot { background: var(--success); }
+  .work-timeline-node.confirmed .work-timeline-dot { background: var(--primary); }
+  .work-timeline-lbl { margin-top: 9px; font-size: 11.5px; font-weight: 700; color: var(--text-secondary); }
+  .work-timeline-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+  @media (max-width: 640px) {
+    .work-timeline { flex-direction: column; align-items: stretch; gap: 14px; }
+    .work-timeline-node { flex-direction: row; text-align: left; gap: 12px; }
+    .work-timeline-node .connector { display: none; }
+    .work-timeline-lbl, .work-timeline-sub { margin-top: 0; }
+  }
+
+  .webapp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 760px) { .webapp-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .webapp-grid { grid-template-columns: 1fr; } }
+  .webapp-card {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 8px; text-decoration: none;
+    background: var(--surface-1); border: 1.5px solid var(--gridline); border-radius: var(--radius-lg);
+    padding: 20px; box-shadow: var(--shadow-card); transition: transform .12s, border-color .12s;
+  }
+  .webapp-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+  .webapp-card-icon { width: 44px; height: 44px; border-radius: 12px; background: #fdeceb; display:flex; align-items:center; justify-content:center; font-size: 22px; }
+  .webapp-card-title { font-size: 14px; font-weight: 800; color: var(--text-primary); }
+  .webapp-card-sub { font-size: 12px; color: var(--text-muted); }
+  .link-row { display: flex; gap: 6px; margin-bottom: 6px; }
+  .link-row input { flex: 1; }
+  .link-chip-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+
+  .doc-folder-block { margin-bottom: 22px; }
+  .doc-folder-block:last-child { margin-bottom: 0; }
+  .doc-folder-title { font-size: 13px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .doc-folder-count { font-size: 11px; font-weight: 700; color: var(--text-muted); background: var(--page); border-radius: var(--radius-pill); padding: 1px 8px; }
+
+  /* ================= LOGIN — TRẢI NGHIỆM PREMIUM RIÊNG ================= */
+  #panel-login.active { display: flex; }
+  #panel-login {
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, var(--primary) 0%, var(--primary-dark) 100%);
+    position: relative;
+    overflow: hidden;
+    padding: 40px 20px;
+  }
+  #panel-login::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 140% 100% at 15% -20%, rgba(255,255,255,.20) 0%, transparent 55%);
+    pointer-events: none;
+  }
+  #panel-login::after {
+    content: '';
+    position: absolute; width: 480px; height: 480px; border-radius: 50%;
+    right: -160px; bottom: -180px;
+    background: radial-gradient(circle, rgba(255,255,255,.10) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .login-shell {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 380px;
+    display: flex; flex-direction: column; align-items: center;
+    animation: loginIn .5s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes loginIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .login-badge-icon {
+    width: 60px; height: 60px; border-radius: 16px;
+    background: rgba(255,255,255,.14);
+    border: 1px solid rgba(255,255,255,.32);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 22px; color: #fff; letter-spacing: .02em;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 24px rgba(176,24,16,.35);
+  }
+  .login-eyebrow {
+    font-size: 11.5px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(255,255,255,.85); margin-bottom: 8px;
+  }
+  .login-heading {
+    font-size: 24px; font-weight: 800; color: #fff; text-align: center; margin-bottom: 6px;
+  }
+  .login-sub {
+    font-size: 13px; color: rgba(255,255,255,.82); text-align: center; max-width: 300px;
+    line-height: 1.6; margin-bottom: 28px;
+  }
+  .login-card {
+    width: 100%;
+    background: var(--surface-1);
+    border-radius: 20px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.28);
+    padding: 30px 28px 26px;
+  }
+  .login-card .field label { text-align: left; }
+  .login-card input#f-pin, .login-card input#f-otp, .login-card input#f-newpin, .login-card input#f-newpin-confirm {
+    text-align: center; letter-spacing: .5em; font-size: 20px; font-weight: 700;
+    padding: 13px 10px 13px 16px;
+  }
+  .login-submit-btn { width: 100%; padding: 12px 18px; font-size: 14px; letter-spacing: .01em; margin-bottom: 8px; }
+  .email-input-row { display: flex; align-items: stretch; border: 1px solid var(--gridline); border-radius: 10px; overflow: hidden; background: #fff; }
+  .email-input-row input { border: none; border-radius: 0; flex: 1; min-width: 0; }
+  .email-input-row input:focus { outline: none; box-shadow: none; }
+  .email-domain-suffix {
+    display: flex; align-items: center; padding: 0 12px; font-size: 12.5px;
+    color: var(--text-muted); background: var(--page); white-space: nowrap; border-left: 1px solid var(--gridline);
+  }
+  .login-step-note { font-size: 13px; color: var(--text-secondary); text-align: center; margin: 0 0 16px; }
+  .login-hint { font-size: 12px; color: rgba(255,255,255,.75); text-align: center; margin-top: 10px; }
+  .login-hint a { color: #fff; text-decoration: underline; }
+  #login-email-hint { color: var(--text-muted); }
+  .login-divider {
+    display: flex; align-items: center; gap: 10px; margin: 18px 0 14px;
+    font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em;
+  }
+  .login-divider::before, .login-divider::after { content: ''; flex: 1; height: 1px; background: var(--gridline); }
+  .demo-chip-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .demo-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11.5px; font-weight: 600; color: var(--text-secondary);
+    background: var(--page); border: 1px solid var(--gridline);
+    padding: 6px 12px; border-radius: var(--radius-pill);
+  }
+  .demo-chip b { color: var(--primary); font-weight: 800; font-family: monospace; letter-spacing: .04em; }
+  .login-foot {
+    margin-top: 26px; font-size: 11.5px; color: rgba(255,255,255,.7); text-align: center;
+  }
+</style>
+</head>
+<body class="viz-root">
+
+<header class="app">
+  <div class="left-group">
+    <button class="hamburger-btn" onclick="toggleSidebar()" title="Mở menu">☰</button>
+    <div class="brand">
+      <div class="logo">PT</div>
+      <div>
+        <h1>PTVH — Cổng tiếp nhận &amp; quản lý công việc</h1>
+        <p>WinCommerce · Demo luồng hệ thống (Google Sheet + Apps Script + Web)</p>
+      </div>
+    </div>
+  </div>
+  <span class="badge-demo">● DEMO — dữ liệu mô phỏng trong trình duyệt</span>
+</header>
+
+<div class="app-body">
+
+  <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-close">
+      <span>Menu chức năng</span>
+      <button onclick="closeSidebar()">✕</button>
+    </div>
+    <div id="sidebar-user" class="sidebar-user"></div>
+    <div id="sidebar-nav"></div>
+    <div class="sidebar-foot">
+      <button class="sidebar-nav-item" onclick="doLogout()"><span class="ic">↪</span> Đăng xuất</button>
+    </div>
+  </aside>
+
+  <main>
+
+    <!-- ============ PANEL: LOGIN (premium, toàn màn hình) ============ -->
+    <section class="panel" id="panel-login">
+      <div class="login-shell">
+        <div class="login-badge-icon">PT</div>
+        <div class="login-eyebrow">WinCommerce · Phòng PTVH</div>
+        <div class="login-heading">Cổng quản lý nội bộ</div>
+        <div class="login-sub">Không còn trang công khai cho người ngoài — đăng nhập bằng email nội bộ để vào khu vực quản lý công việc, sự kiện và KPI của Phòng.</div>
+
+        <!-- BƯỚC 1: nhập tên email (không cần @...) -->
+        <div class="login-card" id="login-step-email">
+          <div class="field">
+            <label>Email nội bộ</label>
+            <div class="email-input-row">
+              <input type="text" id="f-email" placeholder="ten.taikhoan" autocomplete="username" onkeydown="if(event.key==='Enter')submitEmailStep()">
+              <span class="email-domain-suffix">@winmart.masangroup.com</span>
+            </div>
+          </div>
+          <button class="btn login-submit-btn" id="login-step-email-btn" onclick="submitEmailStep()">Tiếp tục</button>
+          <div class="login-hint" id="login-email-hint">Lần đầu đăng nhập, hệ thống sẽ gửi mã OTP về email để bạn khởi tạo PIN.</div>
+        </div>
+
+        <!-- BƯỚC 2 (chỉ lần đầu): nhập OTP + đặt PIN mới -->
+        <div class="login-card" id="login-step-otp" style="display:none;">
+          <p class="login-step-note">Đã gửi mã OTP tới <b id="login-otp-email-display"></b> — mã có hiệu lực trong 5 phút.</p>
+          <div class="field">
+            <label>Mã OTP (6 số)</label>
+            <input type="text" id="f-otp" placeholder="••••••" maxlength="6" inputmode="numeric">
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Đặt PIN mới (4 số)</label><input type="password" id="f-newpin" placeholder="••••" maxlength="4" inputmode="numeric"></div>
+            <div class="field"><label>Nhập lại PIN</label><input type="password" id="f-newpin-confirm" placeholder="••••" maxlength="4" inputmode="numeric"></div>
+          </div>
+          <button class="btn login-submit-btn" id="login-step-otp-btn" onclick="submitOtpStep()">Xác nhận &amp; đăng nhập</button>
+          <button class="btn ghost login-submit-btn" onclick="resendOtp()">Gửi lại mã OTP</button>
+          <div class="login-hint">
+            <a href="#" onclick="backToEmailStep(); return false;">← Nhập email khác</a>
+          </div>
+        </div>
+
+        <!-- BƯỚC 3 (các lần sau): đăng nhập bằng PIN -->
+        <div class="login-card" id="login-step-pin" style="display:none;">
+          <p class="login-step-note">Xin chào <b id="login-pin-name-display"></b> — nhập PIN để đăng nhập.</p>
+          <div class="field">
+            <label>Mã PIN</label>
+            <input type="password" id="f-pin" placeholder="••••" maxlength="4" inputmode="numeric" onkeydown="if(event.key==='Enter')submitPinStep()">
+          </div>
+          <button class="btn login-submit-btn" id="login-step-pin-btn" onclick="submitPinStep()">Đăng nhập</button>
+          <div class="login-hint">
+            Quên PIN? Liên hệ Trưởng nhóm/Trưởng phòng để reset — <a href="#" onclick="backToEmailStep(); return false;">nhập email khác</a>
+          </div>
+        </div>
+
+        <div class="login-foot">© WinCommerce/Masan · Phòng Phát triển Văn hóa</div>
+      </div>
+    </section>
+
+    <!-- ============ PANEL: DASHBOARD ============ -->
+    <section class="panel" id="panel-dashboard">
+      <div class="flow-note">
+        <b>Dashboard:</b> số liệu tổng hợp trực tiếp (trong bản thật lấy từ Google Sheet qua Apps Script). Dùng menu bên trái để vào từng chức năng.
+      </div>
+      <div class="card" style="margin-bottom:18px;">
+        <h2 style="margin-bottom:2px;">Tiến độ công việc</h2>
+        <p class="sub">Toàn bộ đầu việc hiện có, chia theo trạng thái xử lý</p>
+        <div class="work-timeline" id="work-status-timeline"></div>
+      </div>
+      <div class="stat-row-3" id="stat-row" style="margin-bottom:18px;"></div>
+
+      <div class="card">
+        <div class="card-head-row">
+          <div>
+            <h2>Báo cáo theo kỳ</h2>
+            <p class="sub" style="margin-bottom:0;">Tổng hợp nhanh theo tháng hiện tại hoặc lũy kế từ đầu năm</p>
+          </div>
+          <div class="filter-row" id="period-filter" style="margin-bottom:0;">
+            <button class="filter-btn" data-p="MTD" onclick="setPeriod('MTD')">Tháng này (MTD)</button>
+            <button class="filter-btn" data-p="YTD" onclick="setPeriod('YTD')">Từ đầu năm (YTD)</button>
+          </div>
+        </div>
+        <div class="stat-row-3" id="period-stats" style="margin-top:16px;"></div>
+      </div>
+
+      <div class="card">
+        <h2>Công việc theo mảng</h2>
+        <p class="sub">Xếp theo số lượng đầu việc, tính từ toàn bộ dữ liệu hiện có</p>
+        <div id="bar-chart"></div>
+      </div>
+
+      <div class="card">
+        <h2>Chỉ số mảng EB (Employer Branding)</h2>
+        <p class="sub">Theo dõi riêng khối lượng công việc và ngân sách của mảng EB</p>
+        <div class="stat-row-3" id="eb-stats"></div>
+      </div>
+
+      <div class="card">
+        <h2>Pipeline công việc</h2>
+        <p class="sub">Luồng xử lý tổng thể của toàn bộ đầu việc hiện có</p>
+        <div class="pipeline-row" id="work-pipeline"></div>
+      </div>
+
+      <div class="card">
+        <h2>Thống kê công việc theo nhân sự</h2>
+        <p class="sub">Khối lượng công việc đang được phân bổ cho từng người trong Phòng</p>
+        <div class="table-wrap">
+        <table class="staff-stats-table">
+          <thead><tr><th>Nhân sự</th><th class="num">Mới tiếp nhận</th><th class="num">Đang xử lý</th><th class="num">Đã hoàn thành</th><th class="num">Xác nhận (TN/TP)</th><th class="num">Tổng CV</th></tr></thead>
+          <tbody id="staff-stats-body"></tbody>
+        </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PANEL: CONG VIEC (gop Yeu cau + Theo doi cong viec) ============ -->
+    <section class="panel" id="panel-work">
+      <div class="flow-note">
+        <b>Công việc:</b> đã gộp trang "Nộp yêu cầu" vào đây. Có thể gắn đầu việc vào một Sự kiện (nếu là việc con của sự kiện đó). Người phụ trách tự cập nhật trạng thái + dán link thư mục lưu trữ; khi đã "Hoàn thành", Trưởng nhóm/Trưởng phòng xác nhận lại để chốt trạng thái. Chọn cách xem bên dưới: theo toàn bộ đầu việc, hoặc theo từng nhân sự.
+      </div>
+
+      <div class="filter-row" id="work-view-filter">
+        <button class="filter-btn" data-v="task" onclick="setWorkView('task')">📋 Theo đầu công việc</button>
+        <button class="filter-btn" data-v="staff" onclick="setWorkView('staff')">👤 Theo đầu nhân sự</button>
+      </div>
+
+      <div id="work-view-task">
+        <div class="card">
+          <div class="card-head-row">
+            <div>
+              <h2>Thêm đầu việc mới</h2>
+              <p class="sub" style="margin-bottom:0;">Nhập liệu nội bộ — chỉ nhân viên Phòng dùng form này</p>
+            </div>
+            <button class="btn secondary sm" onclick="toggleForm('work-form')">+ Thêm đầu việc</button>
+          </div>
+          <div id="work-form" class="collapsible-form" style="display:none;">
+            <div class="grid2">
+              <div class="field"><label>Tên công việc</label><input type="text" id="w-ten" placeholder="VD: Thiết kế ấn phẩm Trung thu"></div>
+              <div class="field"><label>Mảng</label>
+                <select id="w-mang"></select>
+              </div>
+            </div>
+            <div class="field">
+              <label>Phân loại</label>
+              <div class="pills" id="w-phanloai">
+                <div class="pill" data-v="A" title="Đã nằm trong kế hoạch năm">A — Kế hoạch năm</div>
+                <div class="pill" data-v="B" title="Việc mới phát sinh, có SLA">B — Mới phát sinh</div>
+                <div class="pill" data-v="C" title="Khẩn / chỉ đạo BLĐ">C — Khẩn / BLĐ</div>
+              </div>
+            </div>
+            <div class="grid2">
+              <div class="field"><label>Bộ phận/người yêu cầu (nếu có)</label><input type="text" id="w-bophan" placeholder="VD: Vận hành Miền Nam — để trống nếu là việc nội bộ Phòng"></div>
+              <div class="field"><label>Hạn hoàn thành</label><input type="date" id="w-han"></div>
+            </div>
+            <div class="field">
+              <label>Thuộc sự kiện (nếu có)</label>
+              <select id="w-chuongtrinh"></select>
+            </div>
+            <div class="field">
+              <label>Người phụ trách</label>
+              <div id="w-owners"></div>
+              <button type="button" class="btn secondary sm" style="margin-top:2px;" onclick="addOwnerRow()">+ Thêm người cùng phụ trách</button>
+            </div>
+            <div class="field"><label>Mô tả (tùy chọn)</label><textarea id="w-mota" placeholder="Mô tả ngắn gọn nội dung công việc..."></textarea></div>
+            <button class="btn" onclick="addWork()">Thêm vào bảng theo dõi</button>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Toàn bộ đầu việc đang theo dõi</h2>
+          <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="work-search" placeholder="Tìm theo mã việc, tên, mảng, người phụ trách..." oninput="renderWork()"></div>
+          <div class="table-wrap">
+          <table>
+            <thead><tr><th>Mã việc</th><th>Mảng</th><th>Tên công việc</th><th>Phân loại</th><th>Người phụ trách</th><th>Hạn HT</th><th>Link lưu trữ</th><th>Trạng thái</th><th>Xác nhận HT</th></tr></thead>
+            <tbody id="work-body"></tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="work-view-staff" style="display:none;">
+        <div class="card">
+          <div class="card-head-row">
+            <div>
+              <h2>Chọn nhân sự</h2>
+            </div>
+            <select id="st-task-select" style="max-width:280px;" onchange="renderStaffTasks()"></select>
+          </div>
+          <div style="margin-top:10px;">
+            <div class="subtext" id="st-task-progress-lbl" style="font-size:13px; margin-bottom:6px;"></div>
+            <div class="bar-track" style="height:12px;"><div class="bar-fill" id="st-task-progress-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Danh sách công việc</h2>
+          <div class="table-wrap">
+          <table>
+            <thead><tr><th>Mã việc</th><th>Tên công việc</th><th>Mảng</th><th>Hạn HT</th><th>Trạng thái</th></tr></thead>
+            <tbody id="st-task-body"></tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PANEL: SU KIEN ============ -->
+    <section class="panel" id="panel-programs">
+      <div class="flow-note">
+        <b>Sự kiện:</b> Tạo sự kiện mới khi bắt đầu lên kế hoạch (chưa có số liệu thực tế). Khi sự kiện kết thúc, bấm "✏️ Sửa" để nhập báo cáo — số liệu này nuôi thẳng vào KPI mảng liên quan. Bấm vào tên sự kiện trong danh sách để xem chi tiết.
+      </div>
+      <div class="card">
+        <div class="card-head-row">
+          <div>
+            <h2>Tạo sự kiện mới</h2>
+            <p class="sub" style="margin-bottom:0;">Dùng khi sự kiện bắt đầu được lên kế hoạch</p>
+          </div>
+          <button class="btn secondary sm" onclick="toggleForm('programs-form')">+ Tạo sự kiện</button>
+        </div>
+        <div id="programs-form" class="collapsible-form" style="display:none;">
+          <div class="grid2">
+            <div class="field"><label>Tên sự kiện</label><input type="text" id="p-ten" placeholder="VD: Trung thu 2026"></div>
+            <div class="field"><label>Mảng phụ trách</label><select id="p-mang"></select></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Ngày dự kiến tổ chức</label><input type="date" id="p-ngay"></div>
+            <div class="field"><label>Ngân sách duyệt (đ)</label><input type="number" id="p-nsduyet" placeholder="0"></div>
+          </div>
+          <div class="field"><label>Mô tả</label><textarea id="p-mota" placeholder="Mô tả ngắn gọn về sự kiện..."></textarea></div>
+          <div class="field">
+            <label>Đường link liên quan (tùy chọn — Drive, dữ liệu, ảnh, ngân sách...)</label>
+            <div id="p-links"></div>
+            <button type="button" class="btn secondary sm" style="margin-top:2px;" onclick="addProgramLinkRow('p-links')">+ Thêm link</button>
+          </div>
+          <button class="btn" onclick="addProgram()">Tạo sự kiện</button>
+        </div>
+      </div>
+
+      <div class="card edit-card" id="program-edit-card" style="display:none;">
+        <h2 id="program-edit-title">Sửa sự kiện</h2>
+        <p class="sub">Cập nhật thông tin sự kiện — kể cả khi chưa hoàn thành</p>
+        <div class="grid2">
+          <div class="field"><label>Tên sự kiện</label><input type="text" id="pe-ten"></div>
+          <div class="field"><label>Mảng phụ trách</label><select id="pe-mang"></select></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Ngày tổ chức (dự kiến/thực tế)</label><input type="date" id="pe-ngay"></div>
+          <div class="field"><label>Ngân sách duyệt (đ)</label><input type="number" id="pe-nsduyet" placeholder="0"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Ngân sách thực chi (đ)</label><input type="number" id="pe-nsthucchi" placeholder="0"></div>
+          <div class="field"><label>Điểm hài lòng (CSAT /5)</label><input type="number" step="0.1" id="pe-csat" placeholder="VD: 4.5"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Số người tham gia</label><input type="text" id="pe-songuoi" placeholder="VD: 700 CBNV"></div>
+          <div class="field"><label>Trạng thái</label>
+            <select id="pe-trangthai">
+              <option>Đang lên kế hoạch</option>
+              <option>Hoàn thành</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Mô tả</label><textarea id="pe-mota" placeholder="Mô tả ngắn gọn về sự kiện..."></textarea></div>
+        <div class="field"><label>Kết quả nổi bật / sự cố (nếu có)</label><textarea id="pe-ketqua" placeholder="Tóm tắt kết quả, số liệu nổi bật, sự cố phát sinh..."></textarea></div>
+        <div class="field">
+          <label>Đường link liên quan (tùy chọn — Drive, dữ liệu, ảnh, ngân sách...)</label>
+          <div id="pe-links"></div>
+          <button type="button" class="btn secondary sm" style="margin-top:2px;" onclick="addProgramLinkRow('pe-links')">+ Thêm link</button>
+        </div>
+        <div class="demo-row" style="display:flex; gap:10px;">
+          <button class="btn" onclick="saveProgramCompletion()">Lưu thay đổi</button>
+          <button class="btn ghost" onclick="cancelProgramEdit()">Hủy</button>
+        </div>
+      </div>
+
+      <div class="card edit-card" id="program-detail-card" style="display:none;">
+        <div class="card-head-row">
+          <div>
+            <h2 id="program-detail-title">Chi tiết sự kiện</h2>
+            <p class="sub" id="program-detail-sub" style="margin-bottom:0;"></p>
+          </div>
+          <button class="btn ghost sm" onclick="closeProgramDetail()">✕ Đóng</button>
+        </div>
+        <div id="program-detail-body"></div>
+      </div>
+
+      <div class="card">
+        <h2>Danh sách sự kiện</h2>
+        <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="programs-search" placeholder="Tìm theo tên, mảng, trạng thái..." oninput="renderPrograms()"></div>
+        <div class="table-wrap">
+        <table>
+          <thead><tr><th>Sự kiện</th><th>Mảng</th><th>Ngày</th><th>NS duyệt</th><th>NS thực chi</th><th>% NS</th><th>CSAT</th><th>Trạng thái</th><th></th></tr></thead>
+          <tbody id="programs-body"></tbody>
+        </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PANEL: TONG HOP THI DUA ============ -->
+    <section class="panel" id="panel-competitions">
+      <div class="flow-note">
+        <b>Tổng hợp thi đua:</b> mỗi chương trình thi đua một dòng, chia 2 loại — <b>Thi đua lan tỏa</b> (nhập tay) và <b>Thi đua doanh số</b> (đồng bộ từ hệ thống Thi đua sẵn có) — dùng để đối soát khen thưởng và tính KPI "tỷ lệ trả thưởng đúng hạn" của mảng Thi đua.
+      </div>
+      <div class="card">
+        <div class="card-head-row">
+          <div>
+            <h2>Thêm chương trình thi đua</h2>
+          </div>
+          <button class="btn secondary sm" onclick="toggleForm('competitions-form')">+ Thêm chương trình</button>
+        </div>
+        <div id="competitions-form" class="collapsible-form" style="display:none;">
+          <div class="grid2">
+            <div class="field"><label>Tên chương trình</label><input type="text" id="c-ten" placeholder="VD: Đại sứ Win Q3/2026"></div>
+            <div class="field"><label>Loại thi đua</label>
+              <select id="c-loai"><option value="Lan tỏa">Thi đua lan tỏa</option><option value="Doanh số">Thi đua doanh số</option></select>
+            </div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Đối tượng</label><input type="text" id="c-doituong" placeholder="VD: Toàn khối Vận hành"></div>
+            <div class="field"><label>Số người/CH đạt giải</label><input type="number" id="c-songuoi" placeholder="0"></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Tổng tiền thưởng (đ)</label><input type="number" id="c-tongtien" placeholder="0"></div>
+            <div class="field"><label>Trạng thái trả thưởng</label>
+              <select id="c-trangthai"><option>Chưa trả</option><option>Đang xử lý</option><option>Đã trả</option></select>
+            </div>
+          </div>
+          <div class="field"><label>Đường link thư mục</label><input type="url" id="c-linkthumuc" placeholder="https://drive.google.com/..."></div>
+          <div class="field">
+            <label>Ảnh poster</label>
+            <input type="file" accept="image/*" id="c-poster" onchange="previewCompetitionPoster(event)">
+            <div id="c-poster-preview-wrap" style="margin-top:8px; display:none;">
+              <img id="c-poster-preview" style="width:72px; height:96px; object-fit:cover; border-radius:8px; border:1px solid var(--gridline);">
+            </div>
+          </div>
+          <button class="btn" onclick="addCompetition()">Lưu chương trình</button>
+        </div>
+      </div>
+
+      <div class="filter-row" id="competition-type-filter">
+        <button class="filter-btn" data-t="Tất cả" onclick="setCompetitionFilter('Tất cả')">Tất cả</button>
+        <button class="filter-btn" data-t="Lan tỏa" onclick="setCompetitionFilter('Lan tỏa')">📣 Thi đua lan tỏa</button>
+        <button class="filter-btn" data-t="Doanh số" onclick="setCompetitionFilter('Doanh số')">📈 Thi đua doanh số</button>
+      </div>
+
+      <div class="card">
+        <div class="card-head-row">
+          <div>
+            <h2>Danh sách chương trình thi đua</h2>
+            <p class="sub" id="thidua-sync-lastrun" style="margin-bottom:0;">Chưa đồng bộ lần nào</p>
+          </div>
+          <button class="btn secondary sm" onclick="syncFromThiDuaSystem()">🔄 Đồng bộ từ hệ thống Thi đua</button>
+        </div>
+        <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="competitions-search" placeholder="Tìm theo tên, đối tượng, trạng thái..." oninput="renderCompetitions()"></div>
+        <div class="table-wrap">
+        <table>
+          <thead><tr><th>Poster</th><th>Chương trình</th><th>Loại</th><th>Đối tượng</th><th>Số người đạt giải</th><th>Tổng tiền thưởng</th><th>Thư mục</th><th>Trạng thái</th><th></th></tr></thead>
+          <tbody id="competitions-body"></tbody>
+        </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PANEL: NGAN SACH ============ -->
+    <section class="panel" id="panel-budget">
+      <div class="flow-note">
+        <b>Ngân sách PTVH:</b> Ngân sách năm tham chiếu theo mảng, kế hoạch chi theo tháng, và các khoản chi thực tế đã ghi nhận — Dashboard tự tổng hợp tiến độ sử dụng. Mọi khoản ngân sách được phân loại theo <b>Ngân sách Công ty</b> hoặc <b>Ngân sách Công đoàn</b>.
+      </div>
+
+      <div class="filter-row" id="budget-type-filter">
+        <button class="filter-btn" data-t="Tất cả" onclick="setBudgetFilter('Tất cả')">Tất cả</button>
+        <button class="filter-btn" data-t="Công ty" onclick="setBudgetFilter('Công ty')">Ngân sách Công ty</button>
+        <button class="filter-btn" data-t="Công đoàn" onclick="setBudgetFilter('Công đoàn')">Ngân sách Công đoàn</button>
+      </div>
+
+      <div class="card">
+        <h2>Ngân sách năm tham chiếu</h2>
+        <p class="sub">Tổng ngân sách được duyệt cho cả năm, theo từng mảng &amp; loại ngân sách — sửa trực tiếp trong bảng. <span id="budget-ref-source-note">Chưa có dữ liệu Excel tham chiếu được tải lên — số liệu dưới đây là demo, có thể sửa trực tiếp hoặc gửi file Excel để Claude nhập lại theo đúng số liệu thật.</span></p>
+        <div class="table-wrap">
+        <table>
+          <thead><tr><th>Mảng</th><th>Loại ngân sách</th><th>Ngân sách năm (đ)</th><th>Đã chi thực tế</th><th>% đã dùng</th></tr></thead>
+          <tbody id="budget-ref-body"></tbody>
+        </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head-row">
+          <div>
+            <h2>Kế hoạch chi theo tháng</h2>
+            <p class="sub" style="margin-bottom:0;">Dự trù khoản chi cho tháng sắp tới, theo mảng</p>
+          </div>
+          <button class="btn secondary sm" onclick="toggleForm('budget-plan-form')">+ Thêm kế hoạch</button>
+        </div>
+        <div id="budget-plan-form" class="collapsible-form" style="display:none;">
+          <div class="grid3">
+            <div class="field"><label>Tháng</label><input type="text" id="bp-thang" placeholder="VD: 09/2026"></div>
+            <div class="field"><label>Mảng</label><select id="bp-mang"></select></div>
+            <div class="field"><label>Loại ngân sách</label><select id="bp-loains"><option>Công ty</option><option>Công đoàn</option></select></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Hạng mục</label><input type="text" id="bp-hangmuc" placeholder="VD: Trung thu 2026"></div>
+            <div class="field"><label>Số tiền kế hoạch (đ)</label><input type="number" id="bp-sotien" placeholder="0"></div>
+          </div>
+          <button class="btn" onclick="addBudgetPlan()">Lưu kế hoạch</button>
+        </div>
+        <div class="search-bar" style="margin-top:16px;"><span class="search-ic">🔍</span><input type="text" id="budget-plan-search" placeholder="Tìm theo tháng, mảng, hạng mục..." oninput="renderBudgetPlan()"></div>
+        <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tháng</th><th>Mảng</th><th>Loại NS</th><th>Hạng mục</th><th>Kế hoạch chi</th><th></th></tr></thead>
+          <tbody id="budget-plan-body"></tbody>
+        </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head-row">
+          <div>
+            <h2>Khoản chi thực tế đã ghi nhận</h2>
+          </div>
+          <button class="btn secondary sm" onclick="toggleForm('budget-actual-form')">+ Thêm khoản chi</button>
+        </div>
+        <div id="budget-actual-form" class="collapsible-form" style="display:none;">
+          <div class="grid3">
+            <div class="field"><label>Tháng</label><input type="text" id="b-thang" placeholder="VD: 08/2026"></div>
+            <div class="field"><label>Mảng</label><select id="b-mang"></select></div>
+            <div class="field"><label>Loại ngân sách</label><select id="b-loains"><option>Công ty</option><option>Công đoàn</option></select></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Hạng mục</label><input type="text" id="b-hangmuc" placeholder="VD: Sự kiện Cà Mau"></div>
+            <div class="field"><label>Sự kiện liên quan (nếu có)</label><select id="b-sukien"></select></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Ngân sách duyệt (đ)</label><input type="number" id="b-duyet" placeholder="0"></div>
+            <div class="field"><label>Thực chi (đ)</label><input type="number" id="b-thucchi" placeholder="0"></div>
+          </div>
+          <button class="btn" onclick="addBudget()">Lưu khoản chi</button>
+        </div>
+        <div class="search-bar" style="margin-top:16px;"><span class="search-ic">🔍</span><input type="text" id="budget-actual-search" placeholder="Tìm theo tháng, mảng, hạng mục..." oninput="renderBudgetActual()"></div>
+        <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tháng</th><th>Mảng</th><th>Loại NS</th><th>Hạng mục</th><th>Sự kiện</th><th>Duyệt</th><th>Thực chi</th><th>% dùng</th><th></th></tr></thead>
+          <tbody id="budget-body"></tbody>
+        </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Tổng hợp ngân sách theo sự kiện</h2>
+        <p class="sub">Tự động tổng hợp từ các khoản chi thực tế đã gắn với từng sự kiện</p>
+        <div class="table-wrap">
+        <table>
+          <thead><tr><th>Sự kiện</th><th>Mảng</th><th>NS duyệt (sự kiện)</th><th>Tổng thực chi (đã ghi nhận)</th><th>% dùng</th></tr></thead>
+          <tbody id="budget-by-event-body"></tbody>
+        </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PANEL: QUA TANG ============ -->
+    <section class="panel" id="panel-gifts">
+      <div class="flow-note">
+        <b>Quà tặng:</b> theo dõi nhập – xuất – tồn theo từng loại quà hiện vật, gắn với sự kiện phát ra để đối soát khi có khiếu nại.
+      </div>
+      <div class="card">
+        <div class="card-head-row">
+          <div>
+            <h2>Ghi nhận nhập/xuất quà tặng</h2>
+          </div>
+          <button class="btn secondary sm" onclick="toggleForm('gifts-form')">+ Ghi nhận</button>
+        </div>
+        <div id="gifts-form" class="collapsible-form" style="display:none;">
+          <div class="grid2">
+            <div class="field"><label>Loại quà tặng</label><input type="text" id="g-loai" placeholder="VD: Linh vật + bằng khen"></div>
+            <div class="field"><label>Gắn với sự kiện</label><select id="g-chuongtrinh"></select></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Số lượng nhập</label><input type="number" id="g-nhap" placeholder="0"></div>
+            <div class="field"><label>Số lượng xuất (đã phát)</label><input type="number" id="g-xuat" placeholder="0"></div>
+          </div>
+          <div class="field">
+            <label>Hình ảnh minh họa</label>
+            <input type="file" accept="image/*" id="g-image" onchange="previewInventoryImage(event, 'gifts')">
+            <div id="g-image-preview-wrap" style="margin-top:8px; display:none;">
+              <img id="g-image-preview" style="width:72px; height:72px; object-fit:cover; border-radius:8px; border:1px solid var(--gridline);">
+            </div>
+          </div>
+          <button class="btn" onclick="addInventoryItem('gifts')">Lưu</button>
+        </div>
+      </div>
+
+      <div class="card edit-card" id="gift-detail-card" style="display:none;">
+        <div class="card-head-row">
+          <div>
+            <h2 id="gift-detail-title">Chi tiết quà tặng</h2>
+            <p class="sub" id="gift-detail-sub" style="margin-bottom:0;"></p>
+          </div>
+          <button class="btn ghost sm" onclick="closeGiftDetail()">✕ Đóng</button>
+        </div>
+        <div class="stat-row-3" id="gift-detail-stats" style="margin:16px 0;"></div>
+
+        <h2 style="font-size:14px;">Cập nhật quà (điều chỉnh số lượng)</h2>
+        <p class="sub">Ghi nhận khi phát sinh thay đổi số lượng ngoài lần nhập/xuất ban đầu — VD: kiểm kê, hỏng hóc, phát bổ sung</p>
+        <div class="grid3">
+          <div class="field"><label>Ngày cập nhật</label><input type="date" id="gd-ngay"></div>
+          <div class="field"><label>Lý do</label><input type="text" id="gd-lydo" placeholder="VD: Phát bổ sung cho sự kiện phát sinh"></div>
+          <div class="field"><label>Số lượng thay đổi</label><input type="number" id="gd-soluong" placeholder="VD: -3 hoặc 10"></div>
+        </div>
+        <button class="btn secondary sm" onclick="addGiftHistoryEntry()">+ Ghi nhận cập nhật</button>
+
+        <h2 style="font-size:14px; margin-top:22px;">Lịch sử cập nhật</h2>
+        <div class="table-wrap">
+        <table>
+          <thead><tr><th>Ngày</th><th>Lý do</th><th>Số lượng thay đổi</th></tr></thead>
+          <tbody id="gift-history-body"></tbody>
+        </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Tồn kho quà tặng hiện tại</h2>
+        <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="gifts-search" placeholder="Tìm theo loại, sự kiện..." oninput="renderInventory('gifts')"></div>
+        <div class="table-wrap">
+        <table>
+          <thead><tr><th>Ảnh</th><th>Loại</th><th>Sự kiện</th><th>Nhập</th><th>Xuất</th><th>Tồn</th><th></th></tr></thead>
+          <tbody id="gifts-body"></tbody>
+        </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PANEL: VOUCHER ============ -->
+    <section class="panel" id="panel-vouchers">
+      <div class="flow-note">
+        <b>Voucher:</b> theo dõi nhập – xuất – tồn của các loại voucher, tách riêng khỏi quà tặng hiện vật để dễ đối soát tài chính.
+      </div>
+      <div class="card">
+        <div class="card-head-row">
+          <div>
+            <h2>Ghi nhận nhập/xuất voucher</h2>
+          </div>
+          <button class="btn secondary sm" onclick="toggleForm('vouchers-form')">+ Ghi nhận</button>
+        </div>
+        <div id="vouchers-form" class="collapsible-form" style="display:none;">
+          <div class="grid2">
+            <div class="field"><label>Loại voucher</label><input type="text" id="v-loai" placeholder="VD: Voucher 500k"></div>
+            <div class="field"><label>Gắn với sự kiện</label><select id="v-chuongtrinh"></select></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Số lượng nhập</label><input type="number" id="v-nhap" placeholder="0"></div>
+            <div class="field"><label>Số lượng xuất (đã phát)</label><input type="number" id="v-xuat" placeholder="0"></div>
+          </div>
+          <button class="btn" onclick="addInventoryItem('vouchers')">Lưu</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Tồn kho voucher hiện tại</h2>
+        <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="vouchers-search" placeholder="Tìm theo loại, sự kiện..." oninput="renderInventory('vouchers')"></div>
+        <div class="table-wrap">
+        <table>
+          <thead><tr><th>Loại</th><th>Sự kiện</th><th>Nhập</th><th>Xuất</th><th>Tồn</th><th></th></tr></thead>
+          <tbody id="vouchers-body"></tbody>
+        </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PANEL: WEB APP ============ -->
+    <section class="panel" id="panel-webapps">
+      <div class="flow-note">
+        <b>Web App:</b> tổng hợp các web app nội bộ Phòng đang sử dụng — mỗi web app hiển thị thành một card lớn để bấm vào truy cập nhanh.
+      </div>
+      <div class="card">
+        <div class="card-head-row">
+          <div>
+            <h2>Thêm Web App</h2>
+          </div>
+          <button class="btn secondary sm" onclick="toggleForm('webapp-form')">+ Thêm Web App</button>
+        </div>
+        <div id="webapp-form" class="collapsible-form" style="display:none;">
+          <div class="grid2">
+            <div class="field"><label>Tên web app</label><input type="text" id="wa-ten" placeholder="VD: Cổng quản lý công việc PTVH"></div>
+            <div class="field"><label>Link</label><input type="url" id="wa-link" placeholder="https://..."></div>
+          </div>
+          <div class="field"><label>Ghi chú (tùy chọn)</label><textarea id="wa-ghichu" placeholder="Mô tả ngắn về web app..."></textarea></div>
+          <button class="btn" onclick="addWebApp()">Lưu Web App</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Danh sách Web App</h2>
+        <div class="webapp-grid" id="webapp-grid"></div>
+      </div>
+    </section>
+
+    <!-- ============ PANEL: KPI ============ -->
+    <section class="panel" id="panel-kpi">
+      <div class="flow-note">
+        Chủ mảng nhập số liệu thực hiện tháng — % đạt và điểm quy đổi tính ngay khi gõ (logic giống công thức trong file Excel, chuyển sang JS).
+      </div>
+      <div class="card">
+        <h2>Nhập KPI tháng — Mảng Thi đua</h2>
+        <p class="sub">Nhập cột "Thực hiện", các cột còn lại tự tính</p>
+        <div class="table-wrap">
+        <table class="kpi-table">
+          <thead>
+            <tr><th>Chỉ số</th><th>Trọng số</th><th>Chỉ tiêu</th><th>Thực hiện</th><th>% đạt</th></tr>
+          </thead>
+          <tbody id="kpi-body"></tbody>
+        </table>
+        </div>
+        <div class="kpi-total">
+          <span class="lbl">Tổng điểm mảng</span>
+          <span class="val" id="kpi-total-val">—</span>
+        </div>
+        <div style="margin-top:14px;"><button class="btn" onclick="saveKpi()">Lưu KPI (demo)</button></div>
+      </div>
+    </section>
+
+    <!-- ============ PANEL: TAI LIEU / LINKS ============ -->
+    <section class="panel" id="panel-docs">
+      <div class="flow-note">
+        <b>Tài liệu/Links:</b> tổng hợp thủ công các tài liệu, web app, biểu mẫu... mà Phòng PTVH đang sử dụng — có thể chia theo thư mục để dễ phân loại, cập nhật bằng tay khi có tài liệu mới.
+      </div>
+      <div class="card">
+        <div class="card-head-row">
+          <div>
+            <h2>Thêm tài liệu / link mới</h2>
+          </div>
+          <button class="btn secondary sm" onclick="toggleForm('docs-form')">+ Thêm tài liệu</button>
+        </div>
+        <div id="docs-form" class="collapsible-form" style="display:none;">
+          <div class="grid2">
+            <div class="field"><label>Tên tài liệu</label><input type="text" id="doc-ten" placeholder="VD: Hệ thống quản lý công việc PTVH"></div>
+            <div class="field"><label>Loại</label>
+              <select id="doc-loai">
+                <option>Web app</option>
+                <option>Google Sheet</option>
+                <option>Trình chiếu (Slides)</option>
+                <option>Tài liệu (Docs)</option>
+                <option>Biểu mẫu</option>
+                <option>Khác</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label>Thư mục phân loại</label>
+              <input type="text" id="doc-thumuc" list="doc-folder-list" placeholder="VD: Web app nội bộ, Biểu mẫu...">
+              <datalist id="doc-folder-list"></datalist>
+            </div>
+            <div class="field"><label>Link</label><input type="url" id="doc-link" placeholder="https://..."></div>
+          </div>
+          <div class="field"><label>Ghi chú (tùy chọn)</label><textarea id="doc-ghichu" placeholder="Mô tả ngắn về tài liệu, phạm vi sử dụng..."></textarea></div>
+          <button class="btn" onclick="addDoc()">Lưu vào danh mục</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Danh mục đã tổng hợp</h2>
+        <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="docs-search" placeholder="Tìm theo tên, loại, thư mục..." oninput="renderDocs()"></div>
+        <div id="docs-list-container"></div>
+      </div>
+    </section>
+
+    <!-- ============ PANEL: CAI DAT ============ -->
+    <section class="panel" id="panel-settings">
+      <div class="flow-note">
+        <b>Cài đặt:</b> quản lý danh sách nhân sự Phòng (họ tên, email) — dùng cho dropdown Người phụ trách và gửi email thông báo trong bản thật. Chỉ Trưởng nhóm/Trưởng phòng truy cập mục này.
+      </div>
+
+      <div class="card">
+        <h2>Backend PTVH (Apps Script Web App)</h2>
+        <p class="sub">URL sau khi <code>Deploy &gt; New deployment</code> Apps Script gắn với Google Sheet database — bắt buộc phải có để đăng nhập và mọi thao tác đọc/ghi dữ liệu hoạt động.</p>
+        <div class="field"><label>URL API Backend PTVH</label><input type="url" id="ptvh-api-url" placeholder="https://script.google.com/macros/s/XXX/exec"></div>
+        <button class="btn secondary sm" onclick="saveGasApiConfig()">Lưu cấu hình</button>
+      </div>
+
+      <div class="card">
+        <div class="card-head-row">
+          <div>
+            <h2>Thêm nhân sự</h2>
+          </div>
+          <button class="btn secondary sm" onclick="toggleForm('staff-form')">+ Thêm nhân sự</button>
+        </div>
+        <div id="staff-form" class="collapsible-form" style="display:none;">
+          <div class="grid2">
+            <div class="field"><label>Họ tên</label><input type="text" id="st-name" placeholder="VD: Nguyễn Văn A — Chuyên viên"></div>
+            <div class="field"><label>Email</label><input type="email" id="st-email" placeholder="ten@wincommerce.vn"></div>
+          </div>
+          <button class="btn" onclick="addStaffMember()">Lưu nhân sự</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Danh sách nhân sự Phòng</h2>
+        <div class="table-wrap">
+        <table>
+          <thead><tr><th>Họ tên</th><th>Email</th><th></th></tr></thead>
+          <tbody id="staff-settings-body"></tbody>
+        </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Tích hợp hệ thống Thi đua sẵn có</h2>
+        <p class="sub">Kết nối tới hệ thống quản lý/thống kê Thi đua (Google Apps Script) đang chạy riêng, để đồng bộ dữ liệu vào tab Thi đua thay vì nhập tay lại. Xem chi tiết phương án ở ghi chú bên dưới.</p>
+        <div class="grid2">
+          <div class="field"><label>URL API JSON của hệ thống Thi đua</label><input type="url" id="thidua-api-url" placeholder="https://script.google.com/macros/s/XXX/exec?api=competitions"></div>
+          <div class="field"><label>Khóa truy cập (tùy chọn)</label><input type="text" id="thidua-api-key" placeholder="Dán API key nếu hệ thống yêu cầu"></div>
+        </div>
+        <button class="btn secondary sm" onclick="saveThiDuaApiConfig()">Lưu cấu hình</button>
+        <div class="subtext" id="thidua-sync-status" style="margin-top:10px;"></div>
+        <div class="flow-note" style="margin:16px 0 0;">
+          <b>Cách hoạt động:</b> hệ thống Thi đua hiện có (Code.gs) cần mở thêm một nhánh <code>doGet</code> trả JSON (không đổi gì ở giao diện/luồng email hiện tại), ví dụ:
+          <br><code>if (e.parameter.api === 'competitions') { var r = getPrograms({}); return ContentService.createTextOutput(JSON.stringify(r)).setMimeType(ContentService.MimeType.JSON); }</code>
+          <br>Sau khi triển khai lại (New deployment) và dán URL vào ô trên, nút "🔄 Đồng bộ" ở tab Thi đua sẽ gọi JSON này, ánh xạ các trường (tên, ngân sách/đã trả, trạng thái, poster, link Drive...) vào đúng cấu trúc dữ liệu Thi đua của PTVH, và tự thêm/cập nhật theo mã chương trình gốc — không tạo trùng.
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   TRẠNG THÁI DEMO — hoàn toàn trong bộ nhớ trình duyệt.
+   Trong bản thật, các hàm dưới đây sẽ thay bằng fetch() gọi
+   Apps Script Web App (action=submitRequest / listRequests / ...)
+   ============================================================ */
+
+let currentUser = null; // { name, role }
+
+function whoAmI() { return currentUser ? currentUser.name : 'N/A'; }
+function stampMeta(obj) {
+  const now = fmtDate(new Date());
+  if (!obj.nguoiTao) { obj.nguoiTao = whoAmI(); obj.ngayTao = now; }
+  obj.nguoiCapNhat = whoAmI();
+  obj.ngayCapNhat = now;
+}
+function metaLine(obj) {
+  if (!obj || !obj.nguoiCapNhat) return '';
+  return `<div class="subtext">✎ ${obj.nguoiCapNhat} · ${obj.ngayCapNhat}</div>`;
+}
+
+let staffCounter = 7;
+let STAFF = [
+  {name:'Ngô T. Minh Nguyệt — Trưởng phòng', email:'nguyet.ngo@wincommerce.vn'},
+  {name:'Nguyễn Thái Dương — Trưởng nhóm', email:'duong.nguyen@wincommerce.vn'},
+  {name:'Chuyên viên TTNB', email:'ttnb@wincommerce.vn'},
+  {name:'Chuyên viên Thi đua', email:'thidua@wincommerce.vn'},
+  {name:'Chuyên viên Sự kiện', email:'sukien@wincommerce.vn'},
+  {name:'Nhân viên PTVH', email:'nhanvien.ptvh@wincommerce.vn'},
+  {name:'Cộng tác viên', email:'ctv@wincommerce.vn'},
+];
+function staffNames() { return STAFF.map(s => s.name); }
+
+const MANG_LIST = ['Truyền thông nội bộ', 'Sự kiện & Phong trào', 'EB', 'Thi đua', 'Thiết kế & Media', 'Khác'];
+
+const SLA = { A: 10, B: 5, C: 2 };
+
+let workCounter = 9;
+let workItems = [
+  {ma:'CV-001', mang:'Thi đua', ten:'Thiết kế + phát hành thi đua push sale tuần 33', phanLoai:'B', boPhan:'Vận hành Miền Nam', nguoi:['Chuyên viên Thi đua'], han:'11/08/2026', trangThai:'Hoàn thành', chuongTrinh:'', linkThuMuc:'https://drive.google.com/drive/folders/thidua-t33', xacNhan:true, ngayTao:'01/08/2026', nguoiTao:'Chuyên viên Thi đua', nguoiCapNhat:'Nguyễn Thái Dương — Trưởng nhóm', ngayCapNhat:'11/08/2026'},
+  {ma:'CV-002', mang:'Thiết kế & Media', ten:'Infographic chính sách phúc lợi mới', phanLoai:'B', boPhan:'Nhân sự', nguoi:['Nhân viên PTVH'], han:'12/08/2026', trangThai:'Hoàn thành', chuongTrinh:'', linkThuMuc:'', xacNhan:false, ngayTao:'02/08/2026', nguoiTao:'Nhân viên PTVH', nguoiCapNhat:'Nhân viên PTVH', ngayCapNhat:'12/08/2026'},
+  {ma:'CV-003', mang:'Sự kiện & Phong trào', ten:'Sự kiện khai trương WinMart+ / Đêm nhạc Cà Mau', phanLoai:'A', boPhan:'', nguoi:['Nguyễn Thái Dương — Trưởng nhóm'], han:'08/08/2026', trangThai:'Hoàn thành', chuongTrinh:'Khai trương WinMart+/WiN+ & Đêm nhạc Cà Mau', linkThuMuc:'https://drive.google.com/drive/folders/camau-2026', xacNhan:true, ngayTao:'20/07/2026', nguoiTao:'Nguyễn Thái Dương — Trưởng nhóm', nguoiCapNhat:'Nguyễn Thái Dương — Trưởng nhóm', ngayCapNhat:'08/08/2026'},
+  {ma:'CV-004', mang:'Truyền thông nội bộ', ten:'Bài viết tổng kết Hành trình triệu phú Hồ Tràm', phanLoai:'B', boPhan:'Marketing', nguoi:['Chuyên viên TTNB'], han:'14/08/2026', trangThai:'Đang xử lý', chuongTrinh:'Hành trình triệu phú Hồ Tràm', linkThuMuc:'', xacNhan:false, ngayTao:'09/08/2026', nguoiTao:'Chuyên viên TTNB', nguoiCapNhat:'Chuyên viên TTNB', ngayCapNhat:'09/08/2026'},
+  {ma:'CV-005', mang:'EB', ten:'Cung cấp nội dung WCM cho Tạp chí Masan số T9', phanLoai:'A', boPhan:'Ban VHDN — Tập đoàn', nguoi:['Chuyên viên TTNB'], han:'25/08/2026', trangThai:'Mới tiếp nhận', chuongTrinh:'', linkThuMuc:'', xacNhan:false, ngayTao:'15/08/2026', nguoiTao:'Chuyên viên TTNB', nguoiCapNhat:'Chuyên viên TTNB', ngayCapNhat:'15/08/2026'},
+  {ma:'CV-006', mang:'Truyền thông nội bộ', ten:'Chuỗi bài Masan Puzzle 17/08 – 11/09', phanLoai:'A', boPhan:'', nguoi:['Chuyên viên TTNB', 'Cộng tác viên'], han:'11/09/2026', trangThai:'Đang xử lý', chuongTrinh:'', linkThuMuc:'', xacNhan:false, ngayTao:'10/08/2026', nguoiTao:'Chuyên viên TTNB', nguoiCapNhat:'Chuyên viên TTNB', ngayCapNhat:'10/08/2026'},
+  {ma:'CV-007', mang:'Thiết kế & Media', ten:'Bộ ấn phẩm Trung thu 25/09', phanLoai:'A', boPhan:'', nguoi:['Nhân viên PTVH'], han:'15/09/2026', trangThai:'Đang xử lý', chuongTrinh:'Trung thu 2026', linkThuMuc:'', xacNhan:false, ngayTao:'12/08/2026', nguoiTao:'Nhân viên PTVH', nguoiCapNhat:'Nhân viên PTVH', ngayCapNhat:'12/08/2026'},
+  {ma:'CV-008', mang:'Sự kiện & Phong trào', ten:'Bổ sung Drone show cho khai trương Cà Mau', phanLoai:'C', boPhan:'Ban Lãnh đạo', nguoi:['Nguyễn Thái Dương — Trưởng nhóm'], han:'07/08/2026', trangThai:'Hoàn thành', chuongTrinh:'Khai trương WinMart+/WiN+ & Đêm nhạc Cà Mau', linkThuMuc:'https://drive.google.com/drive/folders/camau-drone', xacNhan:true, ngayTao:'05/08/2026', nguoiTao:'Nguyễn Thái Dương — Trưởng nhóm', nguoiCapNhat:'Nguyễn Thái Dương — Trưởng nhóm', ngayCapNhat:'07/08/2026'},
+  {ma:'CV-009', mang:'Khác', ten:'Rà soát quy trình lưu trữ hồ sơ nội bộ', phanLoai:'B', boPhan:'', nguoi:['Cộng tác viên'], han:'', trangThai:'Đang xử lý', chuongTrinh:'', linkThuMuc:'', xacNhan:false, ngayTao:'10/08/2026', nguoiTao:'Cộng tác viên', nguoiCapNhat:'Cộng tác viên', ngayCapNhat:'10/08/2026'},
+];
+
+let programCounter = 3;
+let programs = [
+  {ten:'Khai trương WinMart+/WiN+ & Đêm nhạc Cà Mau', mang:'Sự kiện & Phong trào', ngay:'08/08/2026', trangThai:'Hoàn thành', nsDuyet:250000000, nsThucChi:238000000, songuoi:'Hàng chục nghìn người dân', csat:4.6, ketqua:'', moTa:'Sự kiện khai trương cửa hàng mới kết hợp đêm nhạc cộng đồng tại Cà Mau.', links:[{ten:'Thư mục Drive', url:'https://drive.google.com/drive/folders/camau-2026'},{ten:'File ngân sách', url:'https://docs.google.com/spreadsheets/d/camau-budget'}]},
+  {ten:'Hành trình triệu phú Hồ Tràm', mang:'Sự kiện & Phong trào', ngay:'07/08/2026', trangThai:'Hoàn thành', nsDuyet:180000000, nsThucChi:175500000, songuoi:'~400 người, 8 đội', csat:4.4, ketqua:'', moTa:'Chương trình team-building/gameshow nội bộ tại Hồ Tràm.', links:[]},
+  {ten:'Trung thu 2026', mang:'Thiết kế & Media', ngay:'25/09/2026', trangThai:'Đang lên kế hoạch', nsDuyet:150000000, nsThucChi:0, songuoi:'', csat:0, ketqua:'', moTa:'Bộ ấn phẩm và hoạt động Trung thu dành cho con CBNV.', links:[]},
+];
+let programEditIndex = null;
+let programDetailIndex = null;
+
+let compCounter = 2;
+let competitions = [
+  {ten:'Đại sứ Win Q1/2026', loai:'Lan tỏa', doituong:'Toàn WCM', songuoi:51, tongtien:25500000, trangThai:'Đã trả', poster:'', linkThuMuc:'https://drive.google.com/drive/folders/daisuwin-q1-2026', maHeThongThiDua:null},
+  {ten:'Đại sứ Win Q4/2025', loai:'Lan tỏa', doituong:'Toàn WCM', songuoi:54, tongtien:27000000, trangThai:'Đã trả', poster:'', linkThuMuc:'', maHeThongThiDua:null},
+];
+let competitionEditIndex = null;
+let pendingCompetitionPoster = '';
+let thiDuaApiUrl = '';
+let thiDuaApiKey = '';
+let thiDuaLastSync = null;
+let competitionFilterType = 'Tất cả';
+
+const LOAI_NS_LIST = ['Công ty', 'Công đoàn'];
+let budgetYearRef = [
+  {mang:'Truyền thông nội bộ', loaiNS:'Công ty', nsNam: 260000000},
+  {mang:'Truyền thông nội bộ', loaiNS:'Công đoàn', nsNam: 40000000},
+  {mang:'Sự kiện & Phong trào', loaiNS:'Công ty', nsNam: 500000000},
+  {mang:'Sự kiện & Phong trào', loaiNS:'Công đoàn', nsNam: 150000000},
+  {mang:'EB', loaiNS:'Công ty', nsNam: 200000000},
+  {mang:'EB', loaiNS:'Công đoàn', nsNam: 0},
+  {mang:'Thi đua', loaiNS:'Công ty', nsNam: 80000000},
+  {mang:'Thi đua', loaiNS:'Công đoàn', nsNam: 70000000},
+  {mang:'Thiết kế & Media', loaiNS:'Công ty', nsNam: 120000000},
+  {mang:'Thiết kế & Media', loaiNS:'Công đoàn', nsNam: 0},
+  {mang:'Khác', loaiNS:'Công ty', nsNam: 30000000},
+  {mang:'Khác', loaiNS:'Công đoàn', nsNam: 20000000},
+];
+
+let budgetPlanCounter = 2;
+let budgetPlanItems = [
+  {thang:'09/2026', mang:'Thiết kế & Media', loaiNS:'Công ty', hangmuc:'Trung thu 2026', keHoach:150000000},
+  {thang:'09/2026', mang:'Truyền thông nội bộ', loaiNS:'Công ty', hangmuc:'Masan Puzzle', keHoach:20000000},
+];
+let budgetPlanEditIndex = null;
+
+let budgetCounter = 2;
+let budgetItems = [
+  {thang:'08/2026', mang:'Sự kiện & Phong trào', loaiNS:'Công ty', hangmuc:'Sự kiện Cà Mau', duyet:250000000, thucchi:238000000, suKien:'Khai trương WinMart+/WiN+ & Đêm nhạc Cà Mau'},
+  {thang:'08/2026', mang:'Sự kiện & Phong trào', loaiNS:'Công đoàn', hangmuc:'Hành trình triệu phú Hồ Tràm', duyet:180000000, thucchi:175500000, suKien:'Hành trình triệu phú Hồ Tràm'},
+];
+let budgetActualEditIndex = null;
+let budgetFilterType = 'Tất cả';
+
+let giftCounter = 1;
+let gifts = [
+  {loai:'Linh vật + bằng khen', chuongtrinh:'[Thi đua] Đại sứ Win Q1/2026', nhap:55, xuat:51, image:'', lichSu:[
+    {ngay:'15/08/2026', lyDo:'Kiểm kê định kỳ — phát hiện thiếu hụt', soLuong:-1, nguoiCapNhat:'Nguyễn Thái Dương — Trưởng nhóm'},
+  ], nguoiTao:'Nhân viên PTVH', ngayTao:'01/08/2026', nguoiCapNhat:'Nguyễn Thái Dương — Trưởng nhóm', ngayCapNhat:'15/08/2026'},
+];
+let giftDetailIndex = null;
+
+let voucherCounter = 2;
+let vouchers = [
+  {loai:'Voucher 500k', chuongtrinh:'[Thi đua] Đại sứ Win Q1/2026', nhap:60, xuat:51},
+  {loai:'Voucher 200k', chuongtrinh:'[Thi đua] Đại sứ Win Q4/2025', nhap:70, xuat:54},
+];
+let pendingInventoryImage = { gifts: '' };
+let inventoryEditIndex = { gifts: null, vouchers: null };
+
+let currentPeriod = 'MTD';
+
+let docCounter = 2;
+let docItems = [
+  {id:1, ten:'Tổng hợp danh mục Web App PTVH', loai:'Trình chiếu (Slides)', thuMuc:'Tổng hợp chung', link:'https://docs.google.com/presentation/d/1NLoXW6c4hlqlv--ldOGXfwVrnDgDoTfX/edit?usp=drive_link&ouid=101046524420887053281&rtpof=true&sd=true', ghichu:'Danh sách tổng hợp ban đầu do người dùng cung cấp — cập nhật thủ công các tài liệu tiếp theo tại đây.', nguoiCapNhat:'Nguyễn Thái Dương — Trưởng nhóm', ngayCapNhat:'01/08/2026'},
+  {id:2, ten:'Cổng quản lý công việc PTVH (demo)', loai:'Web app', thuMuc:'Web app nội bộ', link:'https://ptvh-wincommerce.github.io/demo/', ghichu:'Bản demo web app đang được duyệt.', nguoiCapNhat:'Nguyễn Thái Dương — Trưởng nhóm', ngayCapNhat:'20/08/2026'},
+];
+let docEditId = null;
+
+/* ---------------- FORM THU GỌN / MỞ RỘNG ---------------- */
+function toggleForm(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const isOpen = el.style.display === 'block';
+  el.style.display = isOpen ? 'none' : 'block';
+}
+function closeForm(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+}
+
+function addWorkdays(date, days) {
+  const d = new Date(date.getTime());
+  let added = 0;
+  while (added < days) {
+    d.setDate(d.getDate() + 1);
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) added++;
+  }
+  return d;
+}
+function fmtDate(d) {
+  return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
+}
+function parseVNDate(str) {
+  if (!str) return null;
+  const parts = str.split('/');
+  if (parts.length !== 3) return null;
+  const dd = parseInt(parts[0], 10), mm = parseInt(parts[1], 10) - 1, yyyy = parseInt(parts[2], 10);
+  if (isNaN(dd) || isNaN(mm) || isNaN(yyyy)) return null;
+  return new Date(yyyy, mm, dd);
+}
+function vnDateToIso(str) {
+  const d = parseVNDate(str);
+  if (!d) return '';
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function isDateInPeriod(str, period) {
+  const d = parseVNDate(str);
+  if (!d) return false;
+  const now = new Date();
+  if (period === 'MTD') return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  return d.getFullYear() === now.getFullYear();
+}
+function isMonthStrInPeriod(thang, period) {
+  // thang dạng "MM/YYYY"
+  if (!thang) return false;
+  const parts = thang.split('/');
+  if (parts.length !== 2) return false;
+  const mm = parseInt(parts[0], 10) - 1, yyyy = parseInt(parts[1], 10);
+  if (isNaN(mm) || isNaN(yyyy)) return false;
+  const now = new Date();
+  if (period === 'MTD') return yyyy === now.getFullYear() && mm === now.getMonth();
+  return yyyy === now.getFullYear();
+}
+function moneyFmt(n) { return (n/1e6).toLocaleString('vi-VN', {maximumFractionDigits:1}) + 'tr'; }
+function pctFmt(used, total) { return total ? Math.round(used/total*100) + '%' : '—'; }
+
+function fillMangSelect(sel, includeBlank) {
+  sel.innerHTML = (includeBlank ? '<option value="">— Không chọn —</option>' : '') +
+    MANG_LIST.map(m => `<option>${m}</option>`).join('');
+}
+function initAllMangSelects() {
+  fillMangSelect(document.getElementById('w-mang'), false);
+  fillMangSelect(document.getElementById('p-mang'), false);
+  fillMangSelect(document.getElementById('pe-mang'), false);
+  fillMangSelect(document.getElementById('bp-mang'), false);
+  fillMangSelect(document.getElementById('b-mang'), false);
+  fillLoaiNSSelect(document.getElementById('bp-loains'));
+  fillLoaiNSSelect(document.getElementById('b-loains'));
+  fillSuKienSelect(document.getElementById('b-sukien'));
+}
+
+/* ---------------- SIDEBAR / NAV ---------------- */
+const SIDEBAR_ITEMS = [
+  {id:'dashboard', label:'Dashboard', icon:'🏠'},
+  {id:'work', label:'Công việc', icon:'✅'},
+  {id:'programs', label:'Sự kiện', icon:'🎪'},
+  {id:'competitions', label:'Thi đua', icon:'🏆'},
+  {id:'budget', label:'Ngân sách', icon:'💰'},
+  {id:'gifts', label:'Quà tặng', icon:'🎁'},
+  {id:'vouchers', label:'Voucher', icon:'🎟️'},
+  {id:'webapps', label:'Web App', icon:'🧩'},
+  {id:'kpi', label:'KPI', icon:'📊'},
+  {id:'docs', label:'Tài liệu/Links', icon:'🔗'},
+  {id:'settings', label:'Cài đặt', icon:'⚙️', roleOnly:'Trưởng nhóm'},
+];
+
+function renderSidebar() {
+  const nav = document.getElementById('sidebar-nav');
+  const userBox = document.getElementById('sidebar-user');
+  if (!currentUser) { nav.innerHTML = ''; userBox.innerHTML = ''; return; }
+  userBox.innerHTML = `<b>${currentUser.name}</b>${currentUser.role}`;
+  nav.innerHTML = '';
+  SIDEBAR_ITEMS.forEach(t => {
+    if (t.roleOnly && !isAdminRole(currentUser.role)) return;
+    const btn = document.createElement('button');
+    btn.className = 'sidebar-nav-item';
+    btn.dataset.id = t.id;
+    btn.innerHTML = `<span class="ic">${t.icon}</span> ${t.label}`;
+    btn.onclick = () => go(t.id);
+    nav.appendChild(btn);
+  });
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-backdrop').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-backdrop').classList.remove('show');
+}
+
+function go(id) {
+  closeSidebar();
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-nav-item').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('panel-' + id);
+  if (panel) panel.classList.add('active');
+  const btn = [...document.querySelectorAll('.sidebar-nav-item')].find(b => b.dataset.id === id);
+  if (btn) btn.classList.add('active');
+  document.body.classList.toggle('is-login', id === 'login');
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'work') renderWork();
+  if (id === 'programs') renderPrograms();
+  if (id === 'competitions') renderCompetitions();
+  if (id === 'budget') renderBudget();
+  if (id === 'gifts') renderInventory('gifts');
+  if (id === 'vouchers') renderInventory('vouchers');
+  if (id === 'webapps') renderWebApps();
+  if (id === 'kpi') renderKpi();
+  if (id === 'docs') renderDocs();
+  if (id === 'settings') { renderStaffSettings(); renderThiDuaSyncStatus(); }
+}
+
+/* ---------------- LOGIN (luồng thật: email -> OTP (lần đầu) -> khởi tạo PIN -> đăng nhập PIN) ---------------- */
+var ptvhApiUrl = 'https://script.google.com/macros/s/AKfycbxRVhHxdp_R9-oWz0l4MO2MidnqoIMlZ5h6_Y2iwV9qwmhusDlF_DR0UE6fpII4_efM/exec';       // URL Web App Apps Script đã deploy — có thể đổi lại ở tab Cài đặt nếu deploy phiên bản mới
+let sessionToken = '';     // token phiên trả về từ backend, dùng cho các action cần đăng nhập
+let pendingEmailPrefix = '';
+
+/** Gọi API backend PTVH — POST text/plain JSON để tránh CORS preflight (đúng kiến trúc đã chốt). */
+async function callPtvhApi(action, payload) {
+  if (!ptvhApiUrl) {
+    showToast('Chưa cấu hình URL Backend PTVH — vào tab Cài đặt để nhập (sau khi deploy Apps Script)');
+    return { ok: false, error: 'NO_API_URL' };
+  }
+  try {
+    const res = await fetch(ptvhApiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(Object.assign({ action, token: sessionToken }, payload || {})),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  } catch (err) {
+    showToast('Không kết nối được Backend PTVH: ' + err.message);
+    return { ok: false, error: 'NETWORK_ERROR', message: err.message };
+  }
+}
+
+function setLoginStep(step) {
+  document.getElementById('login-step-email').style.display = step === 'email' ? 'block' : 'none';
+  document.getElementById('login-step-otp').style.display = step === 'otp' ? 'block' : 'none';
+  document.getElementById('login-step-pin').style.display = step === 'pin' ? 'block' : 'none';
+}
+
+function backToEmailStep() {
+  pendingEmailPrefix = '';
+  document.getElementById('f-email').value = '';
+  document.getElementById('f-otp').value = '';
+  document.getElementById('f-newpin').value = '';
+  document.getElementById('f-newpin-confirm').value = '';
+  document.getElementById('f-pin').value = '';
+  setLoginStep('email');
+}
+
+/** BƯỚC 1: nhập email -> hỏi backend xem cần OTP (lần đầu) hay đã có PIN (chuyển sang bước PIN). */
+async function submitEmailStep() {
+  const emailPrefix = document.getElementById('f-email').value.trim();
+  if (!emailPrefix) { showToast('Vui lòng nhập tên email'); return; }
+  const btn = document.getElementById('login-step-email-btn');
+  btn.disabled = true; btn.textContent = 'Đang kiểm tra...';
+  const r = await callPtvhApi('requestOtp', { emailPrefix });
+  btn.disabled = false; btn.textContent = 'Tiếp tục';
+
+  if (!r.ok) {
+    if (r.error === 'EMAIL_NOT_FOUND') showToast('Email không có trong danh sách nhân sự Phòng');
+    else if (r.error === 'STAFF_INACTIVE') showToast('Tài khoản đã ngừng hoạt động');
+    else if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Có lỗi xảy ra');
+    return;
+  }
+  pendingEmailPrefix = emailPrefix;
+  if (r.otpRequired) {
+    document.getElementById('login-otp-email-display').textContent = emailPrefix + '@winmart.masangroup.com';
+    setLoginStep('otp');
+    showToast('Đã gửi OTP — kiểm tra email');
+  } else {
+    document.getElementById('login-pin-name-display').textContent = r.hoTen || '';
+    setLoginStep('pin');
+  }
+}
+
+/** BƯỚC 2 (chỉ lần đầu): xác thực OTP + đặt PIN mới -> đăng nhập luôn nếu thành công. */
+async function submitOtpStep() {
+  const otp = document.getElementById('f-otp').value.trim();
+  const newPin = document.getElementById('f-newpin').value.trim();
+  const confirmPin = document.getElementById('f-newpin-confirm').value.trim();
+  if (!/^\d{6}$/.test(otp)) { showToast('Mã OTP gồm đúng 6 chữ số'); return; }
+  if (!/^\d{4}$/.test(newPin)) { showToast('PIN gồm đúng 4 chữ số'); return; }
+  if (newPin !== confirmPin) { showToast('Hai lần nhập PIN không khớp'); return; }
+
+  const btn = document.getElementById('login-step-otp-btn');
+  btn.disabled = true; btn.textContent = 'Đang xác nhận...';
+  const r = await callPtvhApi('verifyOtpAndSetPin', { emailPrefix: pendingEmailPrefix, otp, newPin, confirmPin });
+  btn.disabled = false; btn.textContent = 'Xác nhận & đăng nhập';
+
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Xác thực OTP thất bại');
+    return;
+  }
+  loginSuccess(r.user, r.token);
+}
+
+async function resendOtp() {
+  if (!pendingEmailPrefix) return;
+  const r = await callPtvhApi('requestOtp', { emailPrefix: pendingEmailPrefix });
+  if (r.ok) showToast('Đã gửi lại OTP');
+}
+
+/** BƯỚC 3 (các lần sau): đăng nhập bằng PIN. */
+async function submitPinStep() {
+  const pin = document.getElementById('f-pin').value.trim();
+  if (!/^\d{4}$/.test(pin)) { showToast('PIN gồm đúng 4 chữ số'); return; }
+
+  const btn = document.getElementById('login-step-pin-btn');
+  btn.disabled = true; btn.textContent = 'Đang đăng nhập...';
+  const r = await callPtvhApi('loginWithPin', { emailPrefix: pendingEmailPrefix, pin });
+  btn.disabled = false; btn.textContent = 'Đăng nhập';
+
+  if (!r.ok) {
+    if (r.error === 'PIN_NOT_SET') { showToast('Tài khoản chưa khởi tạo PIN — quay lại nhập email để nhận OTP'); backToEmailStep(); return; }
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Đăng nhập thất bại');
+    return;
+  }
+  loginSuccess(r.user, r.token);
+}
+
+function loginSuccess(user, token) {
+  sessionToken = token;
+  currentUser = { name: user.hoTen, role: user.vaiTro, email: user.email, msnv: user.msnv };
+  showToast('Đăng nhập thành công — ' + currentUser.name);
+  backToEmailStep();
+  initAllMangSelects();
+  renderSidebar();
+  go('dashboard');
+}
+
+async function doLogout() {
+  if (sessionToken) callPtvhApi('logout', {});
+  currentUser = null;
+  sessionToken = '';
+  backToEmailStep();
+  renderSidebar();
+  go('login');
+}
+
+function isAdminRole(role) {
+  return role === 'Trưởng phòng' || role === 'Trưởng nhóm';
+}
+
+function saveGasApiConfig() {
+  ptvhApiUrl = document.getElementById('ptvh-api-url').value.trim();
+  showToast(ptvhApiUrl ? 'Đã lưu URL Backend PTVH' : 'Đã xoá URL Backend PTVH');
+}
+
+/* ---------------- DASHBOARD ---------------- */
+
+function renderDashboard() {
+  const total = workItems.length;
+  const done = workItems.filter(w => w.trangThai === 'Hoàn thành').length;
+  const pending = workItems.filter(w => w.trangThai === 'Mới tiếp nhận').length;
+  const doing = workItems.filter(w => w.trangThai === 'Đang xử lý').length;
+  const confirmed = workItems.filter(w => w.xacNhan).length;
+
+  const nsNamTong = budgetYearRef.reduce((s,b)=>s+b.nsNam,0);
+  const nsThucChiTong = budgetItems.reduce((s,b)=>s+b.thucchi,0);
+  const nsPct = nsNamTong ? Math.round(nsThucChiTong/nsNamTong*100) : 0;
+  const tonKhoVoucher = vouchers.reduce((s,v)=>s+(v.nhap-v.xuat),0);
+
+  const timelineNodes = [
+    {cls:'total', ic:total, lbl:'Tổng đầu việc', sub:'Lũy kế toàn bộ'},
+    {cls:'pending', ic:pending, lbl:'Mới tiếp nhận', sub:'Chưa bắt đầu xử lý'},
+    {cls:'doing', ic:doing, lbl:'Đang xử lý', sub:'Chưa đóng trạng thái'},
+    {cls:'done', ic:done, lbl:'Đã hoàn thành', sub:done + '/' + total + ' đầu việc'},
+    {cls:'confirmed', ic:confirmed, lbl:'Đã xác nhận', sub:'Trưởng nhóm/Trưởng phòng'},
+  ];
+  document.getElementById('work-status-timeline').innerHTML = timelineNodes.map(n => `
+    <div class="work-timeline-node ${n.cls}">
+      <div class="connector"></div>
+      <div class="work-timeline-dot">${n.ic}</div>
+      <div class="work-timeline-text">
+        <div class="work-timeline-lbl">${n.lbl}</div>
+        <div class="work-timeline-sub">${n.sub}</div>
+      </div>
+    </div>`).join('');
+
+  const stats = [
+    {lbl:'Ngân sách đã dùng (năm)', val: nsPct + '%', delta: (nsThucChiTong/1e6).toFixed(0) + 'tr / ' + (nsNamTong/1e6).toFixed(0) + 'tr ngân sách năm', warn: nsPct > 95},
+    {lbl:'Tồn kho voucher', val: tonKhoVoucher, delta: vouchers.length + ' loại đang theo dõi', warn:false},
+    {lbl:'Báo cáo sự kiện', val: programs.filter(p=>p.trangThai==='Hoàn thành').length, delta: programs.length + ' sự kiện đã tạo', warn:false},
+  ];
+  document.getElementById('stat-row').innerHTML = stats.map(s => `
+    <div class="stat-tile ${s.warn ? 'warn' : ''}">
+      <div class="lbl">${s.lbl}</div>
+      <div class="val">${s.val}</div>
+      <div class="delta">${s.delta}</div>
+    </div>`).join('');
+
+  const byMang = {};
+  workItems.forEach(w => { byMang[w.mang] = (byMang[w.mang]||0) + 1; });
+  const maxV = Math.max(1, ...Object.values(byMang));
+  const rows = Object.entries(byMang).sort((a,b) => b[1]-a[1]);
+  document.getElementById('bar-chart').innerHTML = rows.map(([name, n]) => `
+    <div class="bar-row">
+      <div class="name">${name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(n/maxV*100).toFixed(0)}%"></div></div>
+      <div class="n">${n}</div>
+    </div>`).join('');
+
+  renderPeriodFilterUI();
+  renderPeriodStats();
+  renderEbStats();
+  renderStaffStats();
+}
+
+function setPeriod(p) {
+  currentPeriod = p;
+  renderPeriodFilterUI();
+  renderPeriodStats();
+}
+function renderPeriodFilterUI() {
+  document.querySelectorAll('#period-filter .filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.p === currentPeriod);
+  });
+}
+function renderPeriodStats() {
+  const period = currentPeriod;
+  const nsThucChiPeriod = budgetItems.filter(b => isMonthStrInPeriod(b.thang, period)).reduce((s,b)=>s+b.thucchi,0);
+  const congViecHTPeriod = workItems.filter(w => w.trangThai === 'Hoàn thành' && isDateInPeriod(w.han, period)).length;
+  const congViecMoiPeriod = workItems.filter(w => isDateInPeriod(w.han, period)).length;
+  const chuongTrinhPeriod = programs.filter(p => p.trangThai === 'Hoàn thành' && isDateInPeriod(p.ngay, period)).length;
+  const periodLabel = period === 'MTD' ? 'trong tháng này' : 'từ đầu năm';
+
+  const items = [
+    {lbl:'Ngân sách thực chi', val: moneyFmt(nsThucChiPeriod), delta: 'Ghi nhận ' + periodLabel},
+    {lbl:'Đầu việc hoàn thành', val: congViecHTPeriod, delta: 'Theo hạn hoàn thành ' + periodLabel},
+    {lbl:'Đầu việc theo dõi', val: congViecMoiPeriod, delta: 'Có hạn rơi vào kỳ này'},
+    {lbl:'Sự kiện đã tổ chức', val: chuongTrinhPeriod, delta: 'Đã có báo cáo hoàn thành'},
+  ];
+  document.getElementById('period-stats').innerHTML = items.map(s => `
+    <div class="stat-tile flat">
+      <div class="lbl">${s.lbl}</div>
+      <div class="val" style="font-size:22px;">${s.val}</div>
+      <div class="delta">${s.delta}</div>
+    </div>`).join('');
+}
+
+function renderEbStats() {
+  const ebWork = workItems.filter(w => w.mang === 'EB');
+  const ebDone = ebWork.filter(w => w.trangThai === 'Hoàn thành').length;
+  const ebThucChi = budgetItems.filter(b => b.mang === 'EB').reduce((s,b)=>s+b.thucchi,0);
+  const ebNam = budgetYearRef.filter(b => b.mang === 'EB').reduce((s,b)=>s+b.nsNam,0);
+  const items = [
+    {lbl:'Tổng đầu việc EB', val: ebWork.length, delta: 'Trong tổng ' + workItems.length + ' đầu việc'},
+    {lbl:'Đã hoàn thành', val: ebDone, delta: ebWork.length ? Math.round(ebDone/ebWork.length*100) + '% đầu việc EB' : 'Chưa có dữ liệu'},
+    {lbl:'Ngân sách EB đã dùng', val: pctFmt(ebThucChi, ebNam), delta: moneyFmt(ebThucChi) + ' / ' + moneyFmt(ebNam) + ' ngân sách năm'},
+  ];
+  document.getElementById('eb-stats').innerHTML = items.map(s => `
+    <div class="stat-tile">
+      <div class="lbl">${s.lbl}</div>
+      <div class="val">${s.val}</div>
+      <div class="delta">${s.delta}</div>
+    </div>`).join('');
+}
+
+/* ---------------- CONG VIEC (gop Yeu cau + TheoDoiCongViec) ---------------- */
+function populateWorkProgramSelect() {
+  const sel = document.getElementById('w-chuongtrinh');
+  sel.innerHTML = '<option value="">— Không thuộc sự kiện nào —</option>' +
+    programs.map(p => `<option value="${p.ten}">${p.ten}</option>`).join('');
+}
+
+document.getElementById('w-phanloai').addEventListener('click', (e) => {
+  const pill = e.target.closest('.pill');
+  if (!pill) return;
+  [...document.querySelectorAll('#w-phanloai .pill')].forEach(p => p.className = 'pill');
+  pill.classList.add('selected-' + pill.dataset.v);
+  pill.dataset.selected = '1';
+  const suggested = addWorkdays(new Date(), SLA[pill.dataset.v]);
+  document.getElementById('w-han').value = suggested.toISOString().slice(0, 10);
+});
+
+function ownerRowHTML() {
+  return `<div class="owner-row" style="display:flex; gap:6px; margin-bottom:6px;">
+    <select class="owner-select" style="flex:1;">${staffNames().map(s => `<option>${s}</option>`).join('')}</select>
+    <button type="button" class="btn secondary sm" onclick="removeOwnerRow(this)" title="Bỏ người này">×</button>
+  </div>`;
+}
+function addOwnerRow() {
+  document.getElementById('w-owners').insertAdjacentHTML('beforeend', ownerRowHTML());
+}
+function removeOwnerRow(btn) {
+  const rows = document.querySelectorAll('#w-owners .owner-row');
+  if (rows.length <= 1) { showToast('Cần ít nhất một người phụ trách'); return; }
+  btn.closest('.owner-row').remove();
+}
+function initOwnerSelects() {
+  document.getElementById('w-owners').innerHTML = '';
+  addOwnerRow();
+}
+
+function xacNhanCellHTML(w, i) {
+  if (w.trangThai !== 'Hoàn thành') return '<span class="subtext">—</span>';
+  if (w.xacNhan) return '<span class="badge"><span class="dot good"></span>Đã xác nhận</span>';
+  if (currentUser && isAdminRole(currentUser.role)) {
+    return `<button class="btn secondary sm" onclick="confirmWork(${i})">Xác nhận hoàn thành</button>`;
+  }
+  return '<span class="badge"><span class="dot warning"></span>Chờ TN/TP xác nhận</span>';
+}
+
+let workViewMode = 'task';
+function setWorkView(mode) {
+  workViewMode = mode;
+  document.querySelectorAll('#work-view-filter .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.v === mode));
+  document.getElementById('work-view-task').style.display = mode === 'task' ? 'block' : 'none';
+  document.getElementById('work-view-staff').style.display = mode === 'staff' ? 'block' : 'none';
+  if (mode === 'task') renderWorkTaskView();
+  else renderStaffTasks();
+}
+
+function renderWork() {
+  document.querySelectorAll('#work-view-filter .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.v === workViewMode));
+  document.getElementById('work-view-task').style.display = workViewMode === 'task' ? 'block' : 'none';
+  document.getElementById('work-view-staff').style.display = workViewMode === 'staff' ? 'block' : 'none';
+  if (workViewMode === 'task') renderWorkTaskView();
+  else renderStaffTasks();
+}
+
+function renderWorkTaskView() {
+  populateWorkProgramSelect();
+  const term = (document.getElementById('work-search')?.value || '').toLowerCase().trim();
+  const rows = workItems
+    .map((w, i) => ({w, i}))
+    .filter(({w}) => !term || [w.ma, w.mang, w.ten, w.phanLoai, w.nguoi.join(' '), w.chuongTrinh, w.trangThai, w.boPhan].join(' ').toLowerCase().includes(term));
+  document.getElementById('work-body').innerHTML = rows.length ? rows.map(({w, i}) => `
+    <tr>
+      <td style="font-weight:700;">${w.ma}</td>
+      <td>${w.mang}</td>
+      <td>${w.ten}
+        ${w.boPhan ? `<div class="subtext">YC từ: ${w.boPhan}</div>` : ''}
+        ${w.chuongTrinh ? `<div class="subtext tag-prog">🎪 ${w.chuongTrinh}</div>` : ''}
+        ${metaLine(w)}
+      </td>
+      <td>${w.phanLoai}</td>
+      <td>${w.nguoi.join(', ')}</td>
+      <td>${w.han || '—'}${overdueWarnHTML(w)}</td>
+      <td><input class="inline" style="width:150px" value="${w.linkThuMuc || ''}" placeholder="Dán link thư mục..." onchange="updateWorkLink(${i}, this.value)"></td>
+      <td>
+        <select class="inline" id="wt-${i}" onchange="updateWorkStatus(${i})">
+          <option ${w.trangThai==='Mới tiếp nhận'?'selected':''}>Mới tiếp nhận</option>
+          <option ${w.trangThai==='Đang xử lý'?'selected':''}>Đang xử lý</option>
+          <option ${w.trangThai==='Hoàn thành'?'selected':''}>Hoàn thành</option>
+        </select>
+      </td>
+      <td>${xacNhanCellHTML(w, i)}</td>
+    </tr>`).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy đầu việc phù hợp</td></tr>';
+}
+function addWork() {
+  const ten = document.getElementById('w-ten').value.trim();
+  const owners = [...document.querySelectorAll('#w-owners .owner-select')].map(s => s.value);
+  if (!ten) { showToast('Vui lòng nhập Tên công việc'); return; }
+
+  const selPill = document.querySelector('#w-phanloai .pill[data-selected="1"]');
+  const phanLoai = selPill ? selPill.dataset.v : 'B';
+  const hanRaw = document.getElementById('w-han').value;
+  const han = hanRaw ? fmtDate(new Date(hanRaw)) : '';
+
+  workCounter++;
+  workItems.unshift({
+    ma: 'CV-' + String(workCounter).padStart(3,'0'),
+    mang: document.getElementById('w-mang').value,
+    ten,
+    phanLoai,
+    boPhan: document.getElementById('w-bophan').value.trim(),
+    nguoi: owners,
+    han,
+    trangThai: 'Mới tiếp nhận',
+    chuongTrinh: document.getElementById('w-chuongtrinh').value || '',
+    linkThuMuc: '',
+    xacNhan: false,
+  });
+  stampMeta(workItems[0]);
+
+  ['w-ten','w-bophan','w-han','w-mota'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('w-chuongtrinh').value = '';
+  [...document.querySelectorAll('#w-phanloai .pill')].forEach(p => { p.className = 'pill'; delete p.dataset.selected; });
+  initOwnerSelects();
+  showToast('Đã thêm đầu việc — email thông báo sẽ gửi cho ' + owners.join(', ') + ' (mô phỏng)');
+  closeForm('work-form');
+  renderWork();
+}
+function overdueWarnHTML(w) {
+  if (w.han) return '';
+  const created = parseVNDate(w.ngayTao);
+  if (!created) return '';
+  const days = Math.floor((new Date() - created) / (1000*60*60*24));
+  if (days < 7) return '';
+  return `<div class="subtext" style="color:var(--danger); font-weight:700;">⚠️ Chưa có hạn HT — quá ${days} ngày, cần cảnh báo tiến độ</div>`;
+}
+function updateWorkStatus(i) {
+  const val = document.getElementById('wt-' + i).value;
+  workItems[i].trangThai = val;
+  if (val !== 'Hoàn thành') workItems[i].xacNhan = false;
+  stampMeta(workItems[i]);
+  showToast('Đã cập nhật trạng thái ' + workItems[i].ma);
+  renderWork();
+}
+function updateWorkLink(i, val) {
+  workItems[i].linkThuMuc = val.trim();
+  stampMeta(workItems[i]);
+  showToast('Đã lưu link thư mục lưu trữ cho ' + workItems[i].ma);
+}
+function confirmWork(i) {
+  workItems[i].xacNhan = true;
+  stampMeta(workItems[i]);
+  showToast('Đã xác nhận hoàn thành ' + workItems[i].ma);
+  renderWork();
+}
+
+/* ---------------- SU KIEN (truoc day: Chuong trinh) ---------------- */
+function linkRowHTML(l) {
+  return `<div class="link-row">
+    <input type="text" class="prog-link-name" placeholder="Tên link (VD: Link Drive)" value="${l ? l.ten : ''}">
+    <input type="url" class="prog-link-url" placeholder="https://..." value="${l ? l.url : ''}">
+    <button type="button" class="btn secondary sm" onclick="removeProgramLinkRow(this)" title="Bỏ link này">×</button>
+  </div>`;
+}
+function addProgramLinkRow(containerId, l) {
+  document.getElementById(containerId).insertAdjacentHTML('beforeend', linkRowHTML(l));
+}
+function removeProgramLinkRow(btn) { btn.closest('.link-row').remove(); }
+function readProgramLinks(containerId) {
+  const rows = [...document.querySelectorAll('#' + containerId + ' .link-row')];
+  return rows.map(r => ({
+    ten: r.querySelector('.prog-link-name').value.trim(),
+    url: r.querySelector('.prog-link-url').value.trim(),
+  })).filter(l => l.ten || l.url);
+}
+
+function renderPrograms() {
+  const term = (document.getElementById('programs-search')?.value || '').toLowerCase().trim();
+  const rows = programs
+    .map((p, i) => ({p, i}))
+    .filter(({p}) => !term || [p.ten, p.mang, p.trangThai].join(' ').toLowerCase().includes(term));
+  document.getElementById('programs-body').innerHTML = rows.length ? rows.map(({p, i}) => `
+    <tr>
+      <td style="font-weight:700; cursor:pointer;" onclick="openProgramDetail(${i})">${p.ten}${metaLine(p)}</td>
+      <td>${p.mang || '—'}</td>
+      <td>${p.ngay}</td>
+      <td>${moneyFmt(p.nsDuyet)}</td>
+      <td>${p.trangThai === 'Hoàn thành' ? moneyFmt(p.nsThucChi) : '—'}</td>
+      <td>${p.trangThai === 'Hoàn thành' ? pctFmt(p.nsThucChi, p.nsDuyet) : '—'}</td>
+      <td>${p.trangThai === 'Hoàn thành' ? (p.csat ? p.csat + '/5' : '—') : '—'}</td>
+      <td>${p.trangThai === 'Hoàn thành' ? '<span class="status-pill done">Hoàn thành</span>' : '<span class="status-pill plan">Đang lên kế hoạch</span>'}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn ghost sm" onclick="openProgramDetail(${i})">👁 Chi tiết</button>
+        <button class="btn secondary sm" onclick="startProgramEdit(${i})">✏️ Sửa</button>
+      </td>
+    </tr>`).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy sự kiện phù hợp</td></tr>';
+}
+function addProgram() {
+  const ten = document.getElementById('p-ten').value.trim();
+  if (!ten) { showToast('Vui lòng nhập Tên sự kiện'); return; }
+  programCounter++;
+  programs.unshift({
+    ten,
+    mang: document.getElementById('p-mang').value,
+    ngay: document.getElementById('p-ngay').value ? fmtDate(new Date(document.getElementById('p-ngay').value)) : '—',
+    trangThai: 'Đang lên kế hoạch',
+    nsDuyet: parseFloat(document.getElementById('p-nsduyet').value) || 0,
+    nsThucChi: 0,
+    songuoi: '',
+    csat: 0,
+    ketqua: '',
+    moTa: document.getElementById('p-mota').value.trim(),
+    links: readProgramLinks('p-links'),
+  });
+  stampMeta(programs[0]);
+  ['p-ten','p-ngay','p-nsduyet','p-mota'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('p-links').innerHTML = '';
+  showToast('Đã tạo sự kiện mới — cập nhật báo cáo khi hoàn thành');
+  closeForm('programs-form');
+  renderPrograms();
+}
+function startProgramEdit(i) {
+  programEditIndex = i;
+  const p = programs[i];
+  document.getElementById('program-edit-card').style.display = 'block';
+  document.getElementById('program-edit-title').textContent = 'Sửa sự kiện: ' + p.ten;
+  document.getElementById('pe-ten').value = p.ten;
+  document.getElementById('pe-mang').value = p.mang || MANG_LIST[0];
+  document.getElementById('pe-ngay').value = vnDateToIso(p.ngay);
+  document.getElementById('pe-nsduyet').value = p.nsDuyet || '';
+  document.getElementById('pe-nsthucchi').value = p.nsThucChi || '';
+  document.getElementById('pe-songuoi').value = p.songuoi || '';
+  document.getElementById('pe-csat').value = p.csat || '';
+  document.getElementById('pe-mota').value = p.moTa || '';
+  document.getElementById('pe-ketqua').value = p.ketqua || '';
+  document.getElementById('pe-trangthai').value = p.trangThai;
+  document.getElementById('pe-links').innerHTML = '';
+  (p.links || []).forEach(l => addProgramLinkRow('pe-links', l));
+  document.getElementById('program-edit-card').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function cancelProgramEdit() {
+  programEditIndex = null;
+  document.getElementById('program-edit-card').style.display = 'none';
+}
+function saveProgramCompletion() {
+  if (programEditIndex === null) return;
+  const p = programs[programEditIndex];
+  const ten = document.getElementById('pe-ten').value.trim();
+  if (!ten) { showToast('Vui lòng nhập Tên sự kiện'); return; }
+  p.ten = ten;
+  p.mang = document.getElementById('pe-mang').value;
+  const ngayRaw = document.getElementById('pe-ngay').value;
+  if (ngayRaw) p.ngay = fmtDate(new Date(ngayRaw));
+  p.nsDuyet = parseFloat(document.getElementById('pe-nsduyet').value) || 0;
+  p.nsThucChi = parseFloat(document.getElementById('pe-nsthucchi').value) || 0;
+  p.songuoi = document.getElementById('pe-songuoi').value;
+  p.csat = parseFloat(document.getElementById('pe-csat').value) || 0;
+  p.moTa = document.getElementById('pe-mota').value.trim();
+  p.ketqua = document.getElementById('pe-ketqua').value;
+  p.trangThai = document.getElementById('pe-trangthai').value;
+  p.links = readProgramLinks('pe-links');
+  stampMeta(p);
+  showToast('Đã lưu thay đổi sự kiện — số liệu sẽ nuôi thẳng vào KPI mảng liên quan');
+  cancelProgramEdit();
+  renderPrograms();
+}
+function openProgramDetail(i) {
+  programDetailIndex = i;
+  const p = programs[i];
+  document.getElementById('program-detail-card').style.display = 'block';
+  document.getElementById('program-detail-title').textContent = p.ten;
+  document.getElementById('program-detail-sub').textContent = (p.mang || '—') + ' · ' + p.ngay;
+  const linksHTML = (p.links && p.links.length)
+    ? `<div class="link-chip-list">${p.links.map(l => `<a class="btn secondary sm" href="${l.url}" target="_blank" rel="noopener">🔗 ${l.ten || l.url}</a>`).join('')}</div>`
+    : '<p class="sub" style="margin:6px 0 0;">Chưa có link nào được đính kèm.</p>';
+  document.getElementById('program-detail-body').innerHTML = `
+    <div class="stat-row-3" style="margin:14px 0;">
+      <div class="stat-tile flat"><div class="lbl">Ngân sách duyệt</div><div class="val" style="font-size:20px;">${moneyFmt(p.nsDuyet)}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Ngân sách thực chi</div><div class="val" style="font-size:20px;">${p.trangThai==='Hoàn thành'?moneyFmt(p.nsThucChi):'—'}</div></div>
+      <div class="stat-tile flat"><div class="lbl">CSAT</div><div class="val" style="font-size:20px;">${p.trangThai==='Hoàn thành' && p.csat ? p.csat + '/5' : '—'}</div></div>
+    </div>
+    <p class="sub" style="margin-bottom:4px;"><b>Mô tả</b></p>
+    <p style="margin-top:0;">${p.moTa || '—'}</p>
+    ${p.ketqua ? `<p class="sub" style="margin-bottom:4px;"><b>Kết quả nổi bật / sự cố</b></p><p style="margin-top:0;">${p.ketqua}</p>` : ''}
+    <p class="sub" style="margin-bottom:4px;"><b>Đường link liên quan</b></p>
+    ${linksHTML}
+    ${metaLine(p)}
+  `;
+  document.getElementById('program-detail-card').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function closeProgramDetail() {
+  programDetailIndex = null;
+  document.getElementById('program-detail-card').style.display = 'none';
+}
+
+/* ---------------- TONG HOP THI DUA ---------------- */
+function competitionPosterThumb(c) {
+  if (c.poster) return `<img src="${c.poster}" style="width:40px;height:54px;object-fit:cover;border-radius:6px;border:1px solid var(--gridline);">`;
+  return `<div style="width:40px;height:54px;border-radius:6px;background:#fdeceb;display:flex;align-items:center;justify-content:center;font-size:16px;">🏆</div>`;
+}
+function competitionTypeTag(c) {
+  return c.loai === 'Doanh số'
+    ? '<span class="webapp-type-tag" style="background:#eaf2fc;color:#184f95;border-color:#c7dcf5;">📈 Doanh số</span>'
+    : '<span class="webapp-type-tag" style="background:#fdeceb;color:var(--primary-dark);border-color:#f3c6c2;">📣 Lan tỏa</span>';
+}
+function competitionRowHTML(c, i) {
+  if (i === competitionEditIndex) {
+    return `
+    <tr>
+      <td>${competitionPosterThumb(c)}</td>
+      <td><input type="text" class="inline" style="width:100%" id="ce-ten-${i}" value="${c.ten}"></td>
+      <td><select class="inline" id="ce-loai-${i}">
+          <option value="Lan tỏa" ${c.loai==='Lan tỏa'?'selected':''}>Lan tỏa</option>
+          <option value="Doanh số" ${c.loai==='Doanh số'?'selected':''}>Doanh số</option>
+        </select></td>
+      <td><input type="text" class="inline" style="width:100%" id="ce-doituong-${i}" value="${c.doituong}"></td>
+      <td><input type="number" class="inline" style="width:80px" id="ce-songuoi-${i}" value="${c.songuoi}"></td>
+      <td><input type="number" class="inline" style="width:120px" id="ce-tongtien-${i}" value="${c.tongtien}"></td>
+      <td><input type="url" class="inline" style="width:100%" id="ce-linkthumuc-${i}" value="${c.linkThuMuc || ''}"></td>
+      <td>
+        <select class="inline" id="ce-trangthai-${i}">
+          <option ${c.trangThai==='Chưa trả'?'selected':''}>Chưa trả</option>
+          <option ${c.trangThai==='Đang xử lý'?'selected':''}>Đang xử lý</option>
+          <option ${c.trangThai==='Đã trả'?'selected':''}>Đã trả</option>
+        </select>
+      </td>
+      <td style="white-space:nowrap;">
+        <button class="btn secondary sm" onclick="saveCompetitionEdit(${i})">Lưu</button>
+        <button class="btn ghost sm" onclick="cancelCompetitionEdit()">Hủy</button>
+      </td>
+    </tr>`;
+  }
+  return `
+    <tr>
+      <td>${competitionPosterThumb(c)}</td>
+      <td style="font-weight:700;">${c.ten}${c.maHeThongThiDua ? ' <span class="webapp-type-tag" title="Đồng bộ tự động từ hệ thống Thi đua">🔄 Đồng bộ</span>' : ''}${metaLine(c)}</td>
+      <td>${competitionTypeTag(c)}</td>
+      <td>${c.doituong}</td>
+      <td>${c.songuoi}</td>
+      <td>${c.tongtien.toLocaleString('vi-VN')} đ</td>
+      <td>${c.linkThuMuc ? `<a class="btn ghost sm" href="${c.linkThuMuc}" target="_blank" rel="noopener">📁 Mở thư mục</a>` : '—'}</td>
+      <td>${statusBadge2(c.trangThai)}</td>
+      <td><button class="btn secondary sm" onclick="startCompetitionEdit(${i})">✏️ Sửa</button></td>
+    </tr>`;
+}
+function setCompetitionFilter(t) {
+  competitionFilterType = t;
+  document.querySelectorAll('#competition-type-filter .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.t === t));
+  renderCompetitions();
+}
+function renderCompetitions() {
+  document.querySelectorAll('#competition-type-filter .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.t === competitionFilterType));
+  const term = (document.getElementById('competitions-search')?.value || '').toLowerCase().trim();
+  const rows = competitions
+    .map((c, i) => ({c, i}))
+    .filter(({c}) => competitionFilterType === 'Tất cả' || c.loai === competitionFilterType)
+    .filter(({c}) => !term || [c.ten, c.doituong, c.trangThai].join(' ').toLowerCase().includes(term));
+  document.getElementById('competitions-body').innerHTML = rows.length ? rows.map(({c, i}) => competitionRowHTML(c, i)).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy chương trình phù hợp</td></tr>';
+}
+function startCompetitionEdit(i) { competitionEditIndex = i; renderCompetitions(); }
+function cancelCompetitionEdit() { competitionEditIndex = null; renderCompetitions(); }
+function saveCompetitionEdit(i) {
+  const c = competitions[i];
+  const ten = document.getElementById('ce-ten-' + i).value.trim();
+  if (!ten) { showToast('Vui lòng nhập Tên chương trình'); return; }
+  c.ten = ten;
+  c.loai = document.getElementById('ce-loai-' + i).value;
+  c.doituong = document.getElementById('ce-doituong-' + i).value.trim();
+  c.songuoi = parseInt(document.getElementById('ce-songuoi-' + i).value) || 0;
+  c.tongtien = parseFloat(document.getElementById('ce-tongtien-' + i).value) || 0;
+  c.linkThuMuc = document.getElementById('ce-linkthumuc-' + i).value.trim();
+  c.trangThai = document.getElementById('ce-trangthai-' + i).value;
+  competitionEditIndex = null;
+  stampMeta(c);
+  showToast('Đã lưu thay đổi chương trình thi đua');
+  renderCompetitions();
+}
+function previewCompetitionPoster(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    pendingCompetitionPoster = e.target.result;
+    document.getElementById('c-poster-preview').src = pendingCompetitionPoster;
+    document.getElementById('c-poster-preview-wrap').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+function statusBadgeWork(status) {
+  const map = { 'Mới tiếp nhận': 'muted', 'Đang xử lý': 'warning', 'Hoàn thành': 'good' };
+  return `<span class="badge"><span class="dot ${map[status]||'muted'}"></span>${status}</span>`;
+}
+function statusBadge2(status) {
+  const map = { 'Chưa trả': 'critical', 'Đang xử lý': 'warning', 'Đã trả': 'good' };
+  return `<span class="badge"><span class="dot ${map[status]||'muted'}"></span>${status}</span>`;
+}
+function addCompetition() {
+  const ten = document.getElementById('c-ten').value.trim();
+  if (!ten) { showToast('Vui lòng nhập Tên chương trình'); return; }
+  compCounter++;
+  competitions.unshift({
+    ten,
+    loai: document.getElementById('c-loai').value,
+    doituong: document.getElementById('c-doituong').value,
+    songuoi: parseInt(document.getElementById('c-songuoi').value) || 0,
+    tongtien: parseFloat(document.getElementById('c-tongtien').value) || 0,
+    trangThai: document.getElementById('c-trangthai').value,
+    linkThuMuc: document.getElementById('c-linkthumuc').value.trim(),
+    poster: pendingCompetitionPoster,
+    maHeThongThiDua: null,
+  });
+  stampMeta(competitions[0]);
+  ['c-ten','c-doituong','c-songuoi','c-tongtien','c-linkthumuc'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('c-poster').value = '';
+  document.getElementById('c-poster-preview-wrap').style.display = 'none';
+  pendingCompetitionPoster = '';
+  showToast('Đã lưu chương trình thi đua');
+  closeForm('competitions-form');
+  renderCompetitions();
+}
+
+/* ---------------- TICH HOP HE THONG THI DUA SAN CO ----------------
+   Hệ thống Thi đua hiện có (Code.gs riêng, đã chạy thật) lưu dữ liệu
+   trong sheet PROGRAMS với schema rowToProgram(): id, name, brand, scope,
+   startDate, endDate, keys, budget, paid, contactName, contactEmail,
+   department, status, resultDate, rewardDate, notes, priority, driveLink,
+   createdAt, updatedAt, nhanhang, vendor, posterUrl, recurring, recurringBase.
+   Phương án tích hợp: hệ thống đó mở thêm 1 nhánh doGet trả JSON (không
+   đụng vào luồng quét email / UI hiện tại của họ), PTVH gọi JSON này và
+   ánh xạ sang cấu trúc competitions[] ở đây — xem ghi chú trong tab Cài đặt.
+------------------------------------------------------------------- */
+function saveThiDuaApiConfig() {
+  thiDuaApiUrl = document.getElementById('thidua-api-url').value.trim();
+  thiDuaApiKey = document.getElementById('thidua-api-key').value.trim();
+  showToast(thiDuaApiUrl ? 'Đã lưu cấu hình kết nối hệ thống Thi đua' : 'Đã xóa URL kết nối');
+  renderThiDuaSyncStatus();
+}
+function renderThiDuaSyncStatus() {
+  const el = document.getElementById('thidua-sync-status');
+  if (!el) return;
+  const urlInput = document.getElementById('thidua-api-url');
+  const keyInput = document.getElementById('thidua-api-key');
+  if (urlInput && !urlInput.value) urlInput.value = thiDuaApiUrl;
+  if (keyInput && !keyInput.value) keyInput.value = thiDuaApiKey;
+  if (!thiDuaApiUrl) { el.textContent = 'Chưa cấu hình URL — nút Đồng bộ ở tab Thi đua sẽ chưa hoạt động.'; return; }
+  el.textContent = 'Đang trỏ tới: ' + thiDuaApiUrl + (thiDuaLastSync ? ' · lần đồng bộ gần nhất: ' + thiDuaLastSync : ' · chưa đồng bộ lần nào');
+}
+// Trạng thái bên hệ thống Thi đua chi tiết hơn (7 mức) → rút gọn về 3 mức của PTVH
+function mapThiDuaStatus(status) {
+  if (status === 'Đã trả thưởng') return 'Đã trả';
+  if (status === 'Đã phát hành kết quả') return 'Chưa trả';
+  return 'Đang xử lý'; // Chờ phát hành / Chưa diễn ra / Đang diễn ra / Đã kết thúc / Chờ kết quả
+}
+function mapThiDuaRecordToCompetition(p) {
+  return {
+    ten: p.name || '(Không có tên)',
+    loai: 'Doanh số',
+    doituong: p.scope || p.department || '',
+    tongtien: Number(p.paid) || Number(p.budget) || 0,
+    trangThai: mapThiDuaStatus(p.status),
+    linkThuMuc: p.driveLink || '',
+    poster: (p.posterUrl && /^https?:\/\//.test(p.posterUrl)) ? p.posterUrl : '',
+    maHeThongThiDua: p.id,
+  };
+}
+async function syncFromThiDuaSystem() {
+  if (!thiDuaApiUrl) { showToast('Chưa cấu hình URL hệ thống Thi đua — vào tab Cài đặt để nhập'); return; }
+  const lastRunEl = document.getElementById('thidua-sync-lastrun');
+  if (lastRunEl) lastRunEl.textContent = 'Đang đồng bộ...';
+  try {
+    const url = thiDuaApiUrl + (thiDuaApiKey ? (thiDuaApiUrl.includes('?') ? '&' : '?') + 'key=' + encodeURIComponent(thiDuaApiKey) : '');
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    const records = (json && json.data) ? json.data : (Array.isArray(json) ? json : []);
+    if (!records.length) { showToast('Hệ thống Thi đua không trả về dữ liệu nào'); if (lastRunEl) lastRunEl.textContent = 'Đồng bộ xong — 0 chương trình'; return; }
+    let added = 0, updated = 0;
+    records.forEach(p => {
+      const mapped = mapThiDuaRecordToCompetition(p);
+      const existing = competitions.find(c => c.maHeThongThiDua && c.maHeThongThiDua === mapped.maHeThongThiDua);
+      if (existing) {
+        Object.assign(existing, mapped, { songuoi: existing.songuoi, poster: mapped.poster || existing.poster });
+        stampMeta(existing);
+        updated++;
+      } else {
+        competitions.unshift(Object.assign({songuoi: 0}, mapped));
+        stampMeta(competitions[0]);
+        added++;
+      }
+    });
+    thiDuaLastSync = fmtDate(new Date());
+    if (lastRunEl) lastRunEl.textContent = `Đồng bộ lúc ${thiDuaLastSync} — thêm mới ${added}, cập nhật ${updated}`;
+    renderThiDuaSyncStatus();
+    renderCompetitions();
+    showToast(`Đồng bộ thành công — thêm ${added}, cập nhật ${updated} chương trình thi đua`);
+  } catch (err) {
+    if (lastRunEl) lastRunEl.textContent = 'Đồng bộ thất bại: ' + err.message + ' — kiểm tra lại URL API và nhánh JSON trong Code.gs của hệ thống Thi đua';
+    showToast('Không kết nối được hệ thống Thi đua — kiểm tra URL trong Cài đặt');
+  }
+}
+
+/* ---------------- NGAN SACH ---------------- */
+function setBudgetFilter(t) {
+  budgetFilterType = t;
+  document.querySelectorAll('#budget-type-filter .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.t === t));
+  renderBudget();
+}
+function fillLoaiNSSelect(sel) {
+  sel.innerHTML = LOAI_NS_LIST.map(l => `<option>${l}</option>`).join('');
+}
+function fillSuKienSelect(sel) {
+  sel.innerHTML = '<option value="">— Không gắn sự kiện —</option>' + programs.map(p => `<option>${p.ten}</option>`).join('');
+}
+function passesBudgetFilter(loaiNS) { return budgetFilterType === 'Tất cả' || loaiNS === budgetFilterType; }
+
+function renderBudgetRef() {
+  const rows = budgetYearRef.map((b, i) => ({b, i})).filter(({b}) => passesBudgetFilter(b.loaiNS));
+  document.getElementById('budget-ref-body').innerHTML = rows.map(({b, i}) => {
+    const thucChi = budgetItems.filter(x => x.mang === b.mang && x.loaiNS === b.loaiNS).reduce((s,x)=>s+x.thucchi,0);
+    return `
+    <tr>
+      <td style="font-weight:700;">${b.mang}</td>
+      <td>${b.loaiNS}</td>
+      <td><input class="inline" type="number" style="width:140px" value="${b.nsNam}" onchange="updateBudgetRef(${i}, this.value)"></td>
+      <td>${moneyFmt(thucChi)}</td>
+      <td>${pctFmt(thucChi, b.nsNam)}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;">Không có dữ liệu</td></tr>';
+}
+function updateBudgetRef(i, val) {
+  budgetYearRef[i].nsNam = parseFloat(val) || 0;
+  stampMeta(budgetYearRef[i]);
+  showToast('Đã cập nhật ngân sách năm — ' + budgetYearRef[i].mang + ' (' + budgetYearRef[i].loaiNS + ')');
+  renderBudgetRef();
+}
+
+function budgetPlanRowHTML(b, i) {
+  if (i === budgetPlanEditIndex) {
+    return `
+    <tr>
+      <td><input type="text" class="inline" style="width:90px" id="bpe-thang-${i}" value="${b.thang}"></td>
+      <td><select class="inline" id="bpe-mang-${i}"></select></td>
+      <td><select class="inline" id="bpe-loains-${i}"></select></td>
+      <td><input type="text" class="inline" style="width:100%" id="bpe-hangmuc-${i}" value="${b.hangmuc}"></td>
+      <td><input type="number" class="inline" style="width:120px" id="bpe-sotien-${i}" value="${b.keHoach}"></td>
+      <td style="white-space:nowrap;">
+        <button class="btn secondary sm" onclick="saveBudgetPlanEdit(${i})">Lưu</button>
+        <button class="btn ghost sm" onclick="cancelBudgetPlanEdit()">Hủy</button>
+      </td>
+    </tr>`;
+  }
+  return `
+    <tr>
+      <td>${b.thang}</td>
+      <td>${b.mang}</td>
+      <td>${b.loaiNS}</td>
+      <td>${b.hangmuc}${metaLine(b)}</td>
+      <td>${moneyFmt(b.keHoach)}</td>
+      <td><button class="btn secondary sm" onclick="startBudgetPlanEdit(${i})">✏️ Sửa</button></td>
+    </tr>`;
+}
+function renderBudgetPlan() {
+  const term = (document.getElementById('budget-plan-search')?.value || '').toLowerCase().trim();
+  const rows = budgetPlanItems
+    .map((b, i) => ({b, i}))
+    .filter(({b}) => passesBudgetFilter(b.loaiNS))
+    .filter(({b}) => !term || [b.thang, b.mang, b.hangmuc].join(' ').toLowerCase().includes(term));
+  document.getElementById('budget-plan-body').innerHTML = rows.length ? rows.map(({b, i}) => budgetPlanRowHTML(b, i)).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy kế hoạch phù hợp</td></tr>';
+  if (budgetPlanEditIndex !== null) {
+    const sel = document.getElementById('bpe-mang-' + budgetPlanEditIndex);
+    if (sel) { fillMangSelect(sel, false); sel.value = budgetPlanItems[budgetPlanEditIndex].mang; }
+    const lsel = document.getElementById('bpe-loains-' + budgetPlanEditIndex);
+    if (lsel) { fillLoaiNSSelect(lsel); lsel.value = budgetPlanItems[budgetPlanEditIndex].loaiNS; }
+  }
+}
+function startBudgetPlanEdit(i) { budgetPlanEditIndex = i; renderBudgetPlan(); }
+function cancelBudgetPlanEdit() { budgetPlanEditIndex = null; renderBudgetPlan(); }
+function saveBudgetPlanEdit(i) {
+  const b = budgetPlanItems[i];
+  const hangmuc = document.getElementById('bpe-hangmuc-' + i).value.trim();
+  if (!hangmuc) { showToast('Vui lòng nhập Hạng mục'); return; }
+  b.thang = document.getElementById('bpe-thang-' + i).value.trim() || '—';
+  b.mang = document.getElementById('bpe-mang-' + i).value;
+  b.loaiNS = document.getElementById('bpe-loains-' + i).value;
+  b.hangmuc = hangmuc;
+  b.keHoach = parseFloat(document.getElementById('bpe-sotien-' + i).value) || 0;
+  budgetPlanEditIndex = null;
+  stampMeta(b);
+  showToast('Đã lưu thay đổi kế hoạch chi');
+  renderBudgetPlan();
+}
+function addBudgetPlan() {
+  const hangmuc = document.getElementById('bp-hangmuc').value.trim();
+  if (!hangmuc) { showToast('Vui lòng nhập Hạng mục'); return; }
+  budgetPlanCounter++;
+  budgetPlanItems.unshift({
+    thang: document.getElementById('bp-thang').value || '—',
+    mang: document.getElementById('bp-mang').value,
+    loaiNS: document.getElementById('bp-loains').value,
+    hangmuc,
+    keHoach: parseFloat(document.getElementById('bp-sotien').value) || 0,
+  });
+  stampMeta(budgetPlanItems[0]);
+  ['bp-thang','bp-hangmuc','bp-sotien'].forEach(id => document.getElementById(id).value = '');
+  showToast('Đã lưu kế hoạch chi tháng');
+  closeForm('budget-plan-form');
+  renderBudgetPlan();
+}
+
+function budgetActualRowHTML(b, i) {
+  if (i === budgetActualEditIndex) {
+    return `
+    <tr>
+      <td><input type="text" class="inline" style="width:90px" id="bae-thang-${i}" value="${b.thang}"></td>
+      <td><select class="inline" id="bae-mang-${i}"></select></td>
+      <td><select class="inline" id="bae-loains-${i}"></select></td>
+      <td><input type="text" class="inline" style="width:100%" id="bae-hangmuc-${i}" value="${b.hangmuc}"></td>
+      <td><select class="inline" id="bae-sukien-${i}"></select></td>
+      <td><input type="number" class="inline" style="width:110px" id="bae-duyet-${i}" value="${b.duyet}"></td>
+      <td><input type="number" class="inline" style="width:110px" id="bae-thucchi-${i}" value="${b.thucchi}"></td>
+      <td>—</td>
+      <td style="white-space:nowrap;">
+        <button class="btn secondary sm" onclick="saveBudgetActualEdit(${i})">Lưu</button>
+        <button class="btn ghost sm" onclick="cancelBudgetActualEdit()">Hủy</button>
+      </td>
+    </tr>`;
+  }
+  return `
+    <tr>
+      <td>${b.thang}</td>
+      <td>${b.mang}</td>
+      <td>${b.loaiNS}</td>
+      <td>${b.hangmuc}${metaLine(b)}</td>
+      <td>${b.suKien ? `<span class="subtext tag-prog">🎪 ${b.suKien}</span>` : '—'}</td>
+      <td>${moneyFmt(b.duyet)}</td>
+      <td>${moneyFmt(b.thucchi)}</td>
+      <td>${pctFmt(b.thucchi, b.duyet)}</td>
+      <td><button class="btn secondary sm" onclick="startBudgetActualEdit(${i})">✏️ Sửa</button></td>
+    </tr>`;
+}
+function renderBudgetActual() {
+  const term = (document.getElementById('budget-actual-search')?.value || '').toLowerCase().trim();
+  const rows = budgetItems
+    .map((b, i) => ({b, i}))
+    .filter(({b}) => passesBudgetFilter(b.loaiNS))
+    .filter(({b}) => !term || [b.thang, b.mang, b.hangmuc].join(' ').toLowerCase().includes(term));
+  document.getElementById('budget-body').innerHTML = rows.length ? rows.map(({b, i}) => budgetActualRowHTML(b, i)).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy khoản chi phù hợp</td></tr>';
+  if (budgetActualEditIndex !== null) {
+    const sel = document.getElementById('bae-mang-' + budgetActualEditIndex);
+    if (sel) { fillMangSelect(sel, false); sel.value = budgetItems[budgetActualEditIndex].mang; }
+    const lsel = document.getElementById('bae-loains-' + budgetActualEditIndex);
+    if (lsel) { fillLoaiNSSelect(lsel); lsel.value = budgetItems[budgetActualEditIndex].loaiNS; }
+    const ssel = document.getElementById('bae-sukien-' + budgetActualEditIndex);
+    if (ssel) { fillSuKienSelect(ssel); ssel.value = budgetItems[budgetActualEditIndex].suKien || ''; }
+  }
+}
+function startBudgetActualEdit(i) { budgetActualEditIndex = i; renderBudgetActual(); }
+function cancelBudgetActualEdit() { budgetActualEditIndex = null; renderBudgetActual(); }
+function saveBudgetActualEdit(i) {
+  const b = budgetItems[i];
+  const hangmuc = document.getElementById('bae-hangmuc-' + i).value.trim();
+  if (!hangmuc) { showToast('Vui lòng nhập Hạng mục'); return; }
+  b.thang = document.getElementById('bae-thang-' + i).value.trim() || '—';
+  b.mang = document.getElementById('bae-mang-' + i).value;
+  b.loaiNS = document.getElementById('bae-loains-' + i).value;
+  b.hangmuc = hangmuc;
+  b.suKien = document.getElementById('bae-sukien-' + i).value;
+  b.duyet = parseFloat(document.getElementById('bae-duyet-' + i).value) || 0;
+  b.thucchi = parseFloat(document.getElementById('bae-thucchi-' + i).value) || 0;
+  budgetActualEditIndex = null;
+  stampMeta(b);
+  showToast('Đã lưu thay đổi khoản chi');
+  renderBudgetActual();
+  renderBudgetRef();
+  renderBudgetByEvent();
+}
+function addBudget() {
+  const hangmuc = document.getElementById('b-hangmuc').value.trim();
+  if (!hangmuc) { showToast('Vui lòng nhập Hạng mục'); return; }
+  budgetCounter++;
+  budgetItems.unshift({
+    thang: document.getElementById('b-thang').value || '—',
+    mang: document.getElementById('b-mang').value,
+    loaiNS: document.getElementById('b-loains').value,
+    hangmuc,
+    suKien: document.getElementById('b-sukien').value,
+    duyet: parseFloat(document.getElementById('b-duyet').value) || 0,
+    thucchi: parseFloat(document.getElementById('b-thucchi').value) || 0,
+  });
+  stampMeta(budgetItems[0]);
+  ['b-thang','b-hangmuc','b-duyet','b-thucchi'].forEach(id => document.getElementById(id).value = '');
+  showToast('Đã lưu khoản chi — Dashboard cập nhật tiến độ ngân sách ngay');
+  closeForm('budget-actual-form');
+  renderBudgetActual();
+  renderBudgetRef();
+  renderBudgetByEvent();
+}
+function renderBudgetByEvent() {
+  const el = document.getElementById('budget-by-event-body');
+  if (!el) return;
+  if (!programs.length) { el.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;">Chưa có sự kiện nào</td></tr>'; return; }
+  el.innerHTML = programs.map((p, idx) => {
+    const thucChi = budgetItems.filter(b => b.suKien === p.ten).reduce((s,b)=>s+b.thucchi,0);
+    return `
+    <tr>
+      <td style="font-weight:700; cursor:pointer;" onclick="go('programs'); setTimeout(()=>openProgramDetail(${idx}),0);">${p.ten}</td>
+      <td>${p.mang || '—'}</td>
+      <td>${moneyFmt(p.nsDuyet)}</td>
+      <td>${moneyFmt(thucChi)}</td>
+      <td>${pctFmt(thucChi, p.nsDuyet)}</td>
+    </tr>`;
+  }).join('');
+}
+function renderBudget() {
+  document.querySelectorAll('#budget-type-filter .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.t === budgetFilterType));
+  fillSuKienSelect(document.getElementById('b-sukien'));
+  renderBudgetRef();
+  renderBudgetPlan();
+  renderBudgetActual();
+  renderBudgetByEvent();
+}
+
+/* ---------------- QUA TANG / VOUCHER (dùng chung logic) ---------------- */
+function inventoryStore(kind) { return kind === 'gifts' ? gifts : vouchers; }
+function programOptionsList() {
+  return [
+    ...programs.map(p => '[Sự kiện] ' + p.ten),
+    ...competitions.map(c => '[Thi đua] ' + c.ten),
+  ];
+}
+function populateInventoryProgramOptions(kind) {
+  const sel = document.getElementById((kind === 'gifts' ? 'g' : 'v') + '-chuongtrinh');
+  const opts = programOptionsList();
+  if (opts.length === 0) {
+    sel.innerHTML = '<option value="">— Chưa có chương trình nào, tạo ở tab Chương trình/Thi đua trước —</option>';
+    return;
+  }
+  sel.innerHTML = opts.map(o => `<option value="${o}">${o}</option>`).join('');
+}
+function previewInventoryImage(event, kind) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    pendingInventoryImage[kind] = e.target.result;
+    document.getElementById('g-image-preview').src = pendingInventoryImage[kind];
+    document.getElementById('g-image-preview-wrap').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+function inventoryThumb(item) {
+  if (item.image) return `<img src="${item.image}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--gridline);">`;
+  return `<div style="width:40px;height:40px;border-radius:6px;background:#fdeceb;display:flex;align-items:center;justify-content:center;font-size:16px;">🎁</div>`;
+}
+function giftTonKho(g) {
+  const adj = (g.lichSu || []).reduce((s, h) => s + h.soLuong, 0);
+  return g.nhap - g.xuat + adj;
+}
+function inventoryRowHTML(kind, item, i) {
+  const prefix = kind === 'gifts' ? 'ie-g' : 'ie-v';
+  if (inventoryEditIndex[kind] === i) {
+    return kind === 'gifts' ? `
+    <tr>
+      <td>${inventoryThumb(item)}</td>
+      <td><input type="text" class="inline" style="width:100%" id="${prefix}-loai-${i}" value="${item.loai}"></td>
+      <td><select class="inline" id="${prefix}-ct-${i}"></select></td>
+      <td><input type="number" class="inline" style="width:70px" id="${prefix}-nhap-${i}" value="${item.nhap}"></td>
+      <td><input type="number" class="inline" style="width:70px" id="${prefix}-xuat-${i}" value="${item.xuat}"></td>
+      <td>—</td>
+      <td style="white-space:nowrap;">
+        <button class="btn secondary sm" onclick="saveInventoryEdit('gifts', ${i})">Lưu</button>
+        <button class="btn ghost sm" onclick="cancelInventoryEdit('gifts')">Hủy</button>
+      </td>
+    </tr>` : `
+    <tr>
+      <td><input type="text" class="inline" style="width:100%" id="${prefix}-loai-${i}" value="${item.loai}"></td>
+      <td><select class="inline" id="${prefix}-ct-${i}"></select></td>
+      <td><input type="number" class="inline" style="width:70px" id="${prefix}-nhap-${i}" value="${item.nhap}"></td>
+      <td><input type="number" class="inline" style="width:70px" id="${prefix}-xuat-${i}" value="${item.xuat}"></td>
+      <td>—</td>
+      <td style="white-space:nowrap;">
+        <button class="btn secondary sm" onclick="saveInventoryEdit('vouchers', ${i})">Lưu</button>
+        <button class="btn ghost sm" onclick="cancelInventoryEdit('vouchers')">Hủy</button>
+      </td>
+    </tr>`;
+  }
+  return kind === 'gifts' ? `
+    <tr>
+      <td>${inventoryThumb(item)}</td>
+      <td>${item.loai}</td>
+      <td>${item.chuongtrinh}</td>
+      <td>${item.nhap}</td>
+      <td>${item.xuat}</td>
+      <td style="font-weight:700;">${giftTonKho(item)}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn secondary sm" onclick="startInventoryEdit('gifts', ${i})">✏️ Sửa</button>
+        <button class="btn ghost sm" onclick="openGiftDetail(${i})">👁 Chi tiết</button>
+      </td>
+    </tr>` : `
+    <tr>
+      <td style="font-weight:700;">${item.loai}</td>
+      <td>${item.chuongtrinh}</td>
+      <td>${item.nhap}</td>
+      <td>${item.xuat}</td>
+      <td style="font-weight:700;">${item.nhap - item.xuat}</td>
+      <td><button class="btn secondary sm" onclick="startInventoryEdit('vouchers', ${i})">✏️ Sửa</button></td>
+    </tr>`;
+}
+function renderInventory(kind) {
+  populateInventoryProgramOptions(kind);
+  const data = inventoryStore(kind);
+  const bodyId = kind + '-body';
+  const term = (document.getElementById(kind + '-search')?.value || '').toLowerCase().trim();
+  const rows = data
+    .map((item, i) => ({item, i}))
+    .filter(({item}) => !term || [item.loai, item.chuongtrinh].join(' ').toLowerCase().includes(term));
+  const colspan = kind === 'gifts' ? 7 : 6;
+  document.getElementById(bodyId).innerHTML = rows.length ? rows.map(({item, i}) => inventoryRowHTML(kind, item, i)).join('') : `<tr><td colspan="${colspan}" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy ${kind === 'gifts' ? 'quà tặng' : 'voucher'} phù hợp</td></tr>`;
+  if (inventoryEditIndex[kind] !== null) {
+    const prefix = kind === 'gifts' ? 'ie-g' : 'ie-v';
+    const sel = document.getElementById(prefix + '-ct-' + inventoryEditIndex[kind]);
+    if (sel) {
+      const opts = programOptionsList();
+      sel.innerHTML = opts.map(o => `<option value="${o}">${o}</option>`).join('');
+      sel.value = data[inventoryEditIndex[kind]].chuongtrinh;
+    }
+  }
+}
+function startInventoryEdit(kind, i) { inventoryEditIndex[kind] = i; renderInventory(kind); }
+function cancelInventoryEdit(kind) { inventoryEditIndex[kind] = null; renderInventory(kind); }
+function saveInventoryEdit(kind, i) {
+  const prefix = kind === 'gifts' ? 'ie-g' : 'ie-v';
+  const data = inventoryStore(kind);
+  const item = data[i];
+  const loai = document.getElementById(prefix + '-loai-' + i).value.trim();
+  if (!loai) { showToast('Vui lòng nhập Loại'); return; }
+  item.loai = loai;
+  item.chuongtrinh = document.getElementById(prefix + '-ct-' + i).value || '(chưa gắn sự kiện)';
+  item.nhap = parseInt(document.getElementById(prefix + '-nhap-' + i).value) || 0;
+  item.xuat = parseInt(document.getElementById(prefix + '-xuat-' + i).value) || 0;
+  inventoryEditIndex[kind] = null;
+  showToast('Đã lưu thay đổi — tồn kho tự tính lại');
+  renderInventory(kind);
+}
+
+/* ---------------- CHI TIET QUA TANG + LICH SU CAP NHAT ---------------- */
+function openGiftDetail(i) {
+  giftDetailIndex = i;
+  const g = gifts[i];
+  document.getElementById('gift-detail-card').style.display = 'block';
+  document.getElementById('gift-detail-title').textContent = 'Chi tiết: ' + g.loai;
+  document.getElementById('gift-detail-sub').textContent = g.chuongtrinh;
+  document.getElementById('gift-detail-stats').innerHTML = `
+    <div class="stat-tile flat"><div class="lbl">Nhập</div><div class="val" style="font-size:22px;">${g.nhap}</div></div>
+    <div class="stat-tile flat"><div class="lbl">Xuất</div><div class="val" style="font-size:22px;">${g.xuat}</div></div>
+    <div class="stat-tile flat"><div class="lbl">Tồn hiện tại</div><div class="val" style="font-size:22px;">${giftTonKho(g)}</div></div>`;
+  document.getElementById('gd-ngay').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('gd-lydo').value = '';
+  document.getElementById('gd-soluong').value = '';
+  renderGiftHistory();
+  document.getElementById('gift-detail-card').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function closeGiftDetail() {
+  giftDetailIndex = null;
+  document.getElementById('gift-detail-card').style.display = 'none';
+}
+function renderGiftHistory() {
+  if (giftDetailIndex === null) return;
+  const g = gifts[giftDetailIndex];
+  const history = g.lichSu || [];
+  const body = document.getElementById('gift-history-body');
+  if (!history.length) {
+    body.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:16px;">Chưa có lịch sử cập nhật</td></tr>';
+    return;
+  }
+  body.innerHTML = history.slice().reverse().map(h => `
+    <tr>
+      <td>${h.ngay}</td>
+      <td>${h.lyDo || '—'}</td>
+      <td style="font-weight:700; color:${h.soLuong < 0 ? 'var(--danger)' : 'var(--success)'};">${h.soLuong > 0 ? '+' : ''}${h.soLuong}</td>
+    </tr>`).join('');
+}
+function addGiftHistoryEntry() {
+  if (giftDetailIndex === null) return;
+  const g = gifts[giftDetailIndex];
+  const soLuong = parseInt(document.getElementById('gd-soluong').value);
+  if (!soLuong) { showToast('Vui lòng nhập Số lượng thay đổi (khác 0)'); return; }
+  const ngayRaw = document.getElementById('gd-ngay').value;
+  const ngay = ngayRaw ? fmtDate(new Date(ngayRaw)) : fmtDate(new Date());
+  const lyDo = document.getElementById('gd-lydo').value.trim();
+  if (!g.lichSu) g.lichSu = [];
+  g.lichSu.push({ngay, lyDo, soLuong});
+  showToast('Đã ghi nhận cập nhật số lượng — tồn kho tự tính lại');
+  openGiftDetail(giftDetailIndex);
+  renderInventory('gifts');
+}
+function addInventoryItem(kind) {
+  const prefix = kind === 'gifts' ? 'g' : 'v';
+  const loai = document.getElementById(prefix + '-loai').value.trim();
+  if (!loai) { showToast('Vui lòng nhập Loại ' + (kind === 'gifts' ? 'quà tặng' : 'voucher')); return; }
+  const item = {
+    loai,
+    chuongtrinh: document.getElementById(prefix + '-chuongtrinh').value || '(chưa gắn sự kiện)',
+    nhap: parseInt(document.getElementById(prefix + '-nhap').value) || 0,
+    xuat: parseInt(document.getElementById(prefix + '-xuat').value) || 0,
+  };
+  if (kind === 'gifts') {
+    giftCounter++;
+    item.image = pendingInventoryImage.gifts;
+    item.lichSu = [];
+    gifts.unshift(item);
+    document.getElementById('g-image').value = '';
+    document.getElementById('g-image-preview-wrap').style.display = 'none';
+    pendingInventoryImage.gifts = '';
+  } else {
+    voucherCounter++;
+    vouchers.unshift(item);
+  }
+  [prefix + '-loai', prefix + '-nhap', prefix + '-xuat'].forEach(id => document.getElementById(id).value = '');
+  showToast('Đã lưu — tồn kho tự tính lại');
+  closeForm(kind + '-form');
+  renderInventory(kind);
+}
+
+/* ---------------- KPI ---------------- */
+const KPI_ITEMS = [
+  {ten:'Tỷ lệ chương trình phát hành đúng lịch thứ Ba', trongso:0.25, target:100, unit:'%', chieu:'cao'},
+  {ten:'Tỷ lệ trả thưởng đúng hạn cam kết (≤30 ngày)', trongso:0.25, target:100, unit:'%', chieu:'cao'},
+  {ten:'Tỷ lệ cửa hàng tham gia trên tổng số CH', trongso:0.20, target:75, unit:'%', chieu:'cao'},
+  {ten:'Tỷ lệ chương trình đạt mục tiêu doanh số', trongso:0.15, target:70, unit:'%', chieu:'cao'},
+  {ten:'Số chương trình xử lý ngoài lịch (BP gửi muộn)', trongso:0.10, target:2, unit:'ct', chieu:'thap'},
+  {ten:'Tỷ lệ hồ sơ thi đua lưu trữ đầy đủ', trongso:0.05, target:100, unit:'%', chieu:'cao'},
+];
+
+function renderKpi() {
+  document.getElementById('kpi-body').innerHTML = KPI_ITEMS.map((k, i) => `
+    <tr>
+      <td>${k.ten}</td>
+      <td class="num">${Math.round(k.trongso*100)}%</td>
+      <td class="num">${k.target}${k.unit==='%'?'%':''}</td>
+      <td class="num"><input type="number" class="inline" style="width:70px;text-align:right" id="kv-${i}" oninput="calcKpi()"></td>
+      <td class="num" id="kp-${i}">—</td>
+    </tr>`).join('');
+  calcKpi();
+}
+
+function calcKpi() {
+  let total = 0, weightSum = 0;
+  KPI_ITEMS.forEach((k, i) => {
+    const raw = document.getElementById('kv-' + i).value;
+    const cell = document.getElementById('kp-' + i);
+    if (raw === '') { cell.textContent = '—'; return; }
+    const actual = parseFloat(raw);
+    let pct;
+    if (k.chieu === 'cao') pct = Math.min(actual / k.target, 1.2);
+    else pct = actual <= k.target ? 1.2 : Math.max(k.target / actual, 0);
+    cell.textContent = Math.round(pct * 1000) / 10 + '%';
+    total += pct * k.trongso;
+    weightSum += k.trongso;
+  });
+  document.getElementById('kpi-total-val').textContent = weightSum > 0 ? (Math.round(total/weightSum*1000)/10) + '%' : '—';
+}
+
+function saveKpi() { showToast('Đã lưu KPI (demo — bản thật sẽ ghi vào sheet KPI_ThiDua)'); }
+
+/* ---------------- TAI LIEU / LINKS ---------------- */
+function populateDocFolderDatalist() {
+  const dl = document.getElementById('doc-folder-list');
+  if (!dl) return;
+  const folders = [...new Set(docItems.map(d => d.thuMuc || 'Chưa phân loại'))].sort();
+  dl.innerHTML = folders.map(f => `<option value="${f}"></option>`).join('');
+}
+const DOC_TYPES = ['Web app', 'Google Sheet', 'Trình chiếu (Slides)', 'Tài liệu (Docs)', 'Biểu mẫu', 'Khác'];
+function docRowHTML(d, showFolderCol) {
+  if (d.id === docEditId) {
+    return `
+      <tr>
+        <td colspan="${showFolderCol ? 4 : 3}">
+          <div class="grid2" style="margin-top:6px;">
+            <div class="field"><label>Tên tài liệu</label><input type="text" class="inline" style="width:100%" id="de-ten-${d.id}" value="${d.ten}"></div>
+            <div class="field"><label>Loại</label>
+              <select class="inline" id="de-loai-${d.id}">
+                ${DOC_TYPES.map(t => `<option ${d.loai===t?'selected':''}>${t}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Thư mục</label><input type="text" class="inline" style="width:100%" id="de-thumuc-${d.id}" value="${d.thuMuc || ''}" list="doc-folder-list"></div>
+            <div class="field"><label>Link</label><input type="url" class="inline" style="width:100%" id="de-link-${d.id}" value="${d.link}"></div>
+          </div>
+          <div class="field"><label>Ghi chú</label><textarea class="inline" style="width:100%" id="de-ghichu-${d.id}">${d.ghichu || ''}</textarea></div>
+          <div style="display:flex; gap:8px; margin:8px 0 4px;">
+            <button class="btn secondary sm" onclick="saveDocEdit(${d.id})">Lưu</button>
+            <button class="btn ghost sm" onclick="cancelDocEdit()">Hủy</button>
+          </div>
+        </td>
+      </tr>`;
+  }
+  return `
+      <tr>
+        <td style="font-weight:700;">${d.ten}${d.ghichu ? `<div class="subtext">${d.ghichu}</div>` : ''}</td>
+        <td><span class="webapp-type-tag">${d.loai}</span></td>
+        ${showFolderCol ? `<td>${d.thuMuc || 'Chưa phân loại'}</td>` : ''}
+        <td style="white-space:nowrap;">
+          <a class="btn secondary sm" href="${d.link}" target="_blank" rel="noopener">Mở liên kết ↗</a>
+          <button class="btn ghost sm" onclick="startDocEdit(${d.id})">✏️ Sửa</button>
+        </td>
+      </tr>`;
+}
+function docsTableHTML(items, showFolderCol) {
+  return `<div class="table-wrap"><table>
+    <thead><tr><th>Tên</th><th>Loại</th>${showFolderCol ? '<th>Thư mục</th>' : ''}<th>Liên kết</th></tr></thead>
+    <tbody>${items.map(d => docRowHTML(d, showFolderCol)).join('')}
+    </tbody></table></div>`;
+}
+function renderDocs() {
+  populateDocFolderDatalist();
+  const container = document.getElementById('docs-list-container');
+  const term = (document.getElementById('docs-search')?.value || '').toLowerCase().trim();
+  const filtered = docItems.filter(d => !term || [d.ten, d.loai, d.thuMuc, d.ghichu].join(' ').toLowerCase().includes(term));
+  if (!filtered.length) {
+    container.innerHTML = '<p class="sub" style="text-align:center;padding:20px 0;">Không tìm thấy tài liệu phù hợp</p>';
+    return;
+  }
+  if (term) {
+    container.innerHTML = docsTableHTML(filtered, true);
+    return;
+  }
+  const folders = {};
+  filtered.forEach(d => {
+    const f = d.thuMuc || 'Chưa phân loại';
+    (folders[f] = folders[f] || []).push(d);
+  });
+  container.innerHTML = Object.keys(folders).sort().map(f => `
+    <div class="doc-folder-block">
+      <div class="doc-folder-title">📁 ${f} <span class="doc-folder-count">${folders[f].length}</span></div>
+      ${docsTableHTML(folders[f], false)}
+    </div>`).join('');
+}
+function addDoc() {
+  const ten = document.getElementById('doc-ten').value.trim();
+  const link = document.getElementById('doc-link').value.trim();
+  if (!ten) { showToast('Vui lòng nhập Tên tài liệu'); return; }
+  if (!link) { showToast('Vui lòng nhập Link'); return; }
+  docCounter++;
+  docItems.unshift({
+    id: docCounter,
+    ten,
+    loai: document.getElementById('doc-loai').value,
+    thuMuc: document.getElementById('doc-thumuc').value.trim() || 'Chưa phân loại',
+    link,
+    ghichu: document.getElementById('doc-ghichu').value.trim(),
+  });
+  ['doc-ten','doc-link','doc-thumuc','doc-ghichu'].forEach(id => document.getElementById(id).value = '');
+  showToast('Đã thêm vào Tài liệu/Links');
+  closeForm('docs-form');
+  renderDocs();
+}
+function startDocEdit(id) { docEditId = id; renderDocs(); }
+function cancelDocEdit() { docEditId = null; renderDocs(); }
+function saveDocEdit(id) {
+  const d = docItems.find(x => x.id === id);
+  if (!d) return;
+  const ten = document.getElementById('de-ten-' + id).value.trim();
+  const link = document.getElementById('de-link-' + id).value.trim();
+  if (!ten) { showToast('Vui lòng nhập Tên tài liệu'); return; }
+  if (!link) { showToast('Vui lòng nhập Link'); return; }
+  d.ten = ten;
+  d.loai = document.getElementById('de-loai-' + id).value;
+  d.thuMuc = document.getElementById('de-thumuc-' + id).value.trim() || 'Chưa phân loại';
+  d.link = link;
+  d.ghichu = document.getElementById('de-ghichu-' + id).value.trim();
+  docEditId = null;
+  showToast('Đã lưu thay đổi tài liệu');
+  renderDocs();
+}
+
+/* ---------------- THONG KE THEO NHAN SU + PIPELINE ---------------- */
+function renderStaffStats() {
+  const el = document.getElementById('staff-stats-body');
+  if (!el) return;
+  el.innerHTML = STAFF.map(s => {
+    const mine = workItems.filter(w => w.nguoi.includes(s.name));
+    const pending = mine.filter(w => w.trangThai === 'Mới tiếp nhận').length;
+    const doing = mine.filter(w => w.trangThai === 'Đang xử lý').length;
+    const done = mine.filter(w => w.trangThai === 'Hoàn thành').length;
+    const confirmed = mine.filter(w => w.xacNhan).length;
+    return `
+    <tr>
+      <td style="font-weight:700;">${s.name}</td>
+      <td class="num">${pending}</td>
+      <td class="num">${doing}</td>
+      <td class="num">${done}</td>
+      <td class="num">${confirmed}</td>
+      <td class="num" style="font-weight:800;">${mine.length}</td>
+    </tr>`;
+  }).join('');
+  renderWorkPipeline();
+}
+function renderWorkPipeline() {
+  const el = document.getElementById('work-pipeline');
+  if (!el) return;
+  const pending = workItems.filter(w => w.trangThai === 'Mới tiếp nhận').length;
+  const doing = workItems.filter(w => w.trangThai === 'Đang xử lý').length;
+  const done = workItems.filter(w => w.trangThai === 'Hoàn thành').length;
+  const confirmed = workItems.filter(w => w.xacNhan).length;
+  const stages = [
+    {cls:'st-pending', lbl:'Mới tiếp nhận', n:pending},
+    {cls:'st-doing', lbl:'Đang xử lý', n:doing},
+    {cls:'st-done', lbl:'Đã hoàn thành', n:done},
+    {cls:'st-confirmed', lbl:'Đã xác nhận (TN/TP)', n:confirmed},
+  ];
+  el.innerHTML = stages.map((s, idx) => `
+    ${idx > 0 ? '<div class="pipeline-arrow">→</div>' : ''}
+    <div class="pipeline-stage ${s.cls}">
+      <div class="n">${s.n}</div>
+      <div class="lbl">${s.lbl}</div>
+    </div>`).join('');
+}
+
+/* ---------------- CAI DAT NHAN SU ---------------- */
+let staffEditIndex = null;
+function renderStaffSettings() {
+  const el = document.getElementById('staff-settings-body');
+  if (!el) return;
+  el.innerHTML = STAFF.map((s, i) => {
+    if (i === staffEditIndex) {
+      return `<tr>
+        <td><input type="text" class="inline" style="width:100%" id="se-name-${i}" value="${s.name}"></td>
+        <td><input type="email" class="inline" style="width:100%" id="se-email-${i}" value="${s.email || ''}"></td>
+        <td style="white-space:nowrap;">
+          <button class="btn secondary sm" onclick="saveStaffEdit(${i})">Lưu</button>
+          <button class="btn ghost sm" onclick="cancelStaffEdit()">Hủy</button>
+        </td>
+      </tr>`;
+    }
+    return `<tr>
+      <td style="font-weight:700;">${s.name}</td>
+      <td>${s.email || '—'}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn secondary sm" onclick="startStaffEdit(${i})">✏️ Sửa</button>
+        <button class="btn ghost sm" onclick="removeStaffMember(${i})">🗑 Xóa</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function startStaffEdit(i) { staffEditIndex = i; renderStaffSettings(); }
+function cancelStaffEdit() { staffEditIndex = null; renderStaffSettings(); }
+function saveStaffEdit(i) {
+  const name = document.getElementById('se-name-' + i).value.trim();
+  if (!name) { showToast('Vui lòng nhập Họ tên'); return; }
+  STAFF[i].name = name;
+  STAFF[i].email = document.getElementById('se-email-' + i).value.trim();
+  staffEditIndex = null;
+  showToast('Đã lưu thông tin nhân sự');
+  renderStaffSettings();
+}
+function removeStaffMember(i) {
+  STAFF.splice(i, 1);
+  showToast('Đã xóa nhân sự khỏi danh sách');
+  renderStaffSettings();
+}
+function addStaffMember() {
+  const name = document.getElementById('st-name').value.trim();
+  const email = document.getElementById('st-email').value.trim();
+  if (!name) { showToast('Vui lòng nhập Họ tên'); return; }
+  staffCounter++;
+  STAFF.push({name, email});
+  ['st-name','st-email'].forEach(id => document.getElementById(id).value = '');
+  showToast('Đã thêm nhân sự — có thể chọn ngay trong Người phụ trách');
+  closeForm('staff-form');
+  renderStaffSettings();
+}
+
+/* ---------------- THEO DOI CONG VIEC THEO NHAN SU ---------------- */
+function populateStaffTaskSelect() {
+  const sel = document.getElementById('st-task-select');
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = staffNames().map(n => `<option>${n}</option>`).join('');
+  if (prev && staffNames().includes(prev)) sel.value = prev;
+}
+function renderStaffTasks() {
+  populateStaffTaskSelect();
+  const sel = document.getElementById('st-task-select');
+  const name = sel ? sel.value : (staffNames()[0] || '');
+  const mine = workItems.map((w,i)=>({w,i})).filter(({w}) => w.nguoi.includes(name));
+  const done = mine.filter(({w}) => w.trangThai === 'Hoàn thành' || w.xacNhan).length;
+  const pct = mine.length ? Math.round(done / mine.length * 100) : 0;
+  document.getElementById('st-task-progress-lbl').textContent = mine.length ? `${done}/${mine.length} đầu việc đã hoàn thành (${pct}%)` : 'Chưa có đầu việc nào';
+  document.getElementById('st-task-progress-bar').style.width = pct + '%';
+  document.getElementById('st-task-body').innerHTML = mine.length ? mine.map(({w,i}) => `
+    <tr>
+      <td style="font-weight:700;">${w.ma}</td>
+      <td>${w.ten}</td>
+      <td>${w.mang}</td>
+      <td>${w.han || '<span class="badge"><span class="dot warning"></span>Chưa có hạn</span>'}</td>
+      <td>${statusBadgeWork(w.trangThai)}</td>
+    </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;">Không có đầu việc</td></tr>';
+}
+
+/* ---------------- WEB APP (TAB RIENG) ---------------- */
+function renderWebApps() {
+  const apps = docItems.filter(d => d.loai === 'Web app');
+  const el = document.getElementById('webapp-grid');
+  if (!apps.length) { el.innerHTML = '<p class="sub" style="text-align:center;padding:20px 0;">Chưa có Web App nào — thêm mới ở form bên trên.</p>'; return; }
+  el.innerHTML = apps.map(d => `
+    <a class="webapp-card" href="${d.link}" target="_blank" rel="noopener">
+      <div class="webapp-card-icon">🧩</div>
+      <div class="webapp-card-title">${d.ten}</div>
+      <div class="webapp-card-sub">${d.ghichu || 'Mở web app ↗'}</div>
+    </a>`).join('');
+}
+function addWebApp() {
+  const ten = document.getElementById('wa-ten').value.trim();
+  const link = document.getElementById('wa-link').value.trim();
+  if (!ten) { showToast('Vui lòng nhập Tên web app'); return; }
+  if (!link) { showToast('Vui lòng nhập Link'); return; }
+  docCounter++;
+  docItems.unshift({id:docCounter, ten, loai:'Web app', thuMuc:'Web app nội bộ', link, ghichu:document.getElementById('wa-ghichu').value.trim()});
+  stampMeta(docItems[0]);
+  ['wa-ten','wa-link','wa-ghichu'].forEach(id => document.getElementById(id).value = '');
+  showToast('Đã thêm Web App mới');
+  closeForm('webapp-form');
+  renderWebApps();
+}
+
+/* ---------------- TOAST ---------------- */
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ---------------- INIT ---------------- */
+initAllMangSelects();
+renderSidebar();
+initOwnerSelects();
+go('login');
+</script>
+</body>
+</html>
