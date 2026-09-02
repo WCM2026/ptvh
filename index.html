@@ -1131,6 +1131,17 @@
       </div>
 
       <div class="card">
+        <h2>Kênh gửi thông báo</h2>
+        <p class="sub">Áp dụng cho cả 3 loại thông báo của Công việc: giao việc mới, tổng hợp thứ 6 (Trưởng phòng/nhóm), recap thứ 2 (từng nhân sự). Chỉ Trưởng phòng/Trưởng nhóm đổi được — lưu ngay trên hệ thống, không cần sửa code.</p>
+        <div class="filter-row" id="notify-channel-filter">
+          <button class="filter-btn" data-c="EMAIL" onclick="setNotifyChannel('EMAIL')">📧 Chỉ Email</button>
+          <button class="filter-btn" data-c="TELEGRAM" onclick="setNotifyChannel('TELEGRAM')">✈️ Chỉ Telegram</button>
+          <button class="filter-btn" data-c="BOTH" onclick="setNotifyChannel('BOTH')">📧✈️ Cả hai</button>
+        </div>
+        <div class="subtext" id="notify-channel-status" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="card">
         <div class="card-head-row">
           <div>
             <h2>Thêm nhân sự</h2>
@@ -1434,7 +1445,7 @@ function go(id) {
   if (id === 'webapps') renderWebApps();
   if (id === 'kpi') renderKpi();
   if (id === 'docs') renderDocs();
-  if (id === 'settings') { renderStaffSettings(); renderThiDuaSyncStatus(); }
+  if (id === 'settings') { renderStaffSettings(); renderThiDuaSyncStatus(); refreshNotifySettings(); }
 }
 
 /* ---------------- LOGIN (luồng thật: email -> OTP (lần đầu) -> khởi tạo PIN -> đăng nhập PIN) ---------------- */
@@ -1577,6 +1588,40 @@ function isAdminRole(role) {
 function saveGasApiConfig() {
   ptvhApiUrl = document.getElementById('ptvh-api-url').value.trim();
   showToast(ptvhApiUrl ? 'Đã lưu URL Backend PTVH' : 'Đã xoá URL Backend PTVH');
+}
+
+/* ---------------- KÊNH GỬI THÔNG BÁO (Cài đặt) ---------------- */
+let currentNotifyChannel = 'EMAIL';
+
+async function refreshNotifySettings() {
+  const r = await callPtvhApi('getSettings', {});
+  const statusEl = document.getElementById('notify-channel-status');
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không tải được cài đặt hệ thống');
+    if (statusEl) statusEl.textContent = 'Chưa tải được cài đặt — kiểm tra lại URL Backend ở trên.';
+    return;
+  }
+  currentNotifyChannel = (r.data && r.data.notifyChannel) || 'EMAIL';
+  renderNotifyChannelUI();
+}
+
+function renderNotifyChannelUI() {
+  document.querySelectorAll('#notify-channel-filter .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.c === currentNotifyChannel));
+  const labels = { EMAIL: '📧 Email', TELEGRAM: '✈️ Telegram', BOTH: '📧✈️ Cả Email và Telegram' };
+  const statusEl = document.getElementById('notify-channel-status');
+  if (statusEl) statusEl.textContent = 'Đang dùng: ' + (labels[currentNotifyChannel] || currentNotifyChannel);
+}
+
+async function setNotifyChannel(channel) {
+  if (!isAdminRole(currentUser?.role)) { showToast('Chỉ Trưởng phòng/Trưởng nhóm được đổi cài đặt này'); return; }
+  const r = await callPtvhApi('updateSettings', { payload: { notifyChannel: channel } });
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không lưu được cài đặt');
+    return;
+  }
+  currentNotifyChannel = channel;
+  renderNotifyChannelUI();
+  showToast('Đã đổi kênh thông báo');
 }
 
 /* ---------------- DASHBOARD ---------------- */
