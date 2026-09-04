@@ -680,9 +680,17 @@
           </div>
           <div class="grid2">
             <div class="field"><label>Ngày dự kiến tổ chức</label><input type="date" id="p-ngay"></div>
-            <div class="field"><label>Ngân sách duyệt (đ)</label><input type="number" id="p-nsduyet" placeholder="0"></div>
+            <div class="field"><label>Địa điểm dự kiến</label><input type="text" id="p-diadiem" placeholder="VD: VP 17 Ngô Quyền"></div>
           </div>
-          <div class="field"><label>Mô tả</label><textarea id="p-mota" placeholder="Mô tả ngắn gọn về sự kiện..."></textarea></div>
+          <div class="grid2">
+            <div class="field"><label>Đối tượng triển khai</label><input type="text" id="p-doituong" placeholder="VD: All CBNV WCM"></div>
+            <div class="field"><label>Số lượng dự kiến tham dự</label><input type="text" id="p-soluong" placeholder="VD: 700"></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>NS Công đoàn dự kiến (đ)</label><input type="number" id="p-nscongdoan-dukien" placeholder="0"></div>
+            <div class="field"><label>NS Công ty dự kiến (đ)</label><input type="number" id="p-nscongty-dukien" placeholder="0"></div>
+          </div>
+          <div class="field"><label>Nội dung triển khai</label><textarea id="p-noidung" placeholder="Mô tả nội dung, kế hoạch triển khai..."></textarea></div>
           <div class="field">
             <label>Đường link liên quan (tùy chọn — Drive, dữ liệu, ảnh, ngân sách...)</label>
             <div id="p-links"></div>
@@ -694,21 +702,31 @@
 
       <div class="card edit-card" id="program-edit-card" style="display:none;">
         <h2 id="program-edit-title">Sửa sự kiện</h2>
-        <p class="sub">Cập nhật thông tin sự kiện — kể cả khi chưa hoàn thành</p>
+        <p class="sub">Cập nhật kế hoạch, hoặc nhập báo cáo kết quả khi sự kiện đã diễn ra</p>
         <div class="grid2">
           <div class="field"><label>Tên sự kiện</label><input type="text" id="pe-ten"></div>
           <div class="field"><label>Mảng phụ trách</label><select id="pe-mang"></select></div>
         </div>
         <div class="grid2">
           <div class="field"><label>Ngày tổ chức (dự kiến/thực tế)</label><input type="date" id="pe-ngay"></div>
-          <div class="field"><label>Ngân sách duyệt (đ)</label><input type="number" id="pe-nsduyet" placeholder="0"></div>
+          <div class="field"><label>Địa điểm</label><input type="text" id="pe-diadiem"></div>
         </div>
         <div class="grid2">
-          <div class="field"><label>Ngân sách thực chi (đ)</label><input type="number" id="pe-nsthucchi" placeholder="0"></div>
-          <div class="field"><label>Điểm hài lòng (CSAT /5)</label><input type="number" step="0.1" id="pe-csat" placeholder="VD: 4.5"></div>
+          <div class="field"><label>Đối tượng triển khai</label><input type="text" id="pe-doituong"></div>
+          <div class="field"><label>Số lượng tham dự</label><input type="text" id="pe-soluong"></div>
+        </div>
+        <p class="sub" style="margin:14px 0 4px;"><b>Ngân sách dự kiến</b></p>
+        <div class="grid2">
+          <div class="field"><label>NS Công đoàn dự kiến (đ)</label><input type="number" id="pe-nscongdoan-dukien" placeholder="0"></div>
+          <div class="field"><label>NS Công ty dự kiến (đ)</label><input type="number" id="pe-nscongty-dukien" placeholder="0"></div>
+        </div>
+        <p class="sub" style="margin:14px 0 4px;"><b>Báo cáo kết quả (điền khi sự kiện đã kết thúc)</b></p>
+        <div class="grid2">
+          <div class="field"><label>NS Công đoàn thực chi (đ)</label><input type="number" id="pe-nscongdoan-thucchi" placeholder="0"></div>
+          <div class="field"><label>NS Công ty thực chi (đ)</label><input type="number" id="pe-nscongty-thucchi" placeholder="0"></div>
         </div>
         <div class="grid2">
-          <div class="field"><label>Số người tham gia</label><input type="text" id="pe-songuoi" placeholder="VD: 700 CBNV"></div>
+          <div class="field"><label>Đánh giá hài lòng (%)</label><input type="text" id="pe-danhgia" placeholder="VD: 97"></div>
           <div class="field"><label>Trạng thái</label>
             <select id="pe-trangthai">
               <option>Đang lên kế hoạch</option>
@@ -716,7 +734,7 @@
             </select>
           </div>
         </div>
-        <div class="field"><label>Mô tả</label><textarea id="pe-mota" placeholder="Mô tả ngắn gọn về sự kiện..."></textarea></div>
+        <div class="field"><label>Nội dung triển khai</label><textarea id="pe-noidung" placeholder="Mô tả nội dung, kế hoạch triển khai..."></textarea></div>
         <div class="field"><label>Kết quả nổi bật / sự cố (nếu có)</label><textarea id="pe-ketqua" placeholder="Tóm tắt kết quả, số liệu nổi bật, sự cố phát sinh..."></textarea></div>
         <div class="field">
           <label>Đường link liên quan (tùy chọn — Drive, dữ liệu, ảnh, ngân sách...)</label>
@@ -745,7 +763,7 @@
         <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="programs-search" placeholder="Tìm theo tên, mảng, trạng thái..." oninput="renderPrograms()"></div>
         <div class="table-wrap">
         <table>
-          <thead><tr><th>Sự kiện</th><th>Mảng</th><th>Ngày</th><th>NS duyệt</th><th>NS thực chi</th><th>% NS</th><th>CSAT</th><th>Trạng thái</th><th></th></tr></thead>
+          <thead><tr><th>Sự kiện</th><th>Mảng</th><th>Ngày</th><th>NS dự kiến</th><th>NS thực chi</th><th>% NS</th><th>Hài lòng</th><th>Trạng thái</th><th></th></tr></thead>
           <tbody id="programs-body"></tbody>
         </table>
         </div>
@@ -988,33 +1006,37 @@
     <!-- ============ PANEL: VOUCHER ============ -->
     <section class="panel" id="panel-vouchers">
       <div class="flow-note">
-        <b>Voucher:</b> theo dõi nhập – xuất – tồn của các loại voucher, tách riêng khỏi quà tặng hiện vật để dễ đối soát tài chính.
+        <b>Voucher:</b> mỗi sự kiện có thể có nhiều đợt order voucher (VD: Lucky Draw, Minigame, Hậu cần...), mỗi đợt gắn 1 loại ngân sách + mệnh giá + số lượng riêng. Cập nhật "Tồn" khi voucher được phát ra — ngân sách tồn tự tính lại theo mệnh giá.
       </div>
       <div class="card">
         <div class="card-head-row">
           <div>
-            <h2>Ghi nhận nhập/xuất voucher</h2>
+            <h2>Ghi nhận đợt order voucher</h2>
           </div>
-          <button class="btn secondary sm" onclick="toggleForm('vouchers-form')">+ Ghi nhận</button>
+          <button class="btn secondary sm" onclick="toggleForm('vouchers-form')">+ Ghi nhận đợt</button>
         </div>
         <div id="vouchers-form" class="collapsible-form" style="display:none;">
           <div class="grid2">
-            <div class="field"><label>Loại voucher</label><input type="text" id="v-loai" placeholder="VD: Voucher 500k"></div>
-            <div class="field"><label>Gắn với sự kiện</label><select id="v-chuongtrinh"></select></div>
+            <div class="field"><label>Gắn với sự kiện</label><select id="v-sukien"></select></div>
+            <div class="field"><label>Tên đợt order voucher</label><input type="text" id="v-tendot" placeholder="VD: Lucky Draw"></div>
           </div>
           <div class="grid2">
-            <div class="field"><label>Số lượng nhập</label><input type="number" id="v-nhap" placeholder="0"></div>
-            <div class="field"><label>Số lượng xuất (đã phát)</label><input type="number" id="v-xuat" placeholder="0"></div>
+            <div class="field"><label>Loại ngân sách</label><select id="v-loains"><option>Công ty</option><option>Công đoàn</option></select></div>
+            <div class="field"><label>Quản lý voucher</label><input type="text" id="v-quanly" placeholder="Tên người quản lý đợt này"></div>
           </div>
-          <button class="btn" onclick="addInventoryItem('vouchers')">Lưu</button>
+          <div class="grid2">
+            <div class="field"><label>Mệnh giá (đ)</label><input type="number" id="v-menhgia" placeholder="0"></div>
+            <div class="field"><label>Số lượng phát hành</label><input type="number" id="v-soluong" placeholder="0"></div>
+          </div>
+          <button class="btn" onclick="addVoucherDotUI()">Lưu</button>
         </div>
       </div>
       <div class="card">
-        <h2>Tồn kho voucher hiện tại</h2>
-        <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="vouchers-search" placeholder="Tìm theo loại, sự kiện..." oninput="renderInventory('vouchers')"></div>
+        <h2>Danh sách đợt voucher</h2>
+        <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="vouchers-search" placeholder="Tìm theo sự kiện, tên đợt..." oninput="renderVouchers()"></div>
         <div class="table-wrap">
         <table>
-          <thead><tr><th>Loại</th><th>Sự kiện</th><th>Nhập</th><th>Xuất</th><th>Tồn</th><th></th></tr></thead>
+          <thead><tr><th>Sự kiện</th><th>Đợt</th><th>Loại NS</th><th>Mệnh giá</th><th>SL</th><th>NS phát hành</th><th>Tồn</th><th>NS tồn</th><th>Quản lý</th><th></th></tr></thead>
           <tbody id="vouchers-body"></tbody>
         </table>
         </div>
@@ -1226,7 +1248,8 @@ async function refreshStaffList() {
   initOwnerSelects(); // nạp lại dropdown Người phụ trách với tên thật
 }
 
-const MANG_LIST = ['Truyền thông nội bộ', 'Sự kiện & Phong trào', 'EB', 'Thi đua', 'Thiết kế & Media', 'Khác'];
+// 7 mảng CHÍNH THỨC — PHẢI khớp đúng CONFIG.MANG_LIST trong Config.gs (backend), sửa thì sửa cả 2 nơi.
+const MANG_LIST = ['Đào tạo', 'Sự kiện phong trào', 'Truyền thông nội bộ', 'Thi đua', 'EB', 'Khác', 'Quản lý, báo cáo'];
 
 const SLA = { A: 10, B: 5, C: 2 };
 
@@ -1234,14 +1257,12 @@ const SLA = { A: 10, B: 5, C: 2 };
 // không còn dữ liệu mock. Mảng khởi tạo rỗng, điền ngay sau khi đăng nhập thành công.
 let workItems = [];
 
-let programCounter = 3;
-let programs = [
-  {ten:'Khai trương WinMart+/WiN+ & Đêm nhạc Cà Mau', mang:'Sự kiện & Phong trào', ngay:'08/08/2026', trangThai:'Hoàn thành', nsDuyet:250000000, nsThucChi:238000000, songuoi:'Hàng chục nghìn người dân', csat:4.6, ketqua:'', moTa:'Sự kiện khai trương cửa hàng mới kết hợp đêm nhạc cộng đồng tại Cà Mau.', links:[{ten:'Thư mục Drive', url:'https://drive.google.com/drive/folders/camau-2026'},{ten:'File ngân sách', url:'https://docs.google.com/spreadsheets/d/camau-budget'}]},
-  {ten:'Hành trình triệu phú Hồ Tràm', mang:'Sự kiện & Phong trào', ngay:'07/08/2026', trangThai:'Hoàn thành', nsDuyet:180000000, nsThucChi:175500000, songuoi:'~400 người, 8 đội', csat:4.4, ketqua:'', moTa:'Chương trình team-building/gameshow nội bộ tại Hồ Tràm.', links:[]},
-  {ten:'Trung thu 2026', mang:'Thiết kế & Media', ngay:'25/09/2026', trangThai:'Đang lên kế hoạch', nsDuyet:150000000, nsThucChi:0, songuoi:'', csat:0, ketqua:'', moTa:'Bộ ấn phẩm và hoạt động Trung thu dành cho con CBNV.', links:[]},
-];
-let programEditIndex = null;
-let programDetailIndex = null;
+// Module 3 đã nối API thật — programs giờ nạp từ Google Sheet qua getSuKienList() (xem refreshSuKien()),
+// không còn dữ liệu mock. Mảng khởi tạo rỗng, điền ngay sau khi đăng nhập thành công.
+let programs = [];
+let programsLoaded = false;
+let programEditMaSuKien = null;   // mã sự kiện đang sửa (không dùng index mảng vì mảng reload lại sau mỗi lần lưu)
+let programDetailMaSuKien = null; // mã sự kiện đang xem chi tiết
 
 let compCounter = 2;
 let competitions = [
@@ -1294,13 +1315,14 @@ let gifts = [
 ];
 let giftDetailIndex = null;
 
-let voucherCounter = 2;
-let vouchers = [
-  {loai:'Voucher 500k', chuongtrinh:'[Thi đua] Đại sứ Win Q1/2026', nhap:60, xuat:51},
-  {loai:'Voucher 200k', chuongtrinh:'[Thi đua] Đại sứ Win Q4/2025', nhap:70, xuat:54},
-];
+// Module 3 đã nối API thật — voucherDots giờ nạp từ "03b.Sự kiện_Voucher" qua getVoucherDotList()
+// (xem refreshVoucherDot()). Mỗi phần tử = 1 đợt order voucher gắn theo 1 sự kiện (KHÁC hẳn mô
+// hình "nhập/xuất theo loại" cũ — xem chi tiết trong panel Voucher).
+let voucherDots = [];
+let voucherDotsLoaded = false;
+let voucherEditMaDot = null;
 let pendingInventoryImage = { gifts: '' };
-let inventoryEditIndex = { gifts: null, vouchers: null };
+let inventoryEditIndex = { gifts: null };
 
 let currentPeriod = 'MTD';
 
@@ -1441,7 +1463,7 @@ function go(id) {
   if (id === 'competitions') renderCompetitions();
   if (id === 'budget') renderBudget();
   if (id === 'gifts') renderInventory('gifts');
-  if (id === 'vouchers') renderInventory('vouchers');
+  if (id === 'vouchers') renderVouchers();
   if (id === 'webapps') renderWebApps();
   if (id === 'kpi') renderKpi();
   if (id === 'docs') renderDocs();
@@ -1569,6 +1591,8 @@ async function loginSuccess(user, token) {
   renderSidebar();
   await refreshStaffList();  // nạp nhân sự thật trước — Công việc cần đúng tên để khớp thống kê
   await refreshCongViec();   // tải dữ liệu Công việc thật trước khi vào Dashboard
+  await refreshSuKien();     // tải dữ liệu Sự kiện thật (Module 3)
+  await refreshVoucherDot(); // tải dữ liệu Đợt voucher thật (Module 3)
   go('dashboard');
 }
 
@@ -1636,7 +1660,7 @@ function renderDashboard() {
   const nsNamTong = budgetYearRef.reduce((s,b)=>s+b.nsNam,0);
   const nsThucChiTong = budgetItems.reduce((s,b)=>s+b.thucchi,0);
   const nsPct = nsNamTong ? Math.round(nsThucChiTong/nsNamTong*100) : 0;
-  const tonKhoVoucher = vouchers.reduce((s,v)=>s+(v.nhap-v.xuat),0);
+  const tonKhoVoucher = voucherDots.reduce((s,v)=>s+(v.soLuongTon||0),0);
 
   const timelineNodes = [
     {cls:'total', ic:total, lbl:'Tổng đầu việc', sub:'Lũy kế toàn bộ'},
@@ -1657,7 +1681,7 @@ function renderDashboard() {
 
   const stats = [
     {lbl:'Ngân sách đã dùng (năm)', val: nsPct + '%', delta: (nsThucChiTong/1e6).toFixed(0) + 'tr / ' + (nsNamTong/1e6).toFixed(0) + 'tr ngân sách năm', warn: nsPct > 95},
-    {lbl:'Tồn kho voucher', val: tonKhoVoucher, delta: vouchers.length + ' loại đang theo dõi', warn:false},
+    {lbl:'Tồn kho voucher', val: tonKhoVoucher, delta: voucherDots.length + ' đợt đang theo dõi', warn:false},
     {lbl:'Báo cáo sự kiện', val: programs.filter(p=>p.trangThai==='Hoàn thành').length, delta: programs.length + ' sự kiện đã tạo', warn:false},
   ];
   document.getElementById('stat-row').innerHTML = stats.map(s => `
@@ -1833,6 +1857,61 @@ function renderWork() {
   else renderStaffTasks();
 }
 
+/* ================= SỰ KIỆN (Module 3 — API thật) ================= */
+
+async function refreshSuKien(showLoadingToast) {
+  if (showLoadingToast) showToast('Đang tải danh sách sự kiện...');
+  const r = await callPtvhApi('getSuKienList', {});
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không tải được danh sách sự kiện');
+    return;
+  }
+  programs = (r.data || []).map(mapSuKienFromApi_);
+  programsLoaded = true;
+  renderPrograms();
+}
+
+/** Chuyển object trả về từ API (schema thật, xem SuKien.gs) sang đúng field mà UI đang dùng. */
+function mapSuKienFromApi_(it) {
+  return {
+    maSuKien: it.maSuKien,
+    ten: it.ten,
+    mang: it.mang,
+    noiDung: it.noiDung || '',
+    doiTuong: it.doiTuong || '',
+    diaDiem: it.diaDiem || '',
+    soLuongThamDu: it.soLuongThamDu || '',
+    thoiGianGoc: it.thoiGianGoc || '',    // hiển thị (có thể là chuỗi tự do nhiều ngày)
+    ngay: it.ngayHienThi || '',           // dd/mm/yyyy dùng để lọc kỳ (MTD/YTD), input date
+    nsCongDoanDuKien: it.nsCongDoanDuKien || 0,
+    nsCongTyDuKien: it.nsCongTyDuKien || 0,
+    nsCongDoanThucChi: it.nsCongDoanThucChi || 0,
+    nsCongTyThucChi: it.nsCongTyThucChi || 0,
+    nsDuyet: (it.nsCongDoanDuKien || 0) + (it.nsCongTyDuKien || 0),
+    nsThucChi: (it.nsCongDoanThucChi || 0) + (it.nsCongTyThucChi || 0),
+    danhGiaHaiLong: it.danhGiaHaiLong || '',
+    ketqua: it.ketQua || '',
+    links: it.links || [],
+    trangThai: it.trangThai || 'Đang lên kế hoạch',
+    nguoiCapNhat: it.nguoiCapNhat,
+    ngayCapNhat: it.ngayCapNhat,
+  };
+}
+
+/* ================= ĐỢT ORDER VOUCHER (Module 3 — API thật) ================= */
+
+async function refreshVoucherDot(showLoadingToast) {
+  if (showLoadingToast) showToast('Đang tải danh sách đợt voucher...');
+  const r = await callPtvhApi('getVoucherDotList', {});
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không tải được danh sách voucher');
+    return;
+  }
+  voucherDots = r.data || [];
+  voucherDotsLoaded = true;
+  renderVouchers();
+}
+
 function renderWorkTaskView() {
   populateWorkProgramSelect();
   const term = (document.getElementById('work-search')?.value || '').toLowerCase().trim();
@@ -1964,63 +2043,66 @@ function readProgramLinks(containerId) {
 }
 
 function renderPrograms() {
+  if (!programsLoaded) { refreshSuKien(); return; } // lần đầu vào tab: tải từ API rồi tự render lại
   const term = (document.getElementById('programs-search')?.value || '').toLowerCase().trim();
-  const rows = programs
-    .map((p, i) => ({p, i}))
-    .filter(({p}) => !term || [p.ten, p.mang, p.trangThai].join(' ').toLowerCase().includes(term));
-  document.getElementById('programs-body').innerHTML = rows.length ? rows.map(({p, i}) => `
+  const rows = programs.filter(p => !term || [p.ten, p.mang, p.trangThai].join(' ').toLowerCase().includes(term));
+  document.getElementById('programs-body').innerHTML = rows.length ? rows.map(p => `
     <tr>
-      <td style="font-weight:700; cursor:pointer;" onclick="openProgramDetail(${i})">${p.ten}${metaLine(p)}</td>
+      <td style="font-weight:700; cursor:pointer;" onclick="openProgramDetail('${p.maSuKien}')">${p.ten}${metaLine(p)}</td>
       <td>${p.mang || '—'}</td>
-      <td>${p.ngay}</td>
+      <td>${p.thoiGianGoc || p.ngay || '—'}</td>
       <td>${moneyFmt(p.nsDuyet)}</td>
       <td>${p.trangThai === 'Hoàn thành' ? moneyFmt(p.nsThucChi) : '—'}</td>
       <td>${p.trangThai === 'Hoàn thành' ? pctFmt(p.nsThucChi, p.nsDuyet) : '—'}</td>
-      <td>${p.trangThai === 'Hoàn thành' ? (p.csat ? p.csat + '/5' : '—') : '—'}</td>
+      <td>${p.danhGiaHaiLong ? p.danhGiaHaiLong + '%' : '—'}</td>
       <td>${p.trangThai === 'Hoàn thành' ? '<span class="status-pill done">Hoàn thành</span>' : '<span class="status-pill plan">Đang lên kế hoạch</span>'}</td>
       <td style="white-space:nowrap;">
-        <button class="btn ghost sm" onclick="openProgramDetail(${i})">👁 Chi tiết</button>
-        <button class="btn secondary sm" onclick="startProgramEdit(${i})">✏️ Sửa</button>
+        <button class="btn ghost sm" onclick="openProgramDetail('${p.maSuKien}')">👁 Chi tiết</button>
+        <button class="btn secondary sm" onclick="startProgramEdit('${p.maSuKien}')">✏️ Sửa</button>
       </td>
     </tr>`).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy sự kiện phù hợp</td></tr>';
 }
-function addProgram() {
+async function addProgram() {
   const ten = document.getElementById('p-ten').value.trim();
   if (!ten) { showToast('Vui lòng nhập Tên sự kiện'); return; }
-  programCounter++;
-  programs.unshift({
+  const payload = {
     ten,
     mang: document.getElementById('p-mang').value,
-    ngay: document.getElementById('p-ngay').value ? fmtDate(new Date(document.getElementById('p-ngay').value)) : '—',
-    trangThai: 'Đang lên kế hoạch',
-    nsDuyet: parseFloat(document.getElementById('p-nsduyet').value) || 0,
-    nsThucChi: 0,
-    songuoi: '',
-    csat: 0,
-    ketqua: '',
-    moTa: document.getElementById('p-mota').value.trim(),
+    thoiGian: document.getElementById('p-ngay').value || '',
+    diaDiem: document.getElementById('p-diadiem').value.trim(),
+    doiTuong: document.getElementById('p-doituong').value.trim(),
+    soLuongThamDu: document.getElementById('p-soluong').value.trim(),
+    nsCongDoanDuKien: parseFloat(document.getElementById('p-nscongdoan-dukien').value) || 0,
+    nsCongTyDuKien: parseFloat(document.getElementById('p-nscongty-dukien').value) || 0,
+    noiDung: document.getElementById('p-noidung').value.trim(),
     links: readProgramLinks('p-links'),
-  });
-  stampMeta(programs[0]);
-  ['p-ten','p-ngay','p-nsduyet','p-mota'].forEach(id => document.getElementById(id).value = '');
+  };
+  const r = await callPtvhApi('addSuKien', { payload });
+  if (!r.ok) { showToast(r.message || 'Không tạo được sự kiện'); return; }
+  ['p-ten','p-ngay','p-diadiem','p-doituong','p-soluong','p-nscongdoan-dukien','p-nscongty-dukien','p-noidung'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('p-links').innerHTML = '';
   showToast('Đã tạo sự kiện mới — cập nhật báo cáo khi hoàn thành');
   closeForm('programs-form');
-  renderPrograms();
+  await refreshSuKien();
 }
-function startProgramEdit(i) {
-  programEditIndex = i;
-  const p = programs[i];
+function startProgramEdit(maSuKien) {
+  programEditMaSuKien = maSuKien;
+  const p = programs.find(x => x.maSuKien === maSuKien);
+  if (!p) return;
   document.getElementById('program-edit-card').style.display = 'block';
   document.getElementById('program-edit-title').textContent = 'Sửa sự kiện: ' + p.ten;
   document.getElementById('pe-ten').value = p.ten;
   document.getElementById('pe-mang').value = p.mang || MANG_LIST[0];
   document.getElementById('pe-ngay').value = vnDateToIso(p.ngay);
-  document.getElementById('pe-nsduyet').value = p.nsDuyet || '';
-  document.getElementById('pe-nsthucchi').value = p.nsThucChi || '';
-  document.getElementById('pe-songuoi').value = p.songuoi || '';
-  document.getElementById('pe-csat').value = p.csat || '';
-  document.getElementById('pe-mota').value = p.moTa || '';
+  document.getElementById('pe-diadiem').value = p.diaDiem || '';
+  document.getElementById('pe-doituong').value = p.doiTuong || '';
+  document.getElementById('pe-soluong').value = p.soLuongThamDu || '';
+  document.getElementById('pe-nscongdoan-dukien').value = p.nsCongDoanDuKien || '';
+  document.getElementById('pe-nscongty-dukien').value = p.nsCongTyDuKien || '';
+  document.getElementById('pe-nscongdoan-thucchi').value = p.nsCongDoanThucChi || '';
+  document.getElementById('pe-nscongty-thucchi').value = p.nsCongTyThucChi || '';
+  document.getElementById('pe-danhgia').value = p.danhGiaHaiLong || '';
+  document.getElementById('pe-noidung').value = p.noiDung || '';
   document.getElementById('pe-ketqua').value = p.ketqua || '';
   document.getElementById('pe-trangthai').value = p.trangThai;
   document.getElementById('pe-links').innerHTML = '';
@@ -2028,49 +2110,66 @@ function startProgramEdit(i) {
   document.getElementById('program-edit-card').scrollIntoView({behavior:'smooth', block:'center'});
 }
 function cancelProgramEdit() {
-  programEditIndex = null;
+  programEditMaSuKien = null;
   document.getElementById('program-edit-card').style.display = 'none';
 }
-function saveProgramCompletion() {
-  if (programEditIndex === null) return;
-  const p = programs[programEditIndex];
+async function saveProgramCompletion() {
+  if (!programEditMaSuKien) return;
   const ten = document.getElementById('pe-ten').value.trim();
   if (!ten) { showToast('Vui lòng nhập Tên sự kiện'); return; }
-  p.ten = ten;
-  p.mang = document.getElementById('pe-mang').value;
-  const ngayRaw = document.getElementById('pe-ngay').value;
-  if (ngayRaw) p.ngay = fmtDate(new Date(ngayRaw));
-  p.nsDuyet = parseFloat(document.getElementById('pe-nsduyet').value) || 0;
-  p.nsThucChi = parseFloat(document.getElementById('pe-nsthucchi').value) || 0;
-  p.songuoi = document.getElementById('pe-songuoi').value;
-  p.csat = parseFloat(document.getElementById('pe-csat').value) || 0;
-  p.moTa = document.getElementById('pe-mota').value.trim();
-  p.ketqua = document.getElementById('pe-ketqua').value;
-  p.trangThai = document.getElementById('pe-trangthai').value;
-  p.links = readProgramLinks('pe-links');
-  stampMeta(p);
+  const payload = {
+    ten,
+    mang: document.getElementById('pe-mang').value,
+    thoiGian: document.getElementById('pe-ngay').value || '',
+    diaDiem: document.getElementById('pe-diadiem').value.trim(),
+    doiTuong: document.getElementById('pe-doituong').value.trim(),
+    soLuongThamDu: document.getElementById('pe-soluong').value.trim(),
+    nsCongDoanDuKien: parseFloat(document.getElementById('pe-nscongdoan-dukien').value) || 0,
+    nsCongTyDuKien: parseFloat(document.getElementById('pe-nscongty-dukien').value) || 0,
+    nsCongDoanThucChi: document.getElementById('pe-nscongdoan-thucchi').value === '' ? '' : (parseFloat(document.getElementById('pe-nscongdoan-thucchi').value) || 0),
+    nsCongTyThucChi: document.getElementById('pe-nscongty-thucchi').value === '' ? '' : (parseFloat(document.getElementById('pe-nscongty-thucchi').value) || 0),
+    danhGiaHaiLong: document.getElementById('pe-danhgia').value.trim(),
+    noiDung: document.getElementById('pe-noidung').value.trim(),
+    ketQua: document.getElementById('pe-ketqua').value.trim(),
+    trangThai: document.getElementById('pe-trangthai').value,
+    links: readProgramLinks('pe-links'),
+  };
+  const r = await callPtvhApi('updateSuKien', { maSuKien: programEditMaSuKien, payload });
+  if (!r.ok) { showToast(r.message || 'Không lưu được thay đổi'); return; }
   showToast('Đã lưu thay đổi sự kiện — số liệu sẽ nuôi thẳng vào KPI mảng liên quan');
   cancelProgramEdit();
-  renderPrograms();
+  await refreshSuKien();
 }
-function openProgramDetail(i) {
-  programDetailIndex = i;
-  const p = programs[i];
+function openProgramDetail(maSuKien) {
+  programDetailMaSuKien = maSuKien;
+  const p = programs.find(x => x.maSuKien === maSuKien);
+  if (!p) return;
   document.getElementById('program-detail-card').style.display = 'block';
   document.getElementById('program-detail-title').textContent = p.ten;
-  document.getElementById('program-detail-sub').textContent = (p.mang || '—') + ' · ' + p.ngay;
+  document.getElementById('program-detail-sub').textContent = (p.mang || '—') + ' · ' + (p.thoiGianGoc || p.ngay || '—');
   const linksHTML = (p.links && p.links.length)
     ? `<div class="link-chip-list">${p.links.map(l => `<a class="btn secondary sm" href="${l.url}" target="_blank" rel="noopener">🔗 ${l.ten || l.url}</a>`).join('')}</div>`
     : '<p class="sub" style="margin:6px 0 0;">Chưa có link nào được đính kèm.</p>';
+  const voucherRows = voucherDots.filter(v => v.maSuKien === maSuKien);
+  const voucherHTML = voucherRows.length
+    ? `<div class="table-wrap"><table><thead><tr><th>Đợt</th><th>Loại NS</th><th>Mệnh giá</th><th>SL</th><th>Tồn</th></tr></thead><tbody>${
+        voucherRows.map(v => `<tr><td>${v.tenDot}</td><td>${v.loaiNS}</td><td>${moneyFmt(v.menhGia)}</td><td>${v.soLuong}</td><td>${v.soLuongTon}</td></tr>`).join('')
+      }</tbody></table></div>`
+    : '<p class="sub" style="margin:6px 0 0;">Chưa có đợt order voucher nào.</p>';
   document.getElementById('program-detail-body').innerHTML = `
     <div class="stat-row-3" style="margin:14px 0;">
-      <div class="stat-tile flat"><div class="lbl">Ngân sách duyệt</div><div class="val" style="font-size:20px;">${moneyFmt(p.nsDuyet)}</div></div>
-      <div class="stat-tile flat"><div class="lbl">Ngân sách thực chi</div><div class="val" style="font-size:20px;">${p.trangThai==='Hoàn thành'?moneyFmt(p.nsThucChi):'—'}</div></div>
-      <div class="stat-tile flat"><div class="lbl">CSAT</div><div class="val" style="font-size:20px;">${p.trangThai==='Hoàn thành' && p.csat ? p.csat + '/5' : '—'}</div></div>
+      <div class="stat-tile flat"><div class="lbl">NS Công đoàn (dự kiến / thực chi)</div><div class="val" style="font-size:16px;">${moneyFmt(p.nsCongDoanDuKien)} / ${p.trangThai==='Hoàn thành'?moneyFmt(p.nsCongDoanThucChi):'—'}</div></div>
+      <div class="stat-tile flat"><div class="lbl">NS Công ty (dự kiến / thực chi)</div><div class="val" style="font-size:16px;">${moneyFmt(p.nsCongTyDuKien)} / ${p.trangThai==='Hoàn thành'?moneyFmt(p.nsCongTyThucChi):'—'}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Đánh giá hài lòng</div><div class="val" style="font-size:20px;">${p.danhGiaHaiLong ? p.danhGiaHaiLong + '%' : '—'}</div></div>
     </div>
-    <p class="sub" style="margin-bottom:4px;"><b>Mô tả</b></p>
-    <p style="margin-top:0;">${p.moTa || '—'}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Đối tượng</b></p><p style="margin-top:0;">${p.doiTuong || '—'}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Địa điểm</b></p><p style="margin-top:0;">${p.diaDiem || '—'}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Số lượng tham dự</b></p><p style="margin-top:0;">${p.soLuongThamDu || '—'}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Nội dung triển khai</b></p>
+    <p style="margin-top:0; white-space:pre-line;">${p.noiDung || '—'}</p>
     ${p.ketqua ? `<p class="sub" style="margin-bottom:4px;"><b>Kết quả nổi bật / sự cố</b></p><p style="margin-top:0;">${p.ketqua}</p>` : ''}
+    <p class="sub" style="margin-bottom:4px;"><b>Đợt order voucher</b></p>
+    ${voucherHTML}
     <p class="sub" style="margin-bottom:4px;"><b>Đường link liên quan</b></p>
     ${linksHTML}
     ${metaLine(p)}
@@ -2078,7 +2177,7 @@ function openProgramDetail(i) {
   document.getElementById('program-detail-card').scrollIntoView({behavior:'smooth', block:'center'});
 }
 function closeProgramDetail() {
-  programDetailIndex = null;
+  programDetailMaSuKien = null;
   document.getElementById('program-detail-card').style.display = 'none';
 }
 
@@ -2509,8 +2608,8 @@ function renderBudget() {
   renderBudgetByEvent();
 }
 
-/* ---------------- QUA TANG / VOUCHER (dùng chung logic) ---------------- */
-function inventoryStore(kind) { return kind === 'gifts' ? gifts : vouchers; }
+/* ---------------- QUA TANG (nhập/xuất — giữ nguyên mô hình cũ, KHÔNG còn dùng chung với voucher) ---------------- */
+function inventoryStore(kind) { return gifts; }
 function programOptionsList() {
   return [
     ...programs.map(p => '[Sự kiện] ' + p.ten),
@@ -2518,10 +2617,10 @@ function programOptionsList() {
   ];
 }
 function populateInventoryProgramOptions(kind) {
-  const sel = document.getElementById((kind === 'gifts' ? 'g' : 'v') + '-chuongtrinh');
+  const sel = document.getElementById('g-chuongtrinh');
   const opts = programOptionsList();
   if (opts.length === 0) {
-    sel.innerHTML = '<option value="">— Chưa có chương trình nào, tạo ở tab Chương trình/Thi đua trước —</option>';
+    sel.innerHTML = '<option value="">— Chưa có chương trình nào, tạo ở tab Sự kiện/Thi đua trước —</option>';
     return;
   }
   sel.innerHTML = opts.map(o => `<option value="${o}">${o}</option>`).join('');
@@ -2531,8 +2630,8 @@ function previewInventoryImage(event, kind) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function (e) {
-    pendingInventoryImage[kind] = e.target.result;
-    document.getElementById('g-image-preview').src = pendingInventoryImage[kind];
+    pendingInventoryImage.gifts = e.target.result;
+    document.getElementById('g-image-preview').src = pendingInventoryImage.gifts;
     document.getElementById('g-image-preview-wrap').style.display = 'block';
   };
   reader.readAsDataURL(file);
@@ -2546,9 +2645,9 @@ function giftTonKho(g) {
   return g.nhap - g.xuat + adj;
 }
 function inventoryRowHTML(kind, item, i) {
-  const prefix = kind === 'gifts' ? 'ie-g' : 'ie-v';
-  if (inventoryEditIndex[kind] === i) {
-    return kind === 'gifts' ? `
+  const prefix = 'ie-g';
+  if (inventoryEditIndex.gifts === i) {
+    return `
     <tr>
       <td>${inventoryThumb(item)}</td>
       <td><input type="text" class="inline" style="width:100%" id="${prefix}-loai-${i}" value="${item.loai}"></td>
@@ -2560,20 +2659,9 @@ function inventoryRowHTML(kind, item, i) {
         <button class="btn secondary sm" onclick="saveInventoryEdit('gifts', ${i})">Lưu</button>
         <button class="btn ghost sm" onclick="cancelInventoryEdit('gifts')">Hủy</button>
       </td>
-    </tr>` : `
-    <tr>
-      <td><input type="text" class="inline" style="width:100%" id="${prefix}-loai-${i}" value="${item.loai}"></td>
-      <td><select class="inline" id="${prefix}-ct-${i}"></select></td>
-      <td><input type="number" class="inline" style="width:70px" id="${prefix}-nhap-${i}" value="${item.nhap}"></td>
-      <td><input type="number" class="inline" style="width:70px" id="${prefix}-xuat-${i}" value="${item.xuat}"></td>
-      <td>—</td>
-      <td style="white-space:nowrap;">
-        <button class="btn secondary sm" onclick="saveInventoryEdit('vouchers', ${i})">Lưu</button>
-        <button class="btn ghost sm" onclick="cancelInventoryEdit('vouchers')">Hủy</button>
-      </td>
     </tr>`;
   }
-  return kind === 'gifts' ? `
+  return `
     <tr>
       <td>${inventoryThumb(item)}</td>
       <td>${item.loai}</td>
@@ -2585,51 +2673,39 @@ function inventoryRowHTML(kind, item, i) {
         <button class="btn secondary sm" onclick="startInventoryEdit('gifts', ${i})">✏️ Sửa</button>
         <button class="btn ghost sm" onclick="openGiftDetail(${i})">👁 Chi tiết</button>
       </td>
-    </tr>` : `
-    <tr>
-      <td style="font-weight:700;">${item.loai}</td>
-      <td>${item.chuongtrinh}</td>
-      <td>${item.nhap}</td>
-      <td>${item.xuat}</td>
-      <td style="font-weight:700;">${item.nhap - item.xuat}</td>
-      <td><button class="btn secondary sm" onclick="startInventoryEdit('vouchers', ${i})">✏️ Sửa</button></td>
     </tr>`;
 }
 function renderInventory(kind) {
-  populateInventoryProgramOptions(kind);
-  const data = inventoryStore(kind);
-  const bodyId = kind + '-body';
-  const term = (document.getElementById(kind + '-search')?.value || '').toLowerCase().trim();
+  populateInventoryProgramOptions('gifts');
+  const data = gifts;
+  const term = (document.getElementById('gifts-search')?.value || '').toLowerCase().trim();
   const rows = data
     .map((item, i) => ({item, i}))
     .filter(({item}) => !term || [item.loai, item.chuongtrinh].join(' ').toLowerCase().includes(term));
-  const colspan = kind === 'gifts' ? 7 : 6;
-  document.getElementById(bodyId).innerHTML = rows.length ? rows.map(({item, i}) => inventoryRowHTML(kind, item, i)).join('') : `<tr><td colspan="${colspan}" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy ${kind === 'gifts' ? 'quà tặng' : 'voucher'} phù hợp</td></tr>`;
-  if (inventoryEditIndex[kind] !== null) {
-    const prefix = kind === 'gifts' ? 'ie-g' : 'ie-v';
-    const sel = document.getElementById(prefix + '-ct-' + inventoryEditIndex[kind]);
+  document.getElementById('gifts-body').innerHTML = rows.length ? rows.map(({item, i}) => inventoryRowHTML('gifts', item, i)).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy quà tặng phù hợp</td></tr>';
+  if (inventoryEditIndex.gifts !== null) {
+    const sel = document.getElementById('ie-g-ct-' + inventoryEditIndex.gifts);
     if (sel) {
       const opts = programOptionsList();
       sel.innerHTML = opts.map(o => `<option value="${o}">${o}</option>`).join('');
-      sel.value = data[inventoryEditIndex[kind]].chuongtrinh;
+      sel.value = data[inventoryEditIndex.gifts].chuongtrinh;
     }
   }
 }
-function startInventoryEdit(kind, i) { inventoryEditIndex[kind] = i; renderInventory(kind); }
-function cancelInventoryEdit(kind) { inventoryEditIndex[kind] = null; renderInventory(kind); }
+function startInventoryEdit(kind, i) { inventoryEditIndex.gifts = i; renderInventory('gifts'); }
+function cancelInventoryEdit(kind) { inventoryEditIndex.gifts = null; renderInventory('gifts'); }
 function saveInventoryEdit(kind, i) {
-  const prefix = kind === 'gifts' ? 'ie-g' : 'ie-v';
-  const data = inventoryStore(kind);
-  const item = data[i];
+  const prefix = 'ie-g';
+  const item = gifts[i];
   const loai = document.getElementById(prefix + '-loai-' + i).value.trim();
   if (!loai) { showToast('Vui lòng nhập Loại'); return; }
   item.loai = loai;
   item.chuongtrinh = document.getElementById(prefix + '-ct-' + i).value || '(chưa gắn sự kiện)';
   item.nhap = parseInt(document.getElementById(prefix + '-nhap-' + i).value) || 0;
   item.xuat = parseInt(document.getElementById(prefix + '-xuat-' + i).value) || 0;
-  inventoryEditIndex[kind] = null;
+  inventoryEditIndex.gifts = null;
   showToast('Đã lưu thay đổi — tồn kho tự tính lại');
-  renderInventory(kind);
+  renderInventory('gifts');
 }
 
 /* ---------------- CHI TIET QUA TANG + LICH SU CAP NHAT ---------------- */
@@ -2684,31 +2760,117 @@ function addGiftHistoryEntry() {
   renderInventory('gifts');
 }
 function addInventoryItem(kind) {
-  const prefix = kind === 'gifts' ? 'g' : 'v';
-  const loai = document.getElementById(prefix + '-loai').value.trim();
-  if (!loai) { showToast('Vui lòng nhập Loại ' + (kind === 'gifts' ? 'quà tặng' : 'voucher')); return; }
+  const loai = document.getElementById('g-loai').value.trim();
+  if (!loai) { showToast('Vui lòng nhập Loại quà tặng'); return; }
   const item = {
     loai,
-    chuongtrinh: document.getElementById(prefix + '-chuongtrinh').value || '(chưa gắn sự kiện)',
-    nhap: parseInt(document.getElementById(prefix + '-nhap').value) || 0,
-    xuat: parseInt(document.getElementById(prefix + '-xuat').value) || 0,
+    chuongtrinh: document.getElementById('g-chuongtrinh').value || '(chưa gắn sự kiện)',
+    nhap: parseInt(document.getElementById('g-nhap').value) || 0,
+    xuat: parseInt(document.getElementById('g-xuat').value) || 0,
   };
-  if (kind === 'gifts') {
-    giftCounter++;
-    item.image = pendingInventoryImage.gifts;
-    item.lichSu = [];
-    gifts.unshift(item);
-    document.getElementById('g-image').value = '';
-    document.getElementById('g-image-preview-wrap').style.display = 'none';
-    pendingInventoryImage.gifts = '';
-  } else {
-    voucherCounter++;
-    vouchers.unshift(item);
-  }
-  [prefix + '-loai', prefix + '-nhap', prefix + '-xuat'].forEach(id => document.getElementById(id).value = '');
+  giftCounter++;
+  item.image = pendingInventoryImage.gifts;
+  item.lichSu = [];
+  gifts.unshift(item);
+  document.getElementById('g-image').value = '';
+  document.getElementById('g-image-preview-wrap').style.display = 'none';
+  pendingInventoryImage.gifts = '';
+  ['g-loai', 'g-nhap', 'g-xuat'].forEach(id => document.getElementById(id).value = '');
   showToast('Đã lưu — tồn kho tự tính lại');
-  closeForm(kind + '-form');
-  renderInventory(kind);
+  closeForm('gifts-form');
+  renderInventory('gifts');
+}
+
+/* ---------------- VOUCHER (đợt order voucher theo sự kiện — API thật, KHÔNG dùng chung với gifts) ---------------- */
+function fillVoucherSuKienSelect() {
+  const sel = document.getElementById('v-sukien');
+  if (!sel) return;
+  if (!programs.length) {
+    sel.innerHTML = '<option value="">— Chưa có sự kiện nào, tạo ở tab Sự kiện trước —</option>';
+    return;
+  }
+  const current = sel.value;
+  sel.innerHTML = programs.map(p => `<option value="${p.maSuKien}">${p.ten}</option>`).join('');
+  if (current) sel.value = current;
+}
+function renderVouchers() {
+  if (!voucherDotsLoaded) { refreshVoucherDot(); return; } // lần đầu vào tab: tải từ API rồi tự render lại
+  fillVoucherSuKienSelect();
+  const term = (document.getElementById('vouchers-search')?.value || '').toLowerCase().trim();
+  const rows = voucherDots.filter(v => !term || [v.tenSuKien, v.tenDot, v.quanLy].join(' ').toLowerCase().includes(term));
+  document.getElementById('vouchers-body').innerHTML = rows.length ? rows.map(v => voucherRowHTML_(v)).join('') : '<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy đợt voucher phù hợp</td></tr>';
+}
+function voucherRowHTML_(v) {
+  if (voucherEditMaDot === v.maDot) {
+    return `
+    <tr>
+      <td>${v.tenSuKien}</td>
+      <td><input type="text" class="inline" style="width:100%" id="ve-tendot-${v.maDot}" value="${v.tenDot}"></td>
+      <td><select class="inline" id="ve-loains-${v.maDot}"><option ${v.loaiNS==='Công ty'?'selected':''}>Công ty</option><option ${v.loaiNS==='Công đoàn'?'selected':''}>Công đoàn</option></select></td>
+      <td><input type="number" class="inline" style="width:90px" id="ve-menhgia-${v.maDot}" value="${v.menhGia}"></td>
+      <td><input type="number" class="inline" style="width:70px" id="ve-soluong-${v.maDot}" value="${v.soLuong}"></td>
+      <td>${moneyFmt(v.tongNS)}</td>
+      <td><input type="number" class="inline" style="width:70px" id="ve-ton-${v.maDot}" value="${v.soLuongTon}"></td>
+      <td>${moneyFmt(v.tongNSTon)}</td>
+      <td><input type="text" class="inline" style="width:100%" id="ve-quanly-${v.maDot}" value="${v.quanLy || ''}"></td>
+      <td style="white-space:nowrap;">
+        <button class="btn secondary sm" onclick="saveVoucherEdit('${v.maDot}')">Lưu</button>
+        <button class="btn ghost sm" onclick="cancelVoucherEdit()">Hủy</button>
+      </td>
+    </tr>`;
+  }
+  return `
+    <tr>
+      <td style="font-weight:700;">${v.tenSuKien}</td>
+      <td>${v.tenDot}</td>
+      <td>${v.loaiNS}</td>
+      <td>${moneyFmt(v.menhGia)}</td>
+      <td>${v.soLuong}</td>
+      <td>${moneyFmt(v.tongNS)}</td>
+      <td style="font-weight:700;">${v.soLuongTon}</td>
+      <td>${moneyFmt(v.tongNSTon)}</td>
+      <td>${v.quanLy || '—'}</td>
+      <td><button class="btn secondary sm" onclick="startVoucherEdit('${v.maDot}')">✏️ Sửa</button></td>
+    </tr>`;
+}
+function startVoucherEdit(maDot) { voucherEditMaDot = maDot; renderVouchers(); }
+function cancelVoucherEdit() { voucherEditMaDot = null; renderVouchers(); }
+async function saveVoucherEdit(maDot) {
+  const tenDot = document.getElementById('ve-tendot-' + maDot).value.trim();
+  if (!tenDot) { showToast('Vui lòng nhập Tên đợt'); return; }
+  const payload = {
+    tenDot,
+    loaiNS: document.getElementById('ve-loains-' + maDot).value,
+    menhGia: parseFloat(document.getElementById('ve-menhgia-' + maDot).value) || 0,
+    soLuong: parseFloat(document.getElementById('ve-soluong-' + maDot).value) || 0,
+    soLuongTon: document.getElementById('ve-ton-' + maDot).value,
+    quanLy: document.getElementById('ve-quanly-' + maDot).value.trim(),
+  };
+  const r = await callPtvhApi('updateVoucherDot', { maDot, payload });
+  if (!r.ok) { showToast(r.message || 'Không lưu được thay đổi'); return; }
+  voucherEditMaDot = null;
+  showToast('Đã lưu thay đổi — ngân sách tồn tự tính lại theo mệnh giá');
+  await refreshVoucherDot();
+}
+async function addVoucherDotUI() {
+  const maSuKien = document.getElementById('v-sukien').value;
+  if (!maSuKien) { showToast('Vui lòng chọn Sự kiện'); return; }
+  const tenDot = document.getElementById('v-tendot').value.trim();
+  if (!tenDot) { showToast('Vui lòng nhập Tên đợt order voucher'); return; }
+  const payload = {
+    maSuKien,
+    tenDot,
+    loaiNS: document.getElementById('v-loains').value,
+    menhGia: parseFloat(document.getElementById('v-menhgia').value) || 0,
+    soLuong: parseFloat(document.getElementById('v-soluong').value) || 0,
+    quanLy: document.getElementById('v-quanly').value.trim(),
+  };
+  const r = await callPtvhApi('addVoucherDot', { payload });
+  if (!r.ok) { showToast(r.message || 'Không tạo được đợt voucher'); return; }
+  ['v-tendot', 'v-menhgia', 'v-soluong', 'v-quanly'].forEach(id => document.getElementById(id).value = '');
+  showToast('Đã ghi nhận đợt voucher mới');
+  closeForm('vouchers-form');
+  await refreshVoucherDot();
 }
 
 /* ---------------- KPI ---------------- */
