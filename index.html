@@ -260,6 +260,11 @@
   .status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 700; }
   .status-pill.plan { background: #eef2ff; color: #3730a3; }
   .status-pill.done { background: #f0fdf4; color: #166534; }
+  .status-pill.pending { background: #f4f4f5; color: #52525b; }
+  .status-pill.doing { background: #fff7ed; color: #9a3412; }
+  select.status-select-pending { background: #f4f4f5; color: #52525b; font-weight: 700; }
+  select.status-select-doing { background: #fff7ed; color: #9a3412; font-weight: 700; }
+  select.status-select-done { background: #f0fdf4; color: #166534; font-weight: 700; }
 
   .edit-card { border: 1.5px dashed var(--primary); background: #fff8f7; }
   .collapsible-form { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--gridline); }
@@ -623,12 +628,22 @@
             <button class="btn" onclick="addWork()">Thêm vào bảng theo dõi</button>
           </div>
         </div>
+        <div class="card edit-card" id="work-detail-card" style="display:none;">
+          <div class="card-head-row">
+            <div>
+              <h2 id="work-detail-title">Chi tiết công việc</h2>
+              <p class="sub" id="work-detail-sub" style="margin-bottom:0;"></p>
+            </div>
+            <button class="btn ghost sm" onclick="closeWorkDetail()">✕ Đóng</button>
+          </div>
+          <div id="work-detail-body"></div>
+        </div>
         <div class="card">
           <h2>Toàn bộ đầu việc đang theo dõi</h2>
           <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="work-search" placeholder="Tìm theo mã việc, tên, mảng, người phụ trách..." oninput="renderWork()"></div>
           <div class="table-wrap">
           <table>
-            <thead><tr><th>Mã việc</th><th>Mảng</th><th>Tên công việc</th><th>Phân loại</th><th>Người phụ trách</th><th>Hạn HT</th><th>Link lưu trữ</th><th>Trạng thái</th><th>Xác nhận HT</th></tr></thead>
+            <thead><tr><th>Mã việc</th><th>Mảng</th><th>Tên công việc</th><th>Phân loại</th><th>Người phụ trách</th><th>Hạn HT</th><th>Link</th><th>Trạng thái</th><th>Xác nhận HT</th></tr></thead>
             <tbody id="work-body"></tbody>
           </table>
           </div>
@@ -674,12 +689,15 @@
           <button class="btn secondary sm" onclick="toggleForm('programs-form')">+ Tạo sự kiện</button>
         </div>
         <div id="programs-form" class="collapsible-form" style="display:none;">
+          <div class="field"><label>Tên sự kiện</label><input type="text" id="p-ten" placeholder="VD: Trung thu 2026"></div>
           <div class="grid2">
-            <div class="field"><label>Tên sự kiện</label><input type="text" id="p-ten" placeholder="VD: Trung thu 2026"></div>
-            <div class="field"><label>Mảng phụ trách</label><select id="p-mang"></select></div>
-          </div>
-          <div class="grid2">
-            <div class="field"><label>Ngày dự kiến tổ chức</label><input type="date" id="p-ngay"></div>
+            <div class="field">
+              <label>Thời gian triển khai</label>
+              <div style="display:flex; gap:8px;">
+                <input type="text" id="p-thoigian" placeholder="VD: 15/03/2026 hoặc 13 - 15/01/2026" style="flex:1;">
+                <input type="date" id="p-thoigian-pick" style="width:150px;" onchange="document.getElementById('p-thoigian').value = fmtDate(new Date(this.value + 'T00:00:00'))" title="Chọn nhanh 1 ngày">
+              </div>
+            </div>
             <div class="field"><label>Địa điểm dự kiến</label><input type="text" id="p-diadiem" placeholder="VD: VP 17 Ngô Quyền"></div>
           </div>
           <div class="grid2">
@@ -687,8 +705,8 @@
             <div class="field"><label>Số lượng dự kiến tham dự</label><input type="text" id="p-soluong" placeholder="VD: 700"></div>
           </div>
           <div class="grid2">
-            <div class="field"><label>NS Công đoàn dự kiến (đ)</label><input type="number" id="p-nscongdoan-dukien" placeholder="0"></div>
-            <div class="field"><label>NS Công ty dự kiến (đ)</label><input type="number" id="p-nscongty-dukien" placeholder="0"></div>
+            <div class="field"><label>NS Công đoàn dự kiến (đ)</label><input type="text" inputmode="numeric" id="p-nscongdoan-dukien" placeholder="0" oninput="formatMoneyInput(this)"></div>
+            <div class="field"><label>NS Công ty dự kiến (đ)</label><input type="text" inputmode="numeric" id="p-nscongty-dukien" placeholder="0" oninput="formatMoneyInput(this)"></div>
           </div>
           <div class="field"><label>Nội dung triển khai</label><textarea id="p-noidung" placeholder="Mô tả nội dung, kế hoạch triển khai..."></textarea></div>
           <div class="field">
@@ -703,12 +721,15 @@
       <div class="card edit-card" id="program-edit-card" style="display:none;">
         <h2 id="program-edit-title">Sửa sự kiện</h2>
         <p class="sub">Cập nhật kế hoạch, hoặc nhập báo cáo kết quả khi sự kiện đã diễn ra</p>
+        <div class="field"><label>Tên sự kiện</label><input type="text" id="pe-ten"></div>
         <div class="grid2">
-          <div class="field"><label>Tên sự kiện</label><input type="text" id="pe-ten"></div>
-          <div class="field"><label>Mảng phụ trách</label><select id="pe-mang"></select></div>
-        </div>
-        <div class="grid2">
-          <div class="field"><label>Ngày tổ chức (dự kiến/thực tế)</label><input type="date" id="pe-ngay"></div>
+          <div class="field">
+            <label>Thời gian triển khai</label>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="pe-thoigian" placeholder="VD: 15/03/2026 hoặc 13 - 15/01/2026" style="flex:1;">
+              <input type="date" id="pe-thoigian-pick" style="width:150px;" onchange="document.getElementById('pe-thoigian').value = fmtDate(new Date(this.value + 'T00:00:00'))" title="Chọn nhanh 1 ngày">
+            </div>
+          </div>
           <div class="field"><label>Địa điểm</label><input type="text" id="pe-diadiem"></div>
         </div>
         <div class="grid2">
@@ -717,13 +738,13 @@
         </div>
         <p class="sub" style="margin:14px 0 4px;"><b>Ngân sách dự kiến</b></p>
         <div class="grid2">
-          <div class="field"><label>NS Công đoàn dự kiến (đ)</label><input type="number" id="pe-nscongdoan-dukien" placeholder="0"></div>
-          <div class="field"><label>NS Công ty dự kiến (đ)</label><input type="number" id="pe-nscongty-dukien" placeholder="0"></div>
+          <div class="field"><label>NS Công đoàn dự kiến (đ)</label><input type="text" inputmode="numeric" id="pe-nscongdoan-dukien" placeholder="0" oninput="formatMoneyInput(this)"></div>
+          <div class="field"><label>NS Công ty dự kiến (đ)</label><input type="text" inputmode="numeric" id="pe-nscongty-dukien" placeholder="0" oninput="formatMoneyInput(this)"></div>
         </div>
         <p class="sub" style="margin:14px 0 4px;"><b>Báo cáo kết quả (điền khi sự kiện đã kết thúc)</b></p>
         <div class="grid2">
-          <div class="field"><label>NS Công đoàn thực chi (đ)</label><input type="number" id="pe-nscongdoan-thucchi" placeholder="0"></div>
-          <div class="field"><label>NS Công ty thực chi (đ)</label><input type="number" id="pe-nscongty-thucchi" placeholder="0"></div>
+          <div class="field"><label>NS Công đoàn thực chi (đ)</label><input type="text" inputmode="numeric" id="pe-nscongdoan-thucchi" placeholder="0" oninput="formatMoneyInput(this)"></div>
+          <div class="field"><label>NS Công ty thực chi (đ)</label><input type="text" inputmode="numeric" id="pe-nscongty-thucchi" placeholder="0" oninput="formatMoneyInput(this)"></div>
         </div>
         <div class="grid2">
           <div class="field"><label>Đánh giá hài lòng (%)</label><input type="text" id="pe-danhgia" placeholder="VD: 97"></div>
@@ -763,7 +784,7 @@
         <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="programs-search" placeholder="Tìm theo tên, mảng, trạng thái..." oninput="renderPrograms()"></div>
         <div class="table-wrap">
         <table>
-          <thead><tr><th>Sự kiện</th><th>Mảng</th><th>Ngày</th><th>NS dự kiến</th><th>NS thực chi</th><th>% NS</th><th>Hài lòng</th><th>Trạng thái</th><th></th></tr></thead>
+          <thead><tr><th>Sự kiện</th><th>Ngày</th><th>NS dự kiến</th><th>NS thực chi</th><th>% NS</th><th>Hài lòng</th><th>Trạng thái</th><th></th></tr></thead>
           <tbody id="programs-body"></tbody>
         </table>
         </div>
@@ -1025,7 +1046,7 @@
             <div class="field"><label>Quản lý voucher</label><input type="text" id="v-quanly" placeholder="Tên người quản lý đợt này"></div>
           </div>
           <div class="grid2">
-            <div class="field"><label>Mệnh giá (đ)</label><input type="number" id="v-menhgia" placeholder="0"></div>
+            <div class="field"><label>Mệnh giá (đ)</label><input type="text" inputmode="numeric" id="v-menhgia" placeholder="0" oninput="formatMoneyInput(this)"></div>
             <div class="field"><label>Số lượng phát hành</label><input type="number" id="v-soluong" placeholder="0"></div>
           </div>
           <button class="btn" onclick="addVoucherDotUI()">Lưu</button>
@@ -1390,6 +1411,16 @@ function isMonthStrInPeriod(thang, period) {
   return yyyy === now.getFullYear();
 }
 function moneyFmt(n) { return (n/1e6).toLocaleString('vi-VN', {maximumFractionDigits:1}) + 'tr'; }
+/** Gõ tới đâu tự chèn dấu chấm phân cách hàng nghìn tới đó (kiểu 3.846.700) — dùng cho mọi ô nhập tiền. */
+function formatMoneyInput(el) {
+  const digits = el.value.replace(/\D/g, '');
+  el.value = digits ? Number(digits).toLocaleString('vi-VN') : '';
+}
+/** Đọc lại giá trị số nguyên (bỏ dấu chấm) từ 1 ô đã định dạng bằng formatMoneyInput. */
+function parseMoneyInput(id) {
+  const raw = (document.getElementById(id).value || '').replace(/\D/g, '');
+  return raw ? parseInt(raw, 10) : 0;
+}
 function pctFmt(used, total) { return total ? Math.round(used/total*100) + '%' : '—'; }
 
 function fillMangSelect(sel, includeBlank) {
@@ -1398,8 +1429,6 @@ function fillMangSelect(sel, includeBlank) {
 }
 function initAllMangSelects() {
   fillMangSelect(document.getElementById('w-mang'), false);
-  fillMangSelect(document.getElementById('p-mang'), false);
-  fillMangSelect(document.getElementById('pe-mang'), false);
   fillMangSelect(document.getElementById('bp-mang'), false);
   fillMangSelect(document.getElementById('b-mang'), false);
   fillLoaiNSSelect(document.getElementById('bp-loains'));
@@ -1843,6 +1872,7 @@ function mapCongViecFromApi_(it) {
     phanLoai: it.phanLoai || 'B',
     nguoi: it.nguoiPhuTrach || [],
     han: it.hanHoanThanhSLA ? fmtDate(new Date(it.hanHoanThanhSLA)) : '',
+    link: it.link || '',
     linkThuMuc: it.linkLuuTru || '',
     trangThai: it.trangThai || 'Chưa triển khai',
     chuongTrinh: it.thuocSuKien || '',
@@ -1919,6 +1949,22 @@ async function refreshVoucherDot(showLoadingToast) {
   renderVouchers();
 }
 
+function statusSelectClass_(trangThai) {
+  if (trangThai === 'Hoàn thành') return 'status-select-done';
+  if (trangThai === 'Đang thực hiện') return 'status-select-doing';
+  return 'status-select-pending';
+}
+function statusPillHTML_(trangThai) {
+  const cls = trangThai === 'Hoàn thành' ? 'done' : trangThai === 'Đang thực hiện' ? 'doing' : 'pending';
+  return `<span class="status-pill ${cls}">${trangThai}</span>`;
+}
+function workLinkCellHTML_(w, i) {
+  const isUrl = /^https?:\/\//i.test(w.linkThuMuc || '');
+  const openBtn = isUrl
+    ? `<a class="btn ghost sm" href="${w.linkThuMuc}" target="_blank" rel="noopener" title="Mở link lưu trữ">🔗</a>`
+    : (w.linkThuMuc ? `<button class="btn ghost sm" onclick='showToast("Nội dung đã lưu (không phải link bấm được): " + ${JSON.stringify(w.linkThuMuc)})' title="Xem nội dung đã lưu">📄</button>` : '');
+  return `${openBtn}<button class="btn ghost sm" onclick="promptWorkLink(${i})" title="Sửa link lưu trữ">✏️</button>`;
+}
 function renderWorkTaskView() {
   populateWorkProgramSelect();
   const term = (document.getElementById('work-search')?.value || '').toLowerCase().trim();
@@ -1929,17 +1975,15 @@ function renderWorkTaskView() {
     <tr>
       <td style="font-weight:700;">${w.ma}</td>
       <td>${w.mang}</td>
-      <td>${w.ten}
-        ${w.moTa ? `<div class="subtext">${w.moTa}</div>` : ''}
+      <td style="cursor:pointer;" onclick="openWorkDetail(${i})">${w.ten}
         ${w.chuongTrinh ? `<div class="subtext tag-prog">🎪 ${w.chuongTrinh}</div>` : ''}
-        ${metaLine(w)}
       </td>
       <td>${w.phanLoai}</td>
       <td>${w.nguoi.join(', ')}</td>
       <td>${w.han || '—'}${overdueWarnHTML(w)}</td>
-      <td><input class="inline" style="width:150px" value="${w.linkThuMuc || ''}" placeholder="Dán link thư mục..." onchange="updateWorkLink(${i}, this.value)"></td>
+      <td style="white-space:nowrap;">${workLinkCellHTML_(w, i)}</td>
       <td>
-        <select class="inline" id="wt-${i}" onchange="updateWorkStatus(${i})">
+        <select class="inline ${statusSelectClass_(w.trangThai)}" id="wt-${i}" onchange="updateWorkStatus(${i})">
           <option ${w.trangThai==='Chưa triển khai'?'selected':''}>Chưa triển khai</option>
           <option ${w.trangThai==='Đang thực hiện'?'selected':''}>Đang thực hiện</option>
           <option ${w.trangThai==='Hoàn thành'?'selected':''}>Hoàn thành</option>
@@ -1947,6 +1991,43 @@ function renderWorkTaskView() {
       </td>
       <td>${xacNhanCellHTML(w, i)}</td>
     </tr>`).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy đầu việc phù hợp</td></tr>';
+}
+async function promptWorkLink(i) {
+  const w = workItems[i];
+  const val = prompt('Dán link thư mục lưu trữ cho "' + w.ten + '":', w.linkThuMuc || '');
+  if (val === null) return; // bấm Hủy
+  await updateWorkLink(i, val.trim());
+}
+function openWorkDetail(i) {
+  const w = workItems[i];
+  if (!w) return;
+  document.getElementById('work-detail-card').style.display = 'block';
+  document.getElementById('work-detail-title').textContent = w.ma + ' — ' + w.ten;
+  document.getElementById('work-detail-sub').textContent = (w.mang || '—') + ' · Phân loại ' + w.phanLoai;
+  const isUrlLuuTru = /^https?:\/\//i.test(w.linkThuMuc || '');
+  const isUrlGoc = /^https?:\/\//i.test(w.link || '');
+  document.getElementById('work-detail-body').innerHTML = `
+    <div class="stat-row-3" style="margin:14px 0;">
+      <div class="stat-tile flat"><div class="lbl">Người phụ trách</div><div class="val" style="font-size:15px;">${w.nguoi.join(', ') || '—'}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Hạn hoàn thành</div><div class="val" style="font-size:15px;">${w.han || '—'}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Trạng thái</div><div class="val" style="font-size:15px;">${statusPillHTML_(w.trangThai)} ${w.xacNhan ? '<span class="status-pill done">Đã xác nhận</span>' : ''}</div></div>
+    </div>
+    ${w.chuongTrinh ? `<p class="sub" style="margin-bottom:4px;"><b>Thuộc sự kiện</b></p><p style="margin-top:0;">🎪 ${w.chuongTrinh}</p>` : ''}
+    <p class="sub" style="margin-bottom:4px;"><b>Mô tả / kế hoạch hành động</b></p>
+    <p style="margin-top:0; white-space:pre-line;">${w.moTa || '—'}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Link (từ báo cáo gốc, chỉ xem)</b></p>
+    <p style="margin-top:0;">${w.link ? (isUrlGoc ? `<a href="${w.link}" target="_blank" rel="noopener">🔗 Mở link</a>` : w.link) : '—'}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Link lưu trữ</b></p>
+    <p style="margin-top:0;">
+      ${w.linkThuMuc ? (isUrlLuuTru ? `<a href="${w.linkThuMuc}" target="_blank" rel="noopener">🔗 Mở link</a>` : w.linkThuMuc) : '—'}
+      <button class="btn ghost sm" onclick="promptWorkLink(${workItems.indexOf(w)})">✏️ Sửa</button>
+    </p>
+    ${metaLine(w)}
+  `;
+  document.getElementById('work-detail-card').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function closeWorkDetail() {
+  document.getElementById('work-detail-card').style.display = 'none';
 }
 async function addWork() {
   const ten = document.getElementById('w-ten').value.trim();
@@ -2052,11 +2133,10 @@ function readProgramLinks(containerId) {
 function renderPrograms() {
   if (!programsLoaded) { refreshSuKien(); return; } // lần đầu vào tab: tải từ API rồi tự render lại
   const term = (document.getElementById('programs-search')?.value || '').toLowerCase().trim();
-  const rows = programs.filter(p => !term || [p.ten, p.mang, p.trangThai].join(' ').toLowerCase().includes(term));
+  const rows = programs.filter(p => !term || [p.ten, p.trangThai].join(' ').toLowerCase().includes(term));
   document.getElementById('programs-body').innerHTML = rows.length ? rows.map(p => `
     <tr>
       <td style="font-weight:700; cursor:pointer;" onclick="openProgramDetail('${p.maSuKien}')">${p.ten}${metaLine(p)}</td>
-      <td>${p.mang || '—'}</td>
       <td>${p.thoiGianGoc || p.ngay || '—'}</td>
       <td>${moneyFmt(p.nsDuyet)}</td>
       <td>${p.trangThai === 'Hoàn thành' ? moneyFmt(p.nsThucChi) : '—'}</td>
@@ -2067,26 +2147,25 @@ function renderPrograms() {
         <button class="btn ghost sm" onclick="openProgramDetail('${p.maSuKien}')">👁 Chi tiết</button>
         <button class="btn secondary sm" onclick="startProgramEdit('${p.maSuKien}')">✏️ Sửa</button>
       </td>
-    </tr>`).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy sự kiện phù hợp</td></tr>';
+    </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy sự kiện phù hợp</td></tr>';
 }
 async function addProgram() {
   const ten = document.getElementById('p-ten').value.trim();
   if (!ten) { showToast('Vui lòng nhập Tên sự kiện'); return; }
   const payload = {
     ten,
-    mang: document.getElementById('p-mang').value,
-    thoiGian: document.getElementById('p-ngay').value || '',
+    thoiGianText: document.getElementById('p-thoigian').value.trim(),
     diaDiem: document.getElementById('p-diadiem').value.trim(),
     doiTuong: document.getElementById('p-doituong').value.trim(),
     soLuongThamDu: document.getElementById('p-soluong').value.trim(),
-    nsCongDoanDuKien: parseFloat(document.getElementById('p-nscongdoan-dukien').value) || 0,
-    nsCongTyDuKien: parseFloat(document.getElementById('p-nscongty-dukien').value) || 0,
+    nsCongDoanDuKien: parseMoneyInput('p-nscongdoan-dukien'),
+    nsCongTyDuKien: parseMoneyInput('p-nscongty-dukien'),
     noiDung: document.getElementById('p-noidung').value.trim(),
     links: readProgramLinks('p-links'),
   };
   const r = await callPtvhApi('addSuKien', { payload });
   if (!r.ok) { showToast(r.message || 'Không tạo được sự kiện'); return; }
-  ['p-ten','p-ngay','p-diadiem','p-doituong','p-soluong','p-nscongdoan-dukien','p-nscongty-dukien','p-noidung'].forEach(id => document.getElementById(id).value = '');
+  ['p-ten','p-thoigian','p-thoigian-pick','p-diadiem','p-doituong','p-soluong','p-nscongdoan-dukien','p-nscongty-dukien','p-noidung'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('p-links').innerHTML = '';
   showToast('Đã tạo sự kiện mới — cập nhật báo cáo khi hoàn thành');
   closeForm('programs-form');
@@ -2099,15 +2178,15 @@ function startProgramEdit(maSuKien) {
   document.getElementById('program-edit-card').style.display = 'block';
   document.getElementById('program-edit-title').textContent = 'Sửa sự kiện: ' + p.ten;
   document.getElementById('pe-ten').value = p.ten;
-  document.getElementById('pe-mang').value = p.mang || MANG_LIST[0];
-  document.getElementById('pe-ngay').value = vnDateToIso(p.ngay);
+  document.getElementById('pe-thoigian').value = p.thoiGianGoc || '';
+  document.getElementById('pe-thoigian-pick').value = '';
   document.getElementById('pe-diadiem').value = p.diaDiem || '';
   document.getElementById('pe-doituong').value = p.doiTuong || '';
   document.getElementById('pe-soluong').value = p.soLuongThamDu || '';
-  document.getElementById('pe-nscongdoan-dukien').value = p.nsCongDoanDuKien || '';
-  document.getElementById('pe-nscongty-dukien').value = p.nsCongTyDuKien || '';
-  document.getElementById('pe-nscongdoan-thucchi').value = p.nsCongDoanThucChi || '';
-  document.getElementById('pe-nscongty-thucchi').value = p.nsCongTyThucChi || '';
+  document.getElementById('pe-nscongdoan-dukien').value = p.nsCongDoanDuKien ? p.nsCongDoanDuKien.toLocaleString('vi-VN') : '';
+  document.getElementById('pe-nscongty-dukien').value = p.nsCongTyDuKien ? p.nsCongTyDuKien.toLocaleString('vi-VN') : '';
+  document.getElementById('pe-nscongdoan-thucchi').value = p.nsCongDoanThucChi ? p.nsCongDoanThucChi.toLocaleString('vi-VN') : '';
+  document.getElementById('pe-nscongty-thucchi').value = p.nsCongTyThucChi ? p.nsCongTyThucChi.toLocaleString('vi-VN') : '';
   document.getElementById('pe-danhgia').value = p.danhGiaHaiLong || '';
   document.getElementById('pe-noidung').value = p.noiDung || '';
   document.getElementById('pe-ketqua').value = p.ketqua || '';
@@ -2126,15 +2205,14 @@ async function saveProgramCompletion() {
   if (!ten) { showToast('Vui lòng nhập Tên sự kiện'); return; }
   const payload = {
     ten,
-    mang: document.getElementById('pe-mang').value,
-    thoiGian: document.getElementById('pe-ngay').value || '',
+    thoiGianText: document.getElementById('pe-thoigian').value.trim(),
     diaDiem: document.getElementById('pe-diadiem').value.trim(),
     doiTuong: document.getElementById('pe-doituong').value.trim(),
     soLuongThamDu: document.getElementById('pe-soluong').value.trim(),
-    nsCongDoanDuKien: parseFloat(document.getElementById('pe-nscongdoan-dukien').value) || 0,
-    nsCongTyDuKien: parseFloat(document.getElementById('pe-nscongty-dukien').value) || 0,
-    nsCongDoanThucChi: document.getElementById('pe-nscongdoan-thucchi').value === '' ? '' : (parseFloat(document.getElementById('pe-nscongdoan-thucchi').value) || 0),
-    nsCongTyThucChi: document.getElementById('pe-nscongty-thucchi').value === '' ? '' : (parseFloat(document.getElementById('pe-nscongty-thucchi').value) || 0),
+    nsCongDoanDuKien: parseMoneyInput('pe-nscongdoan-dukien'),
+    nsCongTyDuKien: parseMoneyInput('pe-nscongty-dukien'),
+    nsCongDoanThucChi: document.getElementById('pe-nscongdoan-thucchi').value.trim() === '' ? '' : parseMoneyInput('pe-nscongdoan-thucchi'),
+    nsCongTyThucChi: document.getElementById('pe-nscongty-thucchi').value.trim() === '' ? '' : parseMoneyInput('pe-nscongty-thucchi'),
     danhGiaHaiLong: document.getElementById('pe-danhgia').value.trim(),
     noiDung: document.getElementById('pe-noidung').value.trim(),
     ketQua: document.getElementById('pe-ketqua').value.trim(),
@@ -2153,7 +2231,7 @@ function openProgramDetail(maSuKien) {
   if (!p) return;
   document.getElementById('program-detail-card').style.display = 'block';
   document.getElementById('program-detail-title').textContent = p.ten;
-  document.getElementById('program-detail-sub').textContent = (p.mang || '—') + ' · ' + (p.thoiGianGoc || p.ngay || '—');
+  document.getElementById('program-detail-sub').textContent = p.thoiGianGoc || p.ngay || '—';
   const linksHTML = (p.links && p.links.length)
     ? `<div class="link-chip-list">${p.links.map(l => `<a class="btn secondary sm" href="${l.url}" target="_blank" rel="noopener">🔗 ${l.ten || l.url}</a>`).join('')}</div>`
     : '<p class="sub" style="margin:6px 0 0;">Chưa có link nào được đính kèm.</p>';
@@ -2814,7 +2892,7 @@ function voucherRowHTML_(v) {
       <td>${v.tenSuKien}</td>
       <td><input type="text" class="inline" style="width:100%" id="ve-tendot-${v.maDot}" value="${v.tenDot}"></td>
       <td><select class="inline" id="ve-loains-${v.maDot}"><option ${v.loaiNS==='Công ty'?'selected':''}>Công ty</option><option ${v.loaiNS==='Công đoàn'?'selected':''}>Công đoàn</option></select></td>
-      <td><input type="number" class="inline" style="width:90px" id="ve-menhgia-${v.maDot}" value="${v.menhGia}"></td>
+      <td><input type="text" inputmode="numeric" class="inline" style="width:90px" id="ve-menhgia-${v.maDot}" value="${v.menhGia.toLocaleString('vi-VN')}" oninput="formatMoneyInput(this)"></td>
       <td><input type="number" class="inline" style="width:70px" id="ve-soluong-${v.maDot}" value="${v.soLuong}"></td>
       <td>${moneyFmt(v.tongNS)}</td>
       <td><input type="number" class="inline" style="width:70px" id="ve-ton-${v.maDot}" value="${v.soLuongTon}"></td>
@@ -2848,7 +2926,7 @@ async function saveVoucherEdit(maDot) {
   const payload = {
     tenDot,
     loaiNS: document.getElementById('ve-loains-' + maDot).value,
-    menhGia: parseFloat(document.getElementById('ve-menhgia-' + maDot).value) || 0,
+    menhGia: parseMoneyInput('ve-menhgia-' + maDot),
     soLuong: parseFloat(document.getElementById('ve-soluong-' + maDot).value) || 0,
     soLuongTon: document.getElementById('ve-ton-' + maDot).value,
     quanLy: document.getElementById('ve-quanly-' + maDot).value.trim(),
@@ -2868,7 +2946,7 @@ async function addVoucherDotUI() {
     maSuKien,
     tenDot,
     loaiNS: document.getElementById('v-loains').value,
-    menhGia: parseFloat(document.getElementById('v-menhgia').value) || 0,
+    menhGia: parseMoneyInput('v-menhgia'),
     soLuong: parseFloat(document.getElementById('v-soluong').value) || 0,
     quanLy: document.getElementById('v-quanly').value.trim(),
   };
