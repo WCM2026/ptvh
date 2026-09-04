@@ -1589,10 +1589,17 @@ async function loginSuccess(user, token) {
   backToEmailStep();
   initAllMangSelects();
   renderSidebar();
-  await refreshStaffList();  // nạp nhân sự thật trước — Công việc cần đúng tên để khớp thống kê
-  await refreshCongViec();   // tải dữ liệu Công việc thật trước khi vào Dashboard
-  await refreshSuKien();     // tải dữ liệu Sự kiện thật (Module 3)
-  await refreshVoucherDot(); // tải dữ liệu Đợt voucher thật (Module 3)
+  try {
+    await refreshStaffList();  // nạp nhân sự thật trước — Công việc cần đúng tên để khớp thống kê
+    await refreshCongViec();   // tải dữ liệu Công việc thật trước khi vào Dashboard
+    await refreshSuKien();     // tải dữ liệu Sự kiện thật (Module 3)
+    await refreshVoucherDot(); // tải dữ liệu Đợt voucher thật (Module 3)
+  } catch (err) {
+    // Không để 1 API lỗi bất ngờ làm treo màn hình đăng nhập — log ra console để chẩn đoán,
+    // vẫn cho vào Dashboard, các tab liên quan sẽ tự thử tải lại khi người dùng bấm vào.
+    console.error('Lỗi khi nạp dữ liệu sau đăng nhập:', err);
+    showToast('Đã đăng nhập nhưng có dữ liệu chưa tải được — kiểm tra Console (F12) hoặc thử tải lại trang');
+  }
   go('dashboard');
 }
 
