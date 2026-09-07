@@ -1976,6 +1976,11 @@ async function refreshVoucherDot(showLoadingToast) {
   renderVouchers();
 }
 
+/** Rút gọn mô tả nhiều dòng ("- A\n- B\n- C") thành 1 dòng ngắn cho hiển thị bảng — xem đầy đủ ở Chi tiết. */
+function truncateText_(str, maxLen) {
+  const oneLine = String(str || '').replace(/\s*\n\s*/g, ' · ').trim();
+  return oneLine.length > maxLen ? oneLine.slice(0, maxLen).trim() + '…' : oneLine;
+}
 function statusSelectClass_(trangThai) {
   if (trangThai === 'Hoàn thành') return 'status-select-done';
   if (trangThai === 'Đang thực hiện') return 'status-select-doing';
@@ -2003,6 +2008,7 @@ function renderWorkTaskView() {
       <td style="font-weight:700;">${w.ma}</td>
       <td>${w.mang}</td>
       <td style="cursor:pointer;" onclick="openWorkDetail(${i})">${w.ten}
+        ${w.moTa ? `<div class="subtext">${truncateText_(w.moTa, 70)}</div>` : ''}
         ${w.chuongTrinh ? `<div class="subtext tag-prog">🎪 ${w.chuongTrinh}</div>` : ''}
       </td>
       <td>${w.phanLoai}</td>
