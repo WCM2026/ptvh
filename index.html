@@ -1259,6 +1259,26 @@ let STAFF = [];
 function staffNames() { return STAFF.map(s => s.name); }
 
 /** Nạp danh sách nhân sự thật từ Google Sheet (thay cho danh sách demo cũ) — gọi ngay sau khi đăng nhập. */
+/**
+ * Nạp gộp 4 nguồn dữ liệu (nhân sự + công việc + sự kiện + voucher) chỉ bằng 1 lần gọi
+ * API duy nhất — dùng ngay sau đăng nhập để trang vào nhanh hơn hẳn so với gọi 4 API
+ * tuần tự (mỗi request Apps Script Web App có độ trễ cố định khá lớn).
+ * Trả về true nếu thành công; false thì gọi lại theo cách cũ (từng API riêng, để không
+ * chặn hẳn app nếu action mới chưa kịp deploy ở backend).
+ */
+async function loadBootstrapData() {
+  const r = await callPtvhApi('getBootstrapData', {});
+  if (!r.ok) return false;
+  STAFF = (r.data.staff || []).map(s => ({ name: s.hoTen, email: s.email, msnv: s.msnv, vaiTro: s.vaiTro }));
+  initOwnerSelects();
+  workItems = (r.data.congViec || []).map(mapCongViecFromApi_);
+  congViecLoaded = true;
+  programs = (r.data.suKien || []).map(mapSuKienFromApi_);
+  programsLoaded = true;
+  voucherDots = r.data.voucherDot || [];
+  voucherDotsLoaded = true;
+  return true;
+}
 async function refreshStaffList() {
   const r = await callPtvhApi('getActiveStaffList', {});
   if (!r.ok) {
@@ -1619,10 +1639,17 @@ async function loginSuccess(user, token) {
   initAllMangSelects();
   renderSidebar();
   try {
-    await refreshStaffList();  // nạp nhân sự thật trước — Công việc cần đúng tên để khớp thống kê
-    await refreshCongViec();   // tải dữ liệu Công việc thật trước khi vào Dashboard
-    await refreshSuKien();     // tải dữ liệu Sự kiện thật (Module 3)
-    await refreshVoucherDot(); // tải dữ liệu Đợt voucher thật (Module 3)
+    const bootstrapOk = await loadBootstrapData(); // 1 lần gọi thay vì 4 lần tuần tự — vào app nhanh hơn hẳn
+    if (!bootstrapOk) {
+      // Backend cũ chưa có action getBootstrapData (chưa kịp deploy) — fallback cách cũ để app vẫn chạy được.
+      await refreshStaffList();
+      await refreshCongViec();
+      await refreshSuKien();
+      await refreshVoucherDot();
+    }
+    renderWork();
+    renderPrograms();
+    renderVouchers();
   } catch (err) {
     // Không để 1 API lỗi bất ngờ làm treo màn hình đăng nhập — log ra console để chẩn đoán,
     // vẫn cho vào Dashboard, các tab liên quan sẽ tự thử tải lại khi người dùng bấm vào.
