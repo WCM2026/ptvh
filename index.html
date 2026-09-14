@@ -429,6 +429,81 @@
   .login-foot {
     margin-top: 26px; font-size: 11.5px; color: rgba(255,255,255,.7); text-align: center;
   }
+  /* ===== Sự kiện: Dòng thời gian / Lộ trình năm (namespace sk- để không trùng class cũ) ===== */
+  .sk-control-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .sk-tabs-bar, .sk-sort-bar { display: flex; gap: 6px; background: #fff; padding: 4px; border-radius: 100px; box-shadow: var(--shadow-card); }
+  .sk-tab-btn, .sk-sort-btn {
+    border: none; background: transparent; font-family: var(--font); font-size: 12.5px; font-weight: 700;
+    padding: 8px 16px; border-radius: 100px; cursor: pointer; color: var(--text-muted);
+    transition: background .15s ease, color .15s ease;
+  }
+  .sk-tab-btn.active, .sk-sort-btn.active { background: var(--primary); color: #fff; }
+  .sk-tab-btn:not(.active):hover, .sk-sort-btn:not(.active):hover { background: var(--page); }
+
+  .sk-month-group { position: relative; padding-left: 60px; margin-bottom: 22px; }
+  .sk-month-group::before { content: ''; position: absolute; left: 20px; top: 4px; bottom: -22px; width: 2px; background: var(--gridline); }
+  .sk-month-group:last-child::before { bottom: 0; }
+  .sk-month-head { display: flex; align-items: center; margin-bottom: 12px; }
+  .sk-month-head .sk-badge {
+    background: var(--primary); color: #fff; font-weight: 800; font-size: 12.5px;
+    padding: 5px 14px; border-radius: 100px; white-space: nowrap; position: relative; z-index: 1;
+  }
+  .sk-month-head .sk-dot {
+    position: absolute; left: 20px; top: 12px; transform: translateX(-50%);
+    width: 13px; height: 13px; border-radius: 50%; background: var(--primary);
+    border: 3px solid #fff; box-shadow: 0 0 0 2px var(--primary); z-index: 1;
+  }
+  .sk-card-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+  .sk-event-card {
+    background: #fff; border-radius: var(--radius-md); overflow: hidden; cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,.06); border: 1px solid var(--gridline);
+    transition: transform .15s ease, box-shadow .15s ease; display: flex; flex-direction: column;
+  }
+  .sk-event-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,.12); }
+  .sk-event-card .sk-thumb {
+    height: 92px; display: flex; align-items: center; justify-content: center; font-size: 28px;
+    color: #fff; position: relative; overflow: hidden; background: #f1f5f9;
+  }
+  .sk-event-card .sk-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .sk-event-card .sk-thumb.no-image { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+  .sk-event-card .sk-thumb .sk-status-dot { position: absolute; top: 7px; right: 7px; width: 9px; height: 9px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,.5); }
+  .sk-event-card .sk-thumb .sk-status-dot.plan { background: #fde68a; }
+  .sk-event-card .sk-body { padding: 10px 12px 12px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .sk-event-card .sk-ten { font-size: 13px; font-weight: 700; line-height: 1.35; }
+  .sk-event-card .sk-highlight { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+  .sk-event-card .sk-foot { margin-top: auto; padding-top: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .sk-event-card .sk-ns { font-size: 11.5px; font-weight: 700; color: var(--primary-dark); }
+
+  .sk-roadmap-scroll { overflow-x: auto; background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: 16px; }
+  .sk-roadmap-quarters, .sk-roadmap-months, .sk-roadmap-grid { display: grid; grid-template-columns: repeat(12, minmax(140px, 1fr)); gap: 8px; min-width: 1300px; }
+  .sk-roadmap-quarters { margin-bottom: 8px; }
+  .sk-q-cell { grid-column: span 3; background: var(--primary-dark); color: #fff; text-align: center; font-weight: 800; font-size: 12.5px; padding: 7px 0; border-radius: var(--radius-md); }
+  .sk-roadmap-months { margin-bottom: 12px; }
+  .sk-m-cell { background: #fdeceb; color: var(--primary-dark); text-align: center; font-weight: 700; font-size: 12px; padding: 6px 0; border-radius: var(--radius-md); }
+  .sk-m-cell.current { background: var(--primary); color: #fff; }
+  .sk-roadmap-grid { align-items: start; }
+  .sk-roadmap-col { display: flex; flex-direction: column; gap: 8px; }
+  .sk-rm-block { background: #ecfdf3; border: 1px solid #bbf7d0; border-radius: var(--radius-md); padding: 8px 9px; cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; }
+  .sk-rm-block:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.1); }
+  .sk-rm-block.plan { background: #fffbeb; border-color: #fde68a; }
+  .sk-rm-block .sk-ten { font-size: 11px; font-weight: 700; line-height: 1.35; color: var(--text-primary); }
+  .sk-rm-block .sk-ns { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+
+  .sk-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.42); opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 60; }
+  .sk-overlay.open { opacity: 1; pointer-events: auto; }
+  .sk-drawer { position: fixed; top: 0; right: 0; height: 100%; width: min(460px, 92vw); background: #fff; box-shadow: -12px 0 40px rgba(0,0,0,.18); transform: translateX(100%); transition: transform .25s ease; z-index: 61; display: flex; flex-direction: column; }
+  .sk-drawer.open { transform: translateX(0); }
+  .sk-drawer-banner { height: 150px; background: #f1f5f9; position: relative; overflow: hidden; flex: none; }
+  .sk-drawer-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .sk-drawer-banner.no-image { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 40px; }
+  .sk-drawer-head { padding: 16px 22px 14px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; position: relative; flex: none; }
+  .sk-drawer-head .sk-close-btn { position: absolute; top: 14px; right: 14px; background: rgba(255,255,255,.18); border: none; color: #fff; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 14px; line-height: 1; }
+  .sk-drawer-head .sk-eyebrow { font-size: 11.5px; opacity: .85; margin-bottom: 5px; }
+  .sk-drawer-head h2 { margin: 0; font-size: 17px; font-weight: 800; line-height: 1.3; padding-right: 30px; }
+  .sk-drawer-body { padding: 18px 22px 90px; overflow-y: auto; flex: 1; }
+  .sk-drawer-actions { position: absolute; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--gridline); padding: 12px 22px; display: flex; gap: 10px; }
+
+  .sk-image-preview { max-width: 180px; max-height: 120px; border-radius: 8px; margin-top: 8px; display: none; object-fit: cover; }
 </style>
 </head>
 <body class="viz-root">
@@ -710,6 +785,11 @@
           </div>
           <div class="field"><label>Nội dung triển khai</label><textarea id="p-noidung" placeholder="Mô tả nội dung, kế hoạch triển khai..."></textarea></div>
           <div class="field">
+            <label>Ảnh thumbnail / logo sự kiện (tùy chọn)</label>
+            <input type="file" accept="image/*" id="p-anh" onchange="previewSuKienImage(event, 'p')">
+            <img id="p-anh-preview" class="sk-image-preview">
+          </div>
+          <div class="field">
             <label>Đường link liên quan (tùy chọn — Drive, dữ liệu, ảnh, ngân sách...)</label>
             <div id="p-links"></div>
             <button type="button" class="btn secondary sm" style="margin-top:2px;" onclick="addProgramLinkRow('p-links')">+ Thêm link</button>
@@ -758,6 +838,11 @@
         <div class="field"><label>Nội dung triển khai</label><textarea id="pe-noidung" placeholder="Mô tả nội dung, kế hoạch triển khai..."></textarea></div>
         <div class="field"><label>Kết quả nổi bật / sự cố (nếu có)</label><textarea id="pe-ketqua" placeholder="Tóm tắt kết quả, số liệu nổi bật, sự cố phát sinh..."></textarea></div>
         <div class="field">
+          <label>Ảnh thumbnail / logo sự kiện (tùy chọn — để trống nếu không đổi ảnh)</label>
+          <input type="file" accept="image/*" id="pe-anh" onchange="previewSuKienImage(event, 'pe')">
+          <img id="pe-anh-preview" class="sk-image-preview">
+        </div>
+        <div class="field">
           <label>Đường link liên quan (tùy chọn — Drive, dữ liệu, ảnh, ngân sách...)</label>
           <div id="pe-links"></div>
           <button type="button" class="btn secondary sm" style="margin-top:2px;" onclick="addProgramLinkRow('pe-links')">+ Thêm link</button>
@@ -768,25 +853,42 @@
         </div>
       </div>
 
-      <div class="card edit-card" id="program-detail-card" style="display:none;">
-        <div class="card-head-row">
-          <div>
-            <h2 id="program-detail-title">Chi tiết sự kiện</h2>
-            <p class="sub" id="program-detail-sub" style="margin-bottom:0;"></p>
-          </div>
-          <button class="btn ghost sm" onclick="closeProgramDetail()">✕ Đóng</button>
+      <div class="sk-overlay" id="program-detail-overlay" onclick="closeProgramDetail()"></div>
+      <div class="sk-drawer" id="program-detail-card">
+        <div class="sk-drawer-banner" id="program-detail-banner"></div>
+        <div class="sk-drawer-head">
+          <button class="sk-close-btn" onclick="closeProgramDetail()">✕</button>
+          <div class="sk-eyebrow" id="program-detail-sub"></div>
+          <h2 id="program-detail-title"></h2>
         </div>
-        <div id="program-detail-body"></div>
+        <div class="sk-drawer-body">
+          <div id="program-detail-body"></div>
+        </div>
+        <div class="sk-drawer-actions">
+          <button class="btn" style="flex:1;" onclick="startProgramEditFromDetail()">✏️ Sửa sự kiện</button>
+        </div>
       </div>
 
       <div class="card">
-        <h2>Danh sách sự kiện</h2>
-        <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="programs-search" placeholder="Tìm theo tên, mảng, trạng thái..." oninput="renderPrograms()"></div>
-        <div class="table-wrap">
-        <table>
-          <thead><tr><th>Sự kiện</th><th>Ngày</th><th>NS dự kiến</th><th>NS thực chi</th><th>% NS</th><th>Hài lòng</th><th>Trạng thái</th><th></th></tr></thead>
-          <tbody id="programs-body"></tbody>
-        </table>
+        <div class="sk-control-bar">
+          <div class="sk-tabs-bar">
+            <button class="sk-tab-btn active" id="sk-tab-btn-timeline" onclick="switchProgramView('timeline')">📅 Dòng thời gian</button>
+            <button class="sk-tab-btn" id="sk-tab-btn-roadmap" onclick="switchProgramView('roadmap')">🗺️ Lộ trình năm</button>
+          </div>
+          <div class="sk-sort-bar" id="sk-sort-bar">
+            <button class="sk-sort-btn active" id="sk-sort-btn-asc" onclick="setProgramSortOrder('asc')">Cũ nhất trước</button>
+            <button class="sk-sort-btn" id="sk-sort-btn-desc" onclick="setProgramSortOrder('desc')">Mới nhất trước</button>
+          </div>
+        </div>
+        <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="programs-search" placeholder="Tìm theo tên, trạng thái..." oninput="renderPrograms()"></div>
+
+        <div id="sk-view-timeline"></div>
+        <div id="sk-view-roadmap" style="display:none;">
+          <div class="sk-roadmap-scroll">
+            <div class="sk-roadmap-quarters" id="sk-roadmap-quarters"></div>
+            <div class="sk-roadmap-months" id="sk-roadmap-months"></div>
+            <div class="sk-roadmap-grid" id="sk-roadmap-grid"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -1941,6 +2043,7 @@ function mapSuKienFromApi_(it) {
     maSuKien: it.maSuKien,
     ten: it.ten,
     mang: it.mang,
+    thang: it.thang || null, // số tháng thật 1-12, dùng để nhóm/sắp xếp Dòng thời gian + Lộ trình năm
     noiDung: it.noiDung || '',
     doiTuong: it.doiTuong || '',
     diaDiem: it.diaDiem || '',
@@ -1957,6 +2060,7 @@ function mapSuKienFromApi_(it) {
     ketqua: it.ketQua || '',
     links: it.links || [],
     trangThai: it.trangThai || 'Đang lên kế hoạch',
+    anh: it.anh || '',
     nguoiCapNhat: it.nguoiCapNhat,
     ngayCapNhat: it.ngayCapNhat,
   };
@@ -2163,25 +2267,121 @@ function readProgramLinks(containerId) {
   })).filter(l => l.ten || l.url);
 }
 
+let programViewMode = 'timeline'; // 'timeline' | 'roadmap'
+let programSortOrder = 'asc';     // 'asc' = tháng cũ trước (mặc định), 'desc' = tháng mới trước
+const THANG_ICON_MAC_DINH = '🎪'; // icon dùng khi sự kiện chưa có ảnh thumbnail
+
+function thangLabel_(thang) { return thang ? 'Tháng ' + thang : 'Chưa rõ tháng'; }
+
 function renderPrograms() {
   if (!programsLoaded) { refreshSuKien(); return; } // lần đầu vào tab: tải từ API rồi tự render lại
   const term = (document.getElementById('programs-search')?.value || '').toLowerCase().trim();
-  const rows = programs.filter(p => !term || [p.ten, p.trangThai].join(' ').toLowerCase().includes(term));
-  document.getElementById('programs-body').innerHTML = rows.length ? rows.map(p => `
-    <tr>
-      <td style="font-weight:700; cursor:pointer;" onclick="openProgramDetail('${p.maSuKien}')">${p.ten}${metaLine(p)}</td>
-      <td>${p.thoiGianGoc || p.ngay || '—'}</td>
-      <td>${moneyFmt(p.nsDuyet)}</td>
-      <td>${p.trangThai === 'Hoàn thành' ? moneyFmt(p.nsThucChi) : '—'}</td>
-      <td>${p.trangThai === 'Hoàn thành' ? pctFmt(p.nsThucChi, p.nsDuyet) : '—'}</td>
-      <td>${p.danhGiaHaiLong ? p.danhGiaHaiLong + '%' : '—'}</td>
-      <td>${p.trangThai === 'Hoàn thành' ? '<span class="status-pill done">Hoàn thành</span>' : '<span class="status-pill plan">Đang lên kế hoạch</span>'}</td>
-      <td style="white-space:nowrap;">
-        <button class="btn ghost sm" onclick="openProgramDetail('${p.maSuKien}')">👁 Chi tiết</button>
-        <button class="btn secondary sm" onclick="startProgramEdit('${p.maSuKien}')">✏️ Sửa</button>
-      </td>
-    </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy sự kiện phù hợp</td></tr>';
+  const filtered = programs.filter(p => !term || [p.ten, p.trangThai].join(' ').toLowerCase().includes(term));
+  if (programViewMode === 'timeline') renderProgramsTimeline_(filtered);
+  else renderProgramsRoadmap_(filtered);
 }
+
+function switchProgramView(view) {
+  programViewMode = view;
+  document.getElementById('sk-view-timeline').style.display = view === 'timeline' ? 'block' : 'none';
+  document.getElementById('sk-view-roadmap').style.display = view === 'roadmap' ? 'block' : 'none';
+  document.getElementById('sk-sort-bar').style.display = view === 'timeline' ? 'flex' : 'none';
+  document.getElementById('sk-tab-btn-timeline').classList.toggle('active', view === 'timeline');
+  document.getElementById('sk-tab-btn-roadmap').classList.toggle('active', view === 'roadmap');
+  renderPrograms();
+}
+function setProgramSortOrder(order) {
+  programSortOrder = order;
+  document.getElementById('sk-sort-btn-asc').classList.toggle('active', order === 'asc');
+  document.getElementById('sk-sort-btn-desc').classList.toggle('active', order === 'desc');
+  renderPrograms();
+}
+
+/* ---- Tab "Dòng thời gian": nhóm theo tháng thật (p.thang), timeline dọc liên tục ---- */
+function renderProgramsTimeline_(list) {
+  const monthsPresent = [...new Set(list.map(p => p.thang || 0))].sort((a,b) => programSortOrder === 'asc' ? a-b : b-a);
+  const el = document.getElementById('sk-view-timeline');
+  if (!list.length) { el.innerHTML = '<p class="sub" style="text-align:center;padding:24px;">Không tìm thấy sự kiện phù hợp</p>'; return; }
+  el.innerHTML = monthsPresent.map(thang => {
+    const items = list.filter(p => (p.thang || 0) === thang);
+    return `
+    <div class="sk-month-group">
+      <div class="sk-month-head"><span class="sk-dot"></span><span class="sk-badge">${thangLabel_(thang)}</span></div>
+      <div class="sk-card-row">${items.map(p => programCardHTML_(p)).join('')}</div>
+    </div>`;
+  }).join('');
+}
+function programCardHTML_(p) {
+  const dkTotal = (p.nsCongDoanDuKien||0) + (p.nsCongTyDuKien||0);
+  const tcTotal = p.trangThai === 'Hoàn thành' ? (p.nsCongDoanThucChi||0) + (p.nsCongTyThucChi||0) : null;
+  return `
+  <div class="sk-event-card" onclick="openProgramDetail('${p.maSuKien}')">
+    <div class="sk-thumb ${!p.anh ? 'no-image' : ''}">
+      ${p.anh ? `<img src="${p.anh}" alt="${p.ten}" loading="lazy">` : THANG_ICON_MAC_DINH}
+      <span class="sk-status-dot ${p.trangThai==='Đang lên kế hoạch'?'plan':''}"></span>
+    </div>
+    <div class="sk-body">
+      <div class="sk-ten">${p.ten}</div>
+      <div class="sk-highlight">${p.thoiGianGoc || p.ngay || '—'}</div>
+      <div class="sk-foot">
+        <span class="sk-ns">${moneyFmt(tcTotal !== null ? tcTotal : dkTotal)}</span>
+        <span class="status-pill ${p.trangThai==='Hoàn thành'?'done':'plan'}">${p.trangThai==='Hoàn thành'?'Hoàn thành':'Kế hoạch'}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---- Tab "Lộ trình năm": Gantt theo 12 tháng, không chia làn (chỉ 1 loại sự kiện) ---- */
+function renderProgramsRoadmap_(list) {
+  const thangHienTai = new Date().getMonth() + 1;
+  document.getElementById('sk-roadmap-quarters').innerHTML = ['Q1','Q2','Q3','Q4'].map(q => `<div class="sk-q-cell">${q}</div>`).join('');
+  document.getElementById('sk-roadmap-months').innerHTML = Array.from({length:12}, (_,i) => i+1)
+    .map(m => `<div class="sk-m-cell ${m===thangHienTai?'current':''}">Th ${m}</div>`).join('');
+  document.getElementById('sk-roadmap-grid').innerHTML = Array.from({length:12}, (_,i) => i+1).map(m => {
+    const items = list.filter(p => p.thang === m);
+    return `<div class="sk-roadmap-col">${items.map(p => {
+      const dkTotal = (p.nsCongDoanDuKien||0) + (p.nsCongTyDuKien||0);
+      const tcTotal = p.trangThai === 'Hoàn thành' ? (p.nsCongDoanThucChi||0) + (p.nsCongTyThucChi||0) : null;
+      return `
+      <div class="sk-rm-block ${p.trangThai==='Đang lên kế hoạch'?'plan':''}" onclick="openProgramDetail('${p.maSuKien}')">
+        <div class="sk-ten">${p.ten}</div>
+        <div class="sk-ns">${moneyFmt(tcTotal !== null ? tcTotal : dkTotal)}</div>
+      </div>`;
+    }).join('')}</div>`;
+  }).join('');
+}
+
+/* ---- Tải & nén ảnh thumbnail trước khi gửi (giữ payload nhẹ, nhanh) ---- */
+let pendingSuKienImage = { p: null, pe: null }; // { data: base64 thuần, mime } hoặc null nếu không đổi ảnh
+function previewSuKienImage(event, prefix) {
+  const file = event.target.files[0];
+  if (!file) return;
+  resizeImageFile_(file, 900, 0.75, (base64, mime) => {
+    pendingSuKienImage[prefix] = { data: base64, mime };
+    const img = document.getElementById(prefix + '-anh-preview');
+    img.src = 'data:' + mime + ';base64,' + base64;
+    img.style.display = 'block';
+  });
+}
+/** Resize ảnh về tối đa maxWidth (giữ tỉ lệ) + nén JPEG chất lượng quality, trả về base64 THUẦN qua callback(base64, mime). */
+function resizeImageFile_(file, maxWidth, quality, callback) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxWidth / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+      callback(dataUrl.split(',')[1], 'image/jpeg');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 async function addProgram() {
   const ten = document.getElementById('p-ten').value.trim();
   if (!ten) { showToast('Vui lòng nhập Tên sự kiện'); return; }
@@ -2196,10 +2396,14 @@ async function addProgram() {
     noiDung: document.getElementById('p-noidung').value.trim(),
     links: readProgramLinks('p-links'),
   };
+  if (pendingSuKienImage.p) { payload.anhBase64 = pendingSuKienImage.p.data; payload.anhMimeType = pendingSuKienImage.p.mime; }
   const r = await callPtvhApi('addSuKien', { payload });
   if (!r.ok) { showToast(r.message || 'Không tạo được sự kiện'); return; }
   ['p-ten','p-thoigian','p-thoigian-pick','p-diadiem','p-doituong','p-soluong','p-nscongdoan-dukien','p-nscongty-dukien','p-noidung'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('p-links').innerHTML = '';
+  document.getElementById('p-anh').value = '';
+  document.getElementById('p-anh-preview').style.display = 'none';
+  pendingSuKienImage.p = null;
   showToast('Đã tạo sự kiện mới — cập nhật báo cáo khi hoàn thành');
   closeForm('programs-form');
   await refreshSuKien();
@@ -2226,6 +2430,10 @@ function startProgramEdit(maSuKien) {
   document.getElementById('pe-trangthai').value = p.trangThai;
   document.getElementById('pe-links').innerHTML = '';
   (p.links || []).forEach(l => addProgramLinkRow('pe-links', l));
+  document.getElementById('pe-anh').value = '';
+  pendingSuKienImage.pe = null;
+  const peImg = document.getElementById('pe-anh-preview');
+  if (p.anh) { peImg.src = p.anh; peImg.style.display = 'block'; } else { peImg.style.display = 'none'; }
   document.getElementById('program-edit-card').scrollIntoView({behavior:'smooth', block:'center'});
 }
 function cancelProgramEdit() {
@@ -2252,6 +2460,7 @@ async function saveProgramCompletion() {
     trangThai: document.getElementById('pe-trangthai').value,
     links: readProgramLinks('pe-links'),
   };
+  if (pendingSuKienImage.pe) { payload.anhBase64 = pendingSuKienImage.pe.data; payload.anhMimeType = pendingSuKienImage.pe.mime; }
   const r = await callPtvhApi('updateSuKien', { maSuKien: programEditMaSuKien, payload });
   if (!r.ok) { showToast(r.message || 'Không lưu được thay đổi'); return; }
   showToast('Đã lưu thay đổi sự kiện — số liệu sẽ nuôi thẳng vào KPI mảng liên quan');
@@ -2262,7 +2471,9 @@ function openProgramDetail(maSuKien) {
   programDetailMaSuKien = maSuKien;
   const p = programs.find(x => x.maSuKien === maSuKien);
   if (!p) return;
-  document.getElementById('program-detail-card').style.display = 'block';
+  const bannerEl = document.getElementById('program-detail-banner');
+  bannerEl.className = 'sk-drawer-banner' + (p.anh ? '' : ' no-image');
+  bannerEl.innerHTML = p.anh ? `<img src="${p.anh}" alt="${p.ten}">` : THANG_ICON_MAC_DINH;
   document.getElementById('program-detail-title').textContent = p.ten;
   document.getElementById('program-detail-sub').textContent = p.thoiGianGoc || p.ngay || '—';
   const linksHTML = (p.links && p.links.length)
@@ -2275,9 +2486,10 @@ function openProgramDetail(maSuKien) {
       }</tbody></table></div>`
     : '<p class="sub" style="margin:6px 0 0;">Chưa có đợt order voucher nào.</p>';
   document.getElementById('program-detail-body').innerHTML = `
+    <span class="status-pill ${p.trangThai==='Hoàn thành'?'done':'plan'}" style="margin-bottom:14px;">${p.trangThai}</span>
     <div class="stat-row-3" style="margin:14px 0;">
-      <div class="stat-tile flat"><div class="lbl">NS Công đoàn (dự kiến / thực chi)</div><div class="val" style="font-size:16px;">${moneyFmt(p.nsCongDoanDuKien)} / ${p.trangThai==='Hoàn thành'?moneyFmt(p.nsCongDoanThucChi):'—'}</div></div>
-      <div class="stat-tile flat"><div class="lbl">NS Công ty (dự kiến / thực chi)</div><div class="val" style="font-size:16px;">${moneyFmt(p.nsCongTyDuKien)} / ${p.trangThai==='Hoàn thành'?moneyFmt(p.nsCongTyThucChi):'—'}</div></div>
+      <div class="stat-tile flat"><div class="lbl">NS Công đoàn (dự kiến / thực chi)</div><div class="val" style="font-size:15px;">${moneyFmt(p.nsCongDoanDuKien)} / ${p.trangThai==='Hoàn thành'?moneyFmt(p.nsCongDoanThucChi):'—'}</div></div>
+      <div class="stat-tile flat"><div class="lbl">NS Công ty (dự kiến / thực chi)</div><div class="val" style="font-size:15px;">${moneyFmt(p.nsCongTyDuKien)} / ${p.trangThai==='Hoàn thành'?moneyFmt(p.nsCongTyThucChi):'—'}</div></div>
       <div class="stat-tile flat"><div class="lbl">Đánh giá hài lòng</div><div class="val" style="font-size:20px;">${p.danhGiaHaiLong ? p.danhGiaHaiLong + '%' : '—'}</div></div>
     </div>
     <p class="sub" style="margin-bottom:4px;"><b>Đối tượng</b></p><p style="margin-top:0;">${p.doiTuong || '—'}</p>
@@ -2292,12 +2504,20 @@ function openProgramDetail(maSuKien) {
     ${linksHTML}
     ${metaLine(p)}
   `;
-  document.getElementById('program-detail-card').scrollIntoView({behavior:'smooth', block:'center'});
+  document.getElementById('program-detail-overlay').classList.add('open');
+  document.getElementById('program-detail-card').classList.add('open');
 }
 function closeProgramDetail() {
   programDetailMaSuKien = null;
-  document.getElementById('program-detail-card').style.display = 'none';
+  document.getElementById('program-detail-overlay').classList.remove('open');
+  document.getElementById('program-detail-card').classList.remove('open');
 }
+function startProgramEditFromDetail() {
+  const maSuKien = programDetailMaSuKien;
+  closeProgramDetail();
+  if (maSuKien) startProgramEdit(maSuKien);
+}
+
 
 /* ---------------- TONG HOP THI DUA ---------------- */
 function competitionPosterThumb(c) {
