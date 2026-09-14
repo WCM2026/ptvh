@@ -866,6 +866,7 @@
         </div>
         <div class="sk-drawer-actions">
           <button class="btn" style="flex:1;" onclick="startProgramEditFromDetail()">✏️ Sửa sự kiện</button>
+          <button class="btn ghost sm" id="program-delete-btn" style="color:var(--danger); border-color:var(--danger);" onclick="deleteProgramFromDetail()">🗑️ Xoá</button>
         </div>
       </div>
 
@@ -2160,8 +2161,21 @@ function openWorkDetail(i) {
       <button class="btn ghost sm" onclick="promptWorkLink(${workItems.indexOf(w)})">✏️ Sửa</button>
     </p>
     ${metaLine(w)}
+    <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--gridline);">
+      <button class="btn ghost sm" style="color:var(--danger); border-color:var(--danger);" onclick="deleteWorkItem('${w.ma}')">🗑️ Xoá đầu việc này</button>
+    </div>
   `;
   document.getElementById('work-detail-card').scrollIntoView({behavior:'smooth', block:'center'});
+}
+async function deleteWorkItem(maViec) {
+  const w = workItems.find(x => x.ma === maViec);
+  if (!w) return;
+  if (!confirm('Xoá hẳn đầu việc "' + w.ten + '" (' + maViec + ')? Thao tác này KHÔNG thể hoàn tác.')) return;
+  const r = await callPtvhApi('deleteCongViec', { maViec });
+  if (!r.ok) { showToast(r.message || 'Không xoá được đầu việc'); return; }
+  showToast('Đã xoá đầu việc ' + maViec);
+  closeWorkDetail();
+  await refreshCongViec();
 }
 function closeWorkDetail() {
   document.getElementById('work-detail-card').style.display = 'none';
@@ -2516,6 +2530,20 @@ function startProgramEditFromDetail() {
   const maSuKien = programDetailMaSuKien;
   closeProgramDetail();
   if (maSuKien) startProgramEdit(maSuKien);
+}
+async function deleteProgramFromDetail() {
+  const maSuKien = programDetailMaSuKien;
+  const p = programs.find(x => x.maSuKien === maSuKien);
+  if (!p) return;
+  const soVoucher = voucherDots.filter(v => v.maSuKien === maSuKien).length;
+  const canhBaoVoucher = soVoucher ? '\n\n⚠️ Sự kiện này đang có ' + soVoucher + ' đợt order voucher liên quan — xoá sự kiện sẽ XOÁ LUÔN toàn bộ các đợt voucher đó.' : '';
+  if (!confirm('Xoá hẳn sự kiện "' + p.ten + '"? Thao tác này KHÔNG thể hoàn tác.' + canhBaoVoucher)) return;
+  const r = await callPtvhApi('deleteSuKien', { maSuKien });
+  if (!r.ok) { showToast(r.message || 'Không xoá được sự kiện'); return; }
+  showToast('Đã xoá sự kiện' + (r.soDotVoucherDaXoa ? ' (kèm ' + r.soDotVoucherDaXoa + ' đợt voucher liên quan)' : ''));
+  closeProgramDetail();
+  await refreshSuKien();
+  await refreshVoucherDot();
 }
 
 
@@ -3154,6 +3182,7 @@ function voucherRowHTML_(v) {
       <td style="white-space:nowrap;">
         <button class="btn secondary sm" onclick="saveVoucherEdit('${v.maDot}')">Lưu</button>
         <button class="btn ghost sm" onclick="cancelVoucherEdit()">Hủy</button>
+        <button class="btn ghost sm" style="color:var(--danger); border-color:var(--danger);" onclick="deleteVoucherRow('${v.maDot}')">🗑️</button>
       </td>
     </tr>`;
   }
@@ -3170,6 +3199,15 @@ function voucherRowHTML_(v) {
       <td>${v.quanLy || '—'}</td>
       <td><button class="btn secondary sm" onclick="startVoucherEdit('${v.maDot}')">✏️ Sửa</button></td>
     </tr>`;
+}
+async function deleteVoucherRow(maDot) {
+  const v = voucherDots.find(x => x.maDot === maDot);
+  if (!v) return;
+  if (!confirm('Xoá đợt voucher "' + v.tenDot + '" (' + v.tenSuKien + ')? Thao tác này KHÔNG thể hoàn tác.')) return;
+  const r = await callPtvhApi('deleteVoucherDot', { maDot });
+  if (!r.ok) { showToast(r.message || 'Không xoá được đợt voucher'); return; }
+  showToast('Đã xoá đợt voucher');
+  await refreshVoucherDot();
 }
 function startVoucherEdit(maDot) { voucherEditMaDot = maDot; renderVouchers(); }
 function cancelVoucherEdit() { voucherEditMaDot = null; renderVouchers(); }
