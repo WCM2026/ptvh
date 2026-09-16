@@ -504,6 +504,27 @@
   .sk-drawer-actions { position: absolute; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--gridline); padding: 12px 22px; display: flex; gap: 10px; }
 
   .sk-image-preview { max-width: 180px; max-height: 120px; border-radius: 8px; margin-top: 8px; display: none; object-fit: cover; }
+  /* ===== Thi đua: nhóm theo tháng (thu gọn/xổ ra) + màu Tình trạng ===== */
+  .td-month-group { border: 1px solid var(--gridline); border-radius: var(--radius-md); margin-bottom: 10px; overflow: hidden; }
+  .td-month-head {
+    display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--page);
+    cursor: pointer; font-weight: 700; font-size: 13.5px; user-select: none;
+  }
+  .td-month-head:hover { background: #f4ecea; }
+  .td-month-head .chevron { transition: transform .15s ease; font-size: 11px; color: var(--text-muted); }
+  .td-month-head.collapsed .chevron { transform: rotate(-90deg); }
+  .td-month-head .count { font-weight: 500; color: var(--text-muted); font-size: 12px; }
+  .td-month-body { display: block; }
+  .td-month-body.collapsed { display: none; }
+  .td-status-pill { display: inline-block; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .td-status-done { background: #f0fdf4; color: #166534; }
+  .td-status-wait { background: #fffbeb; color: #92400e; }
+  .td-status-review { background: #eff6ff; color: #1e40af; }
+  .td-status-none { background: #fef2f2; color: #991b1b; }
+  .td-status-info { background: #faf5ff; color: #6b21a8; }
+  .td-status-design { background: #eef2ff; color: #3730a3; }
+  .td-status-cancel { background: #f4f4f5; color: #52525b; text-decoration: line-through; }
+  .td-status-blank { background: #f4f4f5; color: #a1a1aa; font-weight: 500; }
 </style>
 </head>
 <body class="viz-root">
@@ -992,12 +1013,7 @@
           <button class="btn secondary sm" onclick="syncFromThiDuaSystem()">🔄 Đồng bộ từ hệ thống Thi đua</button>
         </div>
         <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="competitions-search" placeholder="Tìm theo tên, phạm vi, tình trạng..." oninput="renderCompetitions()"></div>
-        <div class="table-wrap">
-        <table>
-          <thead><tr><th>Chương trình</th><th>Loại</th><th>Phạm vi</th><th>Thời gian</th><th>Tiền thưởng</th><th>Tình trạng</th><th></th></tr></thead>
-          <tbody id="competitions-body"></tbody>
-        </table>
-        </div>
+        <div id="competitions-body"></div>
       </div>
     </section>
 
@@ -2646,6 +2662,25 @@ function thoiGianThiDuaText_(c) {
   if (bd && kt) return bd + ' - ' + kt;
   return bd || kt || '—';
 }
+function thiDuaStatusPillHTML_(status) {
+  const s = String(status || '').trim();
+  const CLASS_MAP = {
+    'Hoàn thành': 'td-status-done',
+    'Chờ kết quả': 'td-status-wait',
+    'Chờ duyệt': 'td-status-review',
+    'Chưa có bút toán': 'td-status-none',
+    'MKT tự phát hành': 'td-status-info',
+    'Thiết kế': 'td-status-design',
+    'HUỶ': 'td-status-cancel',
+  };
+  return `<span class="td-status-pill ${CLASS_MAP[s] || 'td-status-blank'}">${s || 'Chưa cập nhật'}</span>`;
+}
+function soNgayThiDuaHTML_(c) {
+  const bd = toDateInputValue_(c.batDau), kt = toDateInputValue_(c.ketThuc);
+  if (!bd || !kt) return '—';
+  const soNgay = Math.round((new Date(kt + 'T00:00:00') - new Date(bd + 'T00:00:00')) / 86400000) + 1;
+  return soNgay > 0 ? soNgay + ' ngày' : '—';
+}
 function competitionRowHTML_(c) {
   return `
     <tr>
@@ -2653,8 +2688,8 @@ function competitionRowHTML_(c) {
       <td>${competitionTypeTag(c)}</td>
       <td>${c.phamVi || '—'}</td>
       <td>${thoiGianThiDuaText_(c)}</td>
-      <td>${c.soTienChiThuong ? c.soTienChiThuong.toLocaleString('vi-VN') + ' đ' : '—'}</td>
-      <td>${c.tinhTrang || '—'}</td>
+      <td>${soNgayThiDuaHTML_(c)}</td>
+      <td>${thiDuaStatusPillHTML_(c.tinhTrang)}</td>
       <td style="white-space:nowrap;">
         <button class="btn ghost sm" onclick="openCompetitionDetail('${c.maCT}')">👁 Chi tiết</button>
         <button class="btn secondary sm" onclick="startCompetitionEdit('${c.maCT}')">✏️ Sửa</button>
@@ -2666,14 +2701,54 @@ function setCompetitionFilter(t) {
   document.querySelectorAll('#competition-type-filter .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.t === t));
   renderCompetitions();
 }
+/** Khoá "yyyy-mm" để nhóm theo tháng bắt đầu — "0000-00" (không rõ ngày) luôn rơi xuống cuối khi sắp mới→cũ. */
+function thangKeyThiDua_(c) {
+  const iso = toDateInputValue_(c.batDau);
+  return iso ? iso.slice(0, 7) : '0000-00';
+}
+function thangLabelThiDua_(key) {
+  if (key === '0000-00') return 'Chưa rõ thời gian';
+  const [y, m] = key.split('-');
+  return 'Tháng ' + parseInt(m, 10) + '/' + y;
+}
+let collapsedThiDuaMonths = new Set(); // các tháng đang bị thu gọn — nhớ trạng thái qua các lần render
+function toggleThiDuaMonth(key) {
+  if (collapsedThiDuaMonths.has(key)) collapsedThiDuaMonths.delete(key);
+  else collapsedThiDuaMonths.add(key);
+  document.getElementById('td-head-' + key).classList.toggle('collapsed');
+  document.getElementById('td-body-' + key).classList.toggle('collapsed');
+}
 function renderCompetitions() {
   if (!competitionsLoaded) { refreshThiDua(); return; } // lần đầu vào tab: tải từ API rồi tự render lại
   document.querySelectorAll('#competition-type-filter .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.t === competitionFilterType));
   const term = (document.getElementById('competitions-search')?.value || '').toLowerCase().trim();
   const rows = competitions
     .filter(c => competitionFilterType === 'Tất cả' || c.loai === competitionFilterType)
-    .filter(c => !term || [c.ten, c.phamVi, c.tinhTrang].join(' ').toLowerCase().includes(term));
-  document.getElementById('competitions-body').innerHTML = rows.length ? rows.map(competitionRowHTML_).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy chương trình phù hợp</td></tr>';
+    .filter(c => !term || [c.ten, c.phamVi, c.tinhTrang].join(' ').toLowerCase().includes(term))
+    .sort((a, b) => thangKeyThiDua_(b).localeCompare(thangKeyThiDua_(a))); // mới nhất trước, mặc định
+
+  const el = document.getElementById('competitions-body');
+  if (!rows.length) { el.innerHTML = '<p class="sub" style="text-align:center;padding:20px;">Không tìm thấy chương trình phù hợp</p>'; return; }
+
+  const monthKeys = [...new Set(rows.map(thangKeyThiDua_))]; // đã sắp mới→cũ từ bước sort ở trên
+  el.innerHTML = monthKeys.map(key => {
+    const items = rows.filter(c => thangKeyThiDua_(c) === key);
+    const collapsed = collapsedThiDuaMonths.has(key);
+    return `
+    <div class="td-month-group">
+      <div class="td-month-head ${collapsed ? 'collapsed' : ''}" id="td-head-${key}" onclick="toggleThiDuaMonth('${key}')">
+        <span class="chevron">▾</span> ${thangLabelThiDua_(key)} <span class="count">(${items.length})</span>
+      </div>
+      <div class="td-month-body ${collapsed ? 'collapsed' : ''}" id="td-body-${key}">
+        <div class="table-wrap">
+        <table>
+          <thead><tr><th>Chương trình</th><th>Loại</th><th>Phạm vi</th><th>Thời gian</th><th>Số ngày</th><th>Tình trạng</th><th></th></tr></thead>
+          <tbody>${items.map(competitionRowHTML_).join('')}</tbody>
+        </table>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 async function addCompetition() {
   const ten = document.getElementById('c-ten').value.trim();
