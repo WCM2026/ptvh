@@ -897,7 +897,7 @@
     <!-- ============ PANEL: TONG HOP THI DUA ============ -->
     <section class="panel" id="panel-competitions">
       <div class="flow-note">
-        <b>Tổng hợp thi đua:</b> mỗi chương trình thi đua một dòng, chia 2 loại — <b>Thi đua lan tỏa</b> (nhập tay) và <b>Thi đua doanh số</b> (đồng bộ từ hệ thống Thi đua sẵn có) — dùng để đối soát khen thưởng và tính KPI "tỷ lệ trả thưởng đúng hạn" của mảng Thi đua.
+        <b>Thi đua:</b> mỗi chương trình 1 dòng — <b>Thi đua lan tỏa</b> (nhập tay) và <b>Thi đua doanh số</b> (phần lớn đồng bộ từ hệ thống Thi đua độc lập của Phòng, xem nút Đồng bộ bên dưới). Bấm vào tên để xem/sửa đầy đủ.
       </div>
       <div class="card">
         <div class="card-head-row">
@@ -908,29 +908,23 @@
         </div>
         <div id="competitions-form" class="collapsible-form" style="display:none;">
           <div class="grid2">
-            <div class="field"><label>Tên chương trình</label><input type="text" id="c-ten" placeholder="VD: Đại sứ Win Q3/2026"></div>
+            <div class="field"><label>Tên chương trình</label><input type="text" id="c-ten" placeholder="VD: Thi đua bán hàng sản phẩm ABC"></div>
             <div class="field"><label>Loại thi đua</label>
-              <select id="c-loai"><option value="Lan tỏa">Thi đua lan tỏa</option><option value="Doanh số">Thi đua doanh số</option></select>
+              <select id="c-loai"><option value="Doanh số">Thi đua doanh số</option><option value="Lan tỏa">Thi đua lan tỏa</option></select>
             </div>
           </div>
           <div class="grid2">
-            <div class="field"><label>Đối tượng</label><input type="text" id="c-doituong" placeholder="VD: Toàn khối Vận hành"></div>
-            <div class="field"><label>Số người/CH đạt giải</label><input type="number" id="c-songuoi" placeholder="0"></div>
+            <div class="field"><label>Phạm vi</label><input type="text" id="c-phamvi" placeholder="VD: WMT/WMP/WiN"></div>
+            <div class="field"><label>Tình trạng</label><input type="text" id="c-tinhtrang" placeholder="VD: Chờ kết quả, Hoàn thành..."></div>
           </div>
           <div class="grid2">
-            <div class="field"><label>Tổng tiền thưởng (đ)</label><input type="number" id="c-tongtien" placeholder="0"></div>
-            <div class="field"><label>Trạng thái trả thưởng</label>
-              <select id="c-trangthai"><option>Chưa trả</option><option>Đang xử lý</option><option>Đã trả</option></select>
-            </div>
+            <div class="field"><label>Ngày bắt đầu</label><input type="date" id="c-batdau"></div>
+            <div class="field"><label>Ngày kết thúc</label><input type="date" id="c-ketthuc"></div>
           </div>
-          <div class="field"><label>Đường link thư mục</label><input type="url" id="c-linkthumuc" placeholder="https://drive.google.com/..."></div>
-          <div class="field">
-            <label>Ảnh poster</label>
-            <input type="file" accept="image/*" id="c-poster" onchange="previewCompetitionPoster(event)">
-            <div id="c-poster-preview-wrap" style="margin-top:8px; display:none;">
-              <img id="c-poster-preview" style="width:72px; height:96px; object-fit:cover; border-radius:8px; border:1px solid var(--gridline);">
-            </div>
-          </div>
+          <div class="field"><label>Số tiền chi thưởng (đ)</label><input type="text" inputmode="numeric" id="c-sotien" placeholder="0" oninput="formatMoneyInput(this)"></div>
+          <div class="field"><label>Đầu mối order</label><input type="text" id="c-daumoi" placeholder="Tên (Phòng ban) <email>"></div>
+          <div class="field"><label>Link poster (tùy chọn)</label><input type="url" id="c-linkposter" placeholder="https://..."></div>
+          <div class="field"><label>Ghi chú</label><textarea id="c-ghichu" placeholder="Ghi chú thêm..."></textarea></div>
           <button class="btn" onclick="addCompetition()">Lưu chương trình</button>
         </div>
       </div>
@@ -941,6 +935,54 @@
         <button class="filter-btn" data-t="Doanh số" onclick="setCompetitionFilter('Doanh số')">📈 Thi đua doanh số</button>
       </div>
 
+      <div class="sk-overlay" id="competition-detail-overlay" onclick="closeCompetitionDetail()"></div>
+      <div class="sk-drawer" id="competition-detail-card">
+        <div class="sk-drawer-head">
+          <button class="sk-close-btn" onclick="closeCompetitionDetail()">✕</button>
+          <div class="sk-eyebrow" id="competition-detail-sub"></div>
+          <h2 id="competition-detail-title"></h2>
+        </div>
+        <div class="sk-drawer-body">
+          <div id="competition-detail-body"></div>
+        </div>
+        <div class="sk-drawer-actions">
+          <button class="btn" style="flex:1;" onclick="startCompetitionEditFromDetail()">✏️ Sửa</button>
+          <button class="btn ghost sm" style="color:var(--danger); border-color:var(--danger);" onclick="deleteCompetitionFromDetail()">🗑️ Xoá</button>
+        </div>
+      </div>
+
+      <div class="card edit-card" id="competition-edit-card" style="display:none;">
+        <h2 id="competition-edit-title">Sửa chương trình thi đua</h2>
+        <div class="grid2">
+          <div class="field"><label>Tên chương trình</label><input type="text" id="ce-ten"></div>
+          <div class="field"><label>Loại thi đua</label>
+            <select id="ce-loai"><option value="Doanh số">Thi đua doanh số</option><option value="Lan tỏa">Thi đua lan tỏa</option></select>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Phạm vi</label><input type="text" id="ce-phamvi"></div>
+          <div class="field"><label>Tình trạng</label><input type="text" id="ce-tinhtrang"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Ngày bắt đầu</label><input type="date" id="ce-batdau"></div>
+          <div class="field"><label>Ngày kết thúc</label><input type="date" id="ce-ketthuc"></div>
+        </div>
+        <div class="field"><label>Số tiền chi thưởng (đ)</label><input type="text" inputmode="numeric" id="ce-sotien" placeholder="0" oninput="formatMoneyInput(this)"></div>
+        <div class="field"><label>Đầu mối order</label><input type="text" id="ce-daumoi"></div>
+        <div class="field"><label>Link poster (tùy chọn)</label><input type="url" id="ce-linkposter"></div>
+        <div class="grid2">
+          <div class="field"><label>Truyền thông</label><input type="text" id="ce-truyenthong"></div>
+          <div class="field"><label>Gửi C&B</label><input type="text" id="ce-guicb"></div>
+        </div>
+        <div class="field"><label>Ghi chú/Link (từ báo cáo gốc)</label><input type="text" id="ce-ghichulink"></div>
+        <div class="field"><label>Ngày air bài / phát động</label><textarea id="ce-ngayairbai"></textarea></div>
+        <div class="field"><label>Ghi chú</label><textarea id="ce-ghichu"></textarea></div>
+        <div class="demo-row" style="display:flex; gap:10px;">
+          <button class="btn" onclick="saveCompetitionEdit()">Lưu thay đổi</button>
+          <button class="btn ghost" onclick="cancelCompetitionEdit()">Hủy</button>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-head-row">
           <div>
@@ -949,10 +991,10 @@
           </div>
           <button class="btn secondary sm" onclick="syncFromThiDuaSystem()">🔄 Đồng bộ từ hệ thống Thi đua</button>
         </div>
-        <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="competitions-search" placeholder="Tìm theo tên, đối tượng, trạng thái..." oninput="renderCompetitions()"></div>
+        <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="competitions-search" placeholder="Tìm theo tên, phạm vi, tình trạng..." oninput="renderCompetitions()"></div>
         <div class="table-wrap">
         <table>
-          <thead><tr><th>Poster</th><th>Chương trình</th><th>Loại</th><th>Đối tượng</th><th>Số người đạt giải</th><th>Tổng tiền thưởng</th><th>Thư mục</th><th>Trạng thái</th><th></th></tr></thead>
+          <thead><tr><th>Chương trình</th><th>Loại</th><th>Phạm vi</th><th>Thời gian</th><th>Tiền thưởng</th><th>Tình trạng</th><th></th></tr></thead>
           <tbody id="competitions-body"></tbody>
         </table>
         </div>
@@ -1380,6 +1422,8 @@ async function loadBootstrapData() {
   programsLoaded = true;
   voucherDots = r.data.voucherDot || [];
   voucherDotsLoaded = true;
+  competitions = (r.data.thiDua || []).map(mapThiDuaFromApi_);
+  competitionsLoaded = true;
   return true;
 }
 async function refreshStaffList() {
@@ -1409,14 +1453,13 @@ let programEditMaSuKien = null;   // mã sự kiện đang sửa (không dùng i
 let programDetailMaSuKien = null; // mã sự kiện đang xem chi tiết
 
 let compCounter = 2;
-let competitions = [
-  {ten:'Đại sứ Win Q1/2026', loai:'Lan tỏa', doituong:'Toàn WCM', songuoi:51, tongtien:25500000, trangThai:'Đã trả', poster:'', linkThuMuc:'https://drive.google.com/drive/folders/daisuwin-q1-2026', maHeThongThiDua:null},
-  {ten:'Đại sứ Win Q4/2025', loai:'Lan tỏa', doituong:'Toàn WCM', songuoi:54, tongtien:27000000, trangThai:'Đã trả', poster:'', linkThuMuc:'', maHeThongThiDua:null},
-];
-let competitionEditIndex = null;
-let pendingCompetitionPoster = '';
-let thiDuaApiUrl = '';
-let thiDuaApiKey = '';
+// Module 4 đã nối API thật — competitions giờ nạp từ Google Sheet qua getThiDuaList()
+// (xem refreshThiDua()), không còn dữ liệu mock. URL/Key đồng bộ Thi đua giờ lưu ở
+// backend (Settings.gs qua PropertiesService) thay vì biến JS — đọc qua getSettings().
+let competitions = [];
+let competitionsLoaded = false;
+let competitionEditMaCT = null;
+let competitionDetailMaCT = null;
 let thiDuaLastSync = null;
 let competitionFilterType = 'Tất cả';
 
@@ -1749,10 +1792,12 @@ async function loginSuccess(user, token) {
       await refreshCongViec();
       await refreshSuKien();
       await refreshVoucherDot();
+      await refreshThiDua();
     }
     renderWork();
     renderPrograms();
     renderVouchers();
+    renderCompetitions();
   } catch (err) {
     // Không để 1 API lỗi bất ngờ làm treo màn hình đăng nhập — log ra console để chẩn đoán,
     // vẫn cho vào Dashboard, các tab liên quan sẽ tự thử tải lại khi người dùng bấm vào.
@@ -1793,6 +1838,11 @@ async function refreshNotifySettings() {
   }
   currentNotifyChannel = (r.data && r.data.notifyChannel) || 'EMAIL';
   renderNotifyChannelUI();
+  const urlInput = document.getElementById('thidua-api-url');
+  const keyInput = document.getElementById('thidua-api-key');
+  if (urlInput) urlInput.value = (r.data && r.data.thiDuaApiUrl) || '';
+  if (keyInput) keyInput.value = (r.data && r.data.thiDuaApiKey) || '';
+  renderThiDuaSyncStatus((r.data && r.data.thiDuaApiUrl) || '');
 }
 
 function renderNotifyChannelUI() {
@@ -2547,54 +2597,68 @@ async function deleteProgramFromDetail() {
 }
 
 
-/* ---------------- TONG HOP THI DUA ---------------- */
-function competitionPosterThumb(c) {
-  if (c.poster) return `<img src="${c.poster}" style="width:40px;height:54px;object-fit:cover;border-radius:6px;border:1px solid var(--gridline);">`;
-  return `<div style="width:40px;height:54px;border-radius:6px;background:#fdeceb;display:flex;align-items:center;justify-content:center;font-size:16px;">🏆</div>`;
+/* ---------------- TONG HOP THI DUA (Module 4 — API thật) ---------------- */
+function statusBadgeWork(status) {
+  const map = { 'Chưa triển khai': 'muted', 'Đang thực hiện': 'warning', 'Hoàn thành': 'good' };
+  return `<span class="badge"><span class="dot ${map[status]||'muted'}"></span>${status}</span>`;
+}
+async function refreshThiDua(showLoadingToast) {
+  if (showLoadingToast) showToast('Đang tải danh sách thi đua...');
+  const r = await callPtvhApi('getThiDuaList', {});
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không tải được danh sách thi đua');
+    return;
+  }
+  competitions = (r.data || []).map(mapThiDuaFromApi_);
+  competitionsLoaded = true;
+  renderCompetitions();
+}
+function mapThiDuaFromApi_(it) {
+  return {
+    maCT: it.maCT,
+    ten: it.ten,
+    loai: it.loai || 'Doanh số',
+    phamVi: it.phamVi || '',
+    batDau: it.batDau,   // Date hoặc chuỗi — hiển thị qua fmtDate khi có thể
+    ketThuc: it.ketThuc,
+    tinhTrang: it.tinhTrang || '',
+    truyenThong: it.truyenThong || '',
+    guiCB: it.guiCB || '',
+    ghiChuLink: it.ghiChuLink || '',
+    soTienChiThuong: it.soTienChiThuong || 0,
+    dauMoiOrder: it.dauMoiOrder || '',
+    ngayAirBai: it.ngayAirBai || '',
+    ghiChu: it.ghiChu || '',
+    maDongBo: it.maDongBo || '',
+    linkPoster: it.linkPoster || '',
+    nguoiCapNhat: it.nguoiCapNhat,
+    ngayCapNhat: it.ngayCapNhat,
+  };
 }
 function competitionTypeTag(c) {
   return c.loai === 'Doanh số'
     ? '<span class="webapp-type-tag" style="background:#eaf2fc;color:#184f95;border-color:#c7dcf5;">📈 Doanh số</span>'
     : '<span class="webapp-type-tag" style="background:#fdeceb;color:var(--primary-dark);border-color:#f3c6c2;">📣 Lan tỏa</span>';
 }
-function competitionRowHTML(c, i) {
-  if (i === competitionEditIndex) {
-    return `
-    <tr>
-      <td>${competitionPosterThumb(c)}</td>
-      <td><input type="text" class="inline" style="width:100%" id="ce-ten-${i}" value="${c.ten}"></td>
-      <td><select class="inline" id="ce-loai-${i}">
-          <option value="Lan tỏa" ${c.loai==='Lan tỏa'?'selected':''}>Lan tỏa</option>
-          <option value="Doanh số" ${c.loai==='Doanh số'?'selected':''}>Doanh số</option>
-        </select></td>
-      <td><input type="text" class="inline" style="width:100%" id="ce-doituong-${i}" value="${c.doituong}"></td>
-      <td><input type="number" class="inline" style="width:80px" id="ce-songuoi-${i}" value="${c.songuoi}"></td>
-      <td><input type="number" class="inline" style="width:120px" id="ce-tongtien-${i}" value="${c.tongtien}"></td>
-      <td><input type="url" class="inline" style="width:100%" id="ce-linkthumuc-${i}" value="${c.linkThuMuc || ''}"></td>
-      <td>
-        <select class="inline" id="ce-trangthai-${i}">
-          <option ${c.trangThai==='Chưa trả'?'selected':''}>Chưa trả</option>
-          <option ${c.trangThai==='Đang xử lý'?'selected':''}>Đang xử lý</option>
-          <option ${c.trangThai==='Đã trả'?'selected':''}>Đã trả</option>
-        </select>
-      </td>
-      <td style="white-space:nowrap;">
-        <button class="btn secondary sm" onclick="saveCompetitionEdit(${i})">Lưu</button>
-        <button class="btn ghost sm" onclick="cancelCompetitionEdit()">Hủy</button>
-      </td>
-    </tr>`;
-  }
+function thoiGianThiDuaText_(c) {
+  const fmt = v => { if (!v) return ''; const iso = toDateInputValue_(v); return iso ? fmtDate(new Date(iso + 'T00:00:00')) : String(v).trim(); };
+  const bd = fmt(c.batDau), kt = fmt(c.ketThuc);
+  if (bd && kt) return bd + ' - ' + kt;
+  return bd || kt || '—';
+}
+function competitionRowHTML_(c) {
   return `
     <tr>
-      <td>${competitionPosterThumb(c)}</td>
-      <td style="font-weight:700;">${c.ten}${c.maHeThongThiDua ? ' <span class="webapp-type-tag" title="Đồng bộ tự động từ hệ thống Thi đua">🔄 Đồng bộ</span>' : ''}${metaLine(c)}</td>
+      <td style="font-weight:700; cursor:pointer;" onclick="openCompetitionDetail('${c.maCT}')">${c.ten}${c.maDongBo ? ' <span class="webapp-type-tag" title="Đồng bộ tự động từ hệ thống Thi đua">🔄 Đồng bộ</span>' : ''}${metaLine(c)}</td>
       <td>${competitionTypeTag(c)}</td>
-      <td>${c.doituong}</td>
-      <td>${c.songuoi}</td>
-      <td>${c.tongtien.toLocaleString('vi-VN')} đ</td>
-      <td>${c.linkThuMuc ? `<a class="btn ghost sm" href="${c.linkThuMuc}" target="_blank" rel="noopener">📁 Mở thư mục</a>` : '—'}</td>
-      <td>${statusBadge2(c.trangThai)}</td>
-      <td><button class="btn secondary sm" onclick="startCompetitionEdit(${i})">✏️ Sửa</button></td>
+      <td>${c.phamVi || '—'}</td>
+      <td>${thoiGianThiDuaText_(c)}</td>
+      <td>${c.soTienChiThuong ? c.soTienChiThuong.toLocaleString('vi-VN') + ' đ' : '—'}</td>
+      <td>${c.tinhTrang || '—'}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn ghost sm" onclick="openCompetitionDetail('${c.maCT}')">👁 Chi tiết</button>
+        <button class="btn secondary sm" onclick="startCompetitionEdit('${c.maCT}')">✏️ Sửa</button>
+      </td>
     </tr>`;
 }
 function setCompetitionFilter(t) {
@@ -2603,154 +2667,183 @@ function setCompetitionFilter(t) {
   renderCompetitions();
 }
 function renderCompetitions() {
+  if (!competitionsLoaded) { refreshThiDua(); return; } // lần đầu vào tab: tải từ API rồi tự render lại
   document.querySelectorAll('#competition-type-filter .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.t === competitionFilterType));
   const term = (document.getElementById('competitions-search')?.value || '').toLowerCase().trim();
   const rows = competitions
-    .map((c, i) => ({c, i}))
-    .filter(({c}) => competitionFilterType === 'Tất cả' || c.loai === competitionFilterType)
-    .filter(({c}) => !term || [c.ten, c.doituong, c.trangThai].join(' ').toLowerCase().includes(term));
-  document.getElementById('competitions-body').innerHTML = rows.length ? rows.map(({c, i}) => competitionRowHTML(c, i)).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy chương trình phù hợp</td></tr>';
+    .filter(c => competitionFilterType === 'Tất cả' || c.loai === competitionFilterType)
+    .filter(c => !term || [c.ten, c.phamVi, c.tinhTrang].join(' ').toLowerCase().includes(term));
+  document.getElementById('competitions-body').innerHTML = rows.length ? rows.map(competitionRowHTML_).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy chương trình phù hợp</td></tr>';
 }
-function startCompetitionEdit(i) { competitionEditIndex = i; renderCompetitions(); }
-function cancelCompetitionEdit() { competitionEditIndex = null; renderCompetitions(); }
-function saveCompetitionEdit(i) {
-  const c = competitions[i];
-  const ten = document.getElementById('ce-ten-' + i).value.trim();
-  if (!ten) { showToast('Vui lòng nhập Tên chương trình'); return; }
-  c.ten = ten;
-  c.loai = document.getElementById('ce-loai-' + i).value;
-  c.doituong = document.getElementById('ce-doituong-' + i).value.trim();
-  c.songuoi = parseInt(document.getElementById('ce-songuoi-' + i).value) || 0;
-  c.tongtien = parseFloat(document.getElementById('ce-tongtien-' + i).value) || 0;
-  c.linkThuMuc = document.getElementById('ce-linkthumuc-' + i).value.trim();
-  c.trangThai = document.getElementById('ce-trangthai-' + i).value;
-  competitionEditIndex = null;
-  stampMeta(c);
-  showToast('Đã lưu thay đổi chương trình thi đua');
-  renderCompetitions();
-}
-function previewCompetitionPoster(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    pendingCompetitionPoster = e.target.result;
-    document.getElementById('c-poster-preview').src = pendingCompetitionPoster;
-    document.getElementById('c-poster-preview-wrap').style.display = 'block';
-  };
-  reader.readAsDataURL(file);
-}
-function statusBadgeWork(status) {
-  const map = { 'Chưa triển khai': 'muted', 'Đang thực hiện': 'warning', 'Hoàn thành': 'good' };
-  return `<span class="badge"><span class="dot ${map[status]||'muted'}"></span>${status}</span>`;
-}
-function statusBadge2(status) {
-  const map = { 'Chưa trả': 'critical', 'Đang xử lý': 'warning', 'Đã trả': 'good' };
-  return `<span class="badge"><span class="dot ${map[status]||'muted'}"></span>${status}</span>`;
-}
-function addCompetition() {
+async function addCompetition() {
   const ten = document.getElementById('c-ten').value.trim();
   if (!ten) { showToast('Vui lòng nhập Tên chương trình'); return; }
-  compCounter++;
-  competitions.unshift({
+  const payload = {
     ten,
     loai: document.getElementById('c-loai').value,
-    doituong: document.getElementById('c-doituong').value,
-    songuoi: parseInt(document.getElementById('c-songuoi').value) || 0,
-    tongtien: parseFloat(document.getElementById('c-tongtien').value) || 0,
-    trangThai: document.getElementById('c-trangthai').value,
-    linkThuMuc: document.getElementById('c-linkthumuc').value.trim(),
-    poster: pendingCompetitionPoster,
-    maHeThongThiDua: null,
-  });
-  stampMeta(competitions[0]);
-  ['c-ten','c-doituong','c-songuoi','c-tongtien','c-linkthumuc'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('c-poster').value = '';
-  document.getElementById('c-poster-preview-wrap').style.display = 'none';
-  pendingCompetitionPoster = '';
+    phamVi: document.getElementById('c-phamvi').value.trim(),
+    tinhTrang: document.getElementById('c-tinhtrang').value.trim(),
+    batDau: document.getElementById('c-batdau').value || '',
+    ketThuc: document.getElementById('c-ketthuc').value || '',
+    soTienChiThuong: parseMoneyInput('c-sotien'),
+    dauMoiOrder: document.getElementById('c-daumoi').value.trim(),
+    linkPoster: document.getElementById('c-linkposter').value.trim(),
+    ghiChu: document.getElementById('c-ghichu').value.trim(),
+  };
+  const r = await callPtvhApi('addThiDua', { payload });
+  if (!r.ok) { showToast(r.message || 'Không tạo được chương trình'); return; }
+  ['c-ten','c-phamvi','c-tinhtrang','c-batdau','c-ketthuc','c-sotien','c-daumoi','c-linkposter','c-ghichu'].forEach(id => document.getElementById(id).value = '');
   showToast('Đã lưu chương trình thi đua');
   closeForm('competitions-form');
-  renderCompetitions();
+  await refreshThiDua();
+}
+/** Chuyển 1 giá trị ngày từ API (chuỗi ISO "yyyy-mm-dd..." hoặc chuỗi tự do "dd/mm/yyyy") sang "yyyy-mm-dd" cho input type=date — rỗng nếu không nhận diện được. */
+function toDateInputValue_(v) {
+  if (!v) return '';
+  const s = String(v).trim();
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return iso[0];
+  const vn = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (vn) return vn[3] + '-' + vn[2].padStart(2, '0') + '-' + vn[1].padStart(2, '0');
+  return '';
+}
+function startCompetitionEdit(maCT) {
+  competitionEditMaCT = maCT;
+  const c = competitions.find(x => x.maCT === maCT);
+  if (!c) return;
+  document.getElementById('competition-edit-card').style.display = 'block';
+  document.getElementById('competition-edit-title').textContent = 'Sửa: ' + c.ten;
+  document.getElementById('ce-ten').value = c.ten;
+  document.getElementById('ce-loai').value = c.loai;
+  document.getElementById('ce-phamvi').value = c.phamVi || '';
+  document.getElementById('ce-tinhtrang').value = c.tinhTrang || '';
+  document.getElementById('ce-batdau').value = toDateInputValue_(c.batDau);
+  document.getElementById('ce-ketthuc').value = toDateInputValue_(c.ketThuc);
+  document.getElementById('ce-sotien').value = c.soTienChiThuong ? c.soTienChiThuong.toLocaleString('vi-VN') : '';
+  document.getElementById('ce-daumoi').value = c.dauMoiOrder || '';
+  document.getElementById('ce-linkposter').value = c.linkPoster || '';
+  document.getElementById('ce-truyenthong').value = c.truyenThong || '';
+  document.getElementById('ce-guicb').value = c.guiCB || '';
+  document.getElementById('ce-ghichulink').value = c.ghiChuLink || '';
+  document.getElementById('ce-ngayairbai').value = c.ngayAirBai || '';
+  document.getElementById('ce-ghichu').value = c.ghiChu || '';
+  document.getElementById('competition-edit-card').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function cancelCompetitionEdit() {
+  competitionEditMaCT = null;
+  document.getElementById('competition-edit-card').style.display = 'none';
+}
+async function saveCompetitionEdit() {
+  if (!competitionEditMaCT) return;
+  const ten = document.getElementById('ce-ten').value.trim();
+  if (!ten) { showToast('Vui lòng nhập Tên chương trình'); return; }
+  const payload = {
+    ten,
+    loai: document.getElementById('ce-loai').value,
+    phamVi: document.getElementById('ce-phamvi').value.trim(),
+    tinhTrang: document.getElementById('ce-tinhtrang').value.trim(),
+    batDau: document.getElementById('ce-batdau').value || '',
+    ketThuc: document.getElementById('ce-ketthuc').value || '',
+    soTienChiThuong: parseMoneyInput('ce-sotien'),
+    dauMoiOrder: document.getElementById('ce-daumoi').value.trim(),
+    linkPoster: document.getElementById('ce-linkposter').value.trim(),
+    truyenThong: document.getElementById('ce-truyenthong').value.trim(),
+    guiCB: document.getElementById('ce-guicb').value.trim(),
+    ghiChuLink: document.getElementById('ce-ghichulink').value.trim(),
+    ngayAirBai: document.getElementById('ce-ngayairbai').value.trim(),
+    ghiChu: document.getElementById('ce-ghichu').value.trim(),
+  };
+  const r = await callPtvhApi('updateThiDua', { maCT: competitionEditMaCT, payload });
+  if (!r.ok) { showToast(r.message || 'Không lưu được thay đổi'); return; }
+  showToast('Đã lưu thay đổi chương trình thi đua');
+  cancelCompetitionEdit();
+  await refreshThiDua();
+}
+function openCompetitionDetail(maCT) {
+  competitionDetailMaCT = maCT;
+  const c = competitions.find(x => x.maCT === maCT);
+  if (!c) return;
+  document.getElementById('competition-detail-title').textContent = c.ten;
+  document.getElementById('competition-detail-sub').textContent = thoiGianThiDuaText_(c) + (c.maDongBo ? ' · 🔄 Đồng bộ' : '');
+  document.getElementById('competition-detail-body').innerHTML = `
+    <span class="webapp-type-tag" style="margin-bottom:14px;">${c.tinhTrang || 'Chưa có tình trạng'}</span>
+    <div class="stat-row-3" style="margin:14px 0;">
+      <div class="stat-tile flat"><div class="lbl">Loại</div><div class="val" style="font-size:15px;">${c.loai}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Phạm vi</div><div class="val" style="font-size:15px;">${c.phamVi || '—'}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Tiền chi thưởng</div><div class="val" style="font-size:15px;">${c.soTienChiThuong ? c.soTienChiThuong.toLocaleString('vi-VN') + ' đ' : '—'}</div></div>
+    </div>
+    <p class="sub" style="margin-bottom:4px;"><b>Đầu mối order</b></p><p style="margin-top:0;">${c.dauMoiOrder || '—'}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Truyền thông</b></p><p style="margin-top:0;">${c.truyenThong || '—'}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Gửi C&B</b></p><p style="margin-top:0;">${c.guiCB || '—'}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Ngày air bài / phát động</b></p><p style="margin-top:0; white-space:pre-line;">${c.ngayAirBai || '—'}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Ghi chú</b></p><p style="margin-top:0; white-space:pre-line;">${c.ghiChu || '—'}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Ghi chú/Link (báo cáo gốc)</b></p><p style="margin-top:0;">${c.ghiChuLink || '—'}</p>
+    ${c.linkPoster ? `<p class="sub" style="margin-bottom:4px;"><b>Poster</b></p><a class="btn secondary sm" href="${c.linkPoster}" target="_blank" rel="noopener">🖼 Xem poster</a>` : ''}
+    ${metaLine(c)}
+  `;
+  document.getElementById('competition-detail-overlay').classList.add('open');
+  document.getElementById('competition-detail-card').classList.add('open');
+}
+function closeCompetitionDetail() {
+  competitionDetailMaCT = null;
+  document.getElementById('competition-detail-overlay').classList.remove('open');
+  document.getElementById('competition-detail-card').classList.remove('open');
+}
+function startCompetitionEditFromDetail() {
+  const maCT = competitionDetailMaCT;
+  closeCompetitionDetail();
+  if (maCT) startCompetitionEdit(maCT);
+}
+async function deleteCompetitionFromDetail() {
+  const maCT = competitionDetailMaCT;
+  const c = competitions.find(x => x.maCT === maCT);
+  if (!c) return;
+  if (!confirm('Xoá hẳn chương trình "' + c.ten + '"? Thao tác này KHÔNG thể hoàn tác.')) return;
+  const r = await callPtvhApi('deleteThiDua', { maCT });
+  if (!r.ok) { showToast(r.message || 'Không xoá được chương trình'); return; }
+  showToast('Đã xoá chương trình thi đua');
+  closeCompetitionDetail();
+  await refreshThiDua();
 }
 
 /* ---------------- TICH HOP HE THONG THI DUA SAN CO ----------------
-   Hệ thống Thi đua hiện có (Code.gs riêng, đã chạy thật) lưu dữ liệu
-   trong sheet PROGRAMS với schema rowToProgram(): id, name, brand, scope,
-   startDate, endDate, keys, budget, paid, contactName, contactEmail,
-   department, status, resultDate, rewardDate, notes, priority, driveLink,
-   createdAt, updatedAt, nhanhang, vendor, posterUrl, recurring, recurringBase.
-   Phương án tích hợp: hệ thống đó mở thêm 1 nhánh doGet trả JSON (không
-   đụng vào luồng quét email / UI hiện tại của họ), PTVH gọi JSON này và
-   ánh xạ sang cấu trúc competitions[] ở đây — xem ghi chú trong tab Cài đặt.
+   Hệ thống Thi đua hiện có (Code.gs riêng, đã chạy thật) lưu dữ liệu trong sheet
+   PROGRAMS với schema rowToProgram(): id, name, brand, scope, startDate, endDate, keys,
+   budget, paid, contactName, contactEmail, department, status, resultDate, rewardDate,
+   notes, priority, driveLink, createdAt, updatedAt, nhanhang, vendor, posterUrl,
+   recurring, recurringBase. Phương án: hệ thống đó mở thêm 1 nhánh doGet trả JSON
+   (không đụng vào luồng quét email/UI hiện tại của họ) — xem ghi chú trong tab Cài đặt.
+   Đồng bộ giờ chạy ở BACKEND (ThiDua.gs > syncThiDuaTuHeThongNgoai qua UrlFetchApp),
+   KHÔNG phải fetch() từ trình duyệt như bản demo trước — an toàn hơn (không lộ API
+   Key ra client) và không phụ thuộc CORS. URL/Key lưu ở Settings.gs (PropertiesService).
 ------------------------------------------------------------------- */
-function saveThiDuaApiConfig() {
-  thiDuaApiUrl = document.getElementById('thidua-api-url').value.trim();
-  thiDuaApiKey = document.getElementById('thidua-api-key').value.trim();
+async function saveThiDuaApiConfig() {
+  const thiDuaApiUrl = document.getElementById('thidua-api-url').value.trim();
+  const thiDuaApiKey = document.getElementById('thidua-api-key').value.trim();
+  const r = await callPtvhApi('updateSettings', { payload: { thiDuaApiUrl, thiDuaApiKey } });
+  if (!r.ok) { showToast(r.message || 'Không lưu được cấu hình'); return; }
   showToast(thiDuaApiUrl ? 'Đã lưu cấu hình kết nối hệ thống Thi đua' : 'Đã xóa URL kết nối');
-  renderThiDuaSyncStatus();
+  renderThiDuaSyncStatus(thiDuaApiUrl);
 }
-function renderThiDuaSyncStatus() {
+function renderThiDuaSyncStatus(thiDuaApiUrl) {
   const el = document.getElementById('thidua-sync-status');
   if (!el) return;
-  const urlInput = document.getElementById('thidua-api-url');
-  const keyInput = document.getElementById('thidua-api-key');
-  if (urlInput && !urlInput.value) urlInput.value = thiDuaApiUrl;
-  if (keyInput && !keyInput.value) keyInput.value = thiDuaApiKey;
   if (!thiDuaApiUrl) { el.textContent = 'Chưa cấu hình URL — nút Đồng bộ ở tab Thi đua sẽ chưa hoạt động.'; return; }
   el.textContent = 'Đang trỏ tới: ' + thiDuaApiUrl + (thiDuaLastSync ? ' · lần đồng bộ gần nhất: ' + thiDuaLastSync : ' · chưa đồng bộ lần nào');
 }
-// Trạng thái bên hệ thống Thi đua chi tiết hơn (7 mức) → rút gọn về 3 mức của PTVH
-function mapThiDuaStatus(status) {
-  if (status === 'Đã trả thưởng') return 'Đã trả';
-  if (status === 'Đã phát hành kết quả') return 'Chưa trả';
-  return 'Đang xử lý'; // Chờ phát hành / Chưa diễn ra / Đang diễn ra / Đã kết thúc / Chờ kết quả
-}
-function mapThiDuaRecordToCompetition(p) {
-  return {
-    ten: p.name || '(Không có tên)',
-    loai: 'Doanh số',
-    doituong: p.scope || p.department || '',
-    tongtien: Number(p.paid) || Number(p.budget) || 0,
-    trangThai: mapThiDuaStatus(p.status),
-    linkThuMuc: p.driveLink || '',
-    poster: (p.posterUrl && /^https?:\/\//.test(p.posterUrl)) ? p.posterUrl : '',
-    maHeThongThiDua: p.id,
-  };
-}
 async function syncFromThiDuaSystem() {
-  if (!thiDuaApiUrl) { showToast('Chưa cấu hình URL hệ thống Thi đua — vào tab Cài đặt để nhập'); return; }
   const lastRunEl = document.getElementById('thidua-sync-lastrun');
   if (lastRunEl) lastRunEl.textContent = 'Đang đồng bộ...';
-  try {
-    const url = thiDuaApiUrl + (thiDuaApiKey ? (thiDuaApiUrl.includes('?') ? '&' : '?') + 'key=' + encodeURIComponent(thiDuaApiKey) : '');
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const json = await res.json();
-    const records = (json && json.data) ? json.data : (Array.isArray(json) ? json : []);
-    if (!records.length) { showToast('Hệ thống Thi đua không trả về dữ liệu nào'); if (lastRunEl) lastRunEl.textContent = 'Đồng bộ xong — 0 chương trình'; return; }
-    let added = 0, updated = 0;
-    records.forEach(p => {
-      const mapped = mapThiDuaRecordToCompetition(p);
-      const existing = competitions.find(c => c.maHeThongThiDua && c.maHeThongThiDua === mapped.maHeThongThiDua);
-      if (existing) {
-        Object.assign(existing, mapped, { songuoi: existing.songuoi, poster: mapped.poster || existing.poster });
-        stampMeta(existing);
-        updated++;
-      } else {
-        competitions.unshift(Object.assign({songuoi: 0}, mapped));
-        stampMeta(competitions[0]);
-        added++;
-      }
-    });
-    thiDuaLastSync = fmtDate(new Date());
-    if (lastRunEl) lastRunEl.textContent = `Đồng bộ lúc ${thiDuaLastSync} — thêm mới ${added}, cập nhật ${updated}`;
-    renderThiDuaSyncStatus();
-    renderCompetitions();
-    showToast(`Đồng bộ thành công — thêm ${added}, cập nhật ${updated} chương trình thi đua`);
-  } catch (err) {
-    if (lastRunEl) lastRunEl.textContent = 'Đồng bộ thất bại: ' + err.message + ' — kiểm tra lại URL API và nhánh JSON trong Code.gs của hệ thống Thi đua';
-    showToast('Không kết nối được hệ thống Thi đua — kiểm tra URL trong Cài đặt');
+  const r = await callPtvhApi('syncThiDuaTuHeThongNgoai', {});
+  if (!r.ok) {
+    if (lastRunEl) lastRunEl.textContent = 'Đồng bộ thất bại: ' + (r.message || r.error);
+    showToast(r.message || 'Không đồng bộ được — kiểm tra cấu hình URL trong Cài đặt');
+    return;
   }
+  thiDuaLastSync = fmtDate(new Date());
+  if (lastRunEl) lastRunEl.textContent = `Đồng bộ lúc ${thiDuaLastSync} — thêm mới ${r.soThem}, cập nhật ${r.soCapNhat}`;
+  showToast(`Đồng bộ thành công — thêm ${r.soThem}, cập nhật ${r.soCapNhat} chương trình thi đua`);
+  await refreshThiDua();
 }
 
 /* ---------------- NGAN SACH ---------------- */
