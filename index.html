@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PTVH — Demo luồng hệ thống (Sheet + GAS + Web)</title>
+<title>PTVH — Cổng quản lý công việc (Sheet + GAS + Web)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap');
 
@@ -383,7 +383,7 @@
     color: rgba(255,255,255,.85); margin-bottom: 8px;
   }
   .login-heading {
-    font-size: 24px; font-weight: 800; color: #fff; text-align: center; margin-bottom: 6px;
+    font-size: 24px; font-weight: 800; color: #fff; text-align: center; margin-bottom: 28px;
   }
   .login-sub {
     font-size: 13px; color: rgba(255,255,255,.82); text-align: center; max-width: 300px;
@@ -536,11 +536,10 @@
       <div class="logo">PT</div>
       <div>
         <h1>PTVH — Cổng tiếp nhận &amp; quản lý công việc</h1>
-        <p>WinCommerce · Demo luồng hệ thống (Google Sheet + Apps Script + Web)</p>
+        <p>WinCommerce · Phòng Phát triển Văn hóa</p>
       </div>
     </div>
   </div>
-  <span class="badge-demo">● DEMO — dữ liệu mô phỏng trong trình duyệt</span>
 </header>
 
 <div class="app-body">
@@ -566,15 +565,13 @@
         <img class="login-mascot" src="https://s3.hn-2.cloud.cmctelecom.vn/rop/prod/UploadFile/2026/06/30/20260630144839679671baa808.png" alt="PTVH Mascot">
         <div class="login-eyebrow">WinCommerce · Phòng PTVH</div>
         <div class="login-heading">Cổng quản lý nội bộ</div>
-        <div class="login-sub">Không còn trang công khai cho người ngoài — đăng nhập bằng email nội bộ để vào khu vực quản lý công việc, sự kiện và KPI của Phòng.</div>
 
-        <!-- BƯỚC 1: nhập tên email (không cần @...) -->
+        <!-- BƯỚC 1: nhập tên tài khoản (không cần @...) — hệ thống tự ghép domain khi gửi lên backend -->
         <div class="login-card" id="login-step-email">
           <div class="field">
-            <label>Email nội bộ</label>
+            <label>Tài khoản công ty</label>
             <div class="email-input-row">
               <input type="text" id="f-email" placeholder="ten.taikhoan" autocomplete="off" name="ptvh_login_field_no_autofill" onkeydown="if(event.key==='Enter')submitEmailStep()">
-              <span class="email-domain-suffix">@winmart.masangroup.com</span>
             </div>
           </div>
           <button class="btn login-submit-btn" id="login-step-email-btn" onclick="submitEmailStep()">Tiếp tục</button>
@@ -1031,7 +1028,7 @@
 
       <div class="card">
         <h2>Ngân sách năm tham chiếu</h2>
-        <p class="sub">Tổng ngân sách được duyệt cho cả năm, theo từng mảng &amp; loại ngân sách — sửa trực tiếp trong bảng. <span id="budget-ref-source-note">Chưa có dữ liệu Excel tham chiếu được tải lên — số liệu dưới đây là demo, có thể sửa trực tiếp hoặc gửi file Excel để Claude nhập lại theo đúng số liệu thật.</span></p>
+        <p class="sub">Tổng ngân sách được duyệt cho cả năm, theo từng mảng &amp; loại ngân sách — sửa trực tiếp trong bảng. <span id="budget-ref-source-note">Chưa có dữ liệu Excel tham chiếu được tải lên — số liệu dưới đây chưa được đối chiếu với báo cáo thật, có thể sửa trực tiếp hoặc gửi file Excel để Claude nhập lại theo đúng số liệu thật.</span></p>
         <div class="table-wrap">
         <table>
           <thead><tr><th>Mảng</th><th>Loại ngân sách</th><th>Ngân sách năm (đ)</th><th>Đã chi thực tế</th><th>% đã dùng</th></tr></thead>
@@ -1272,7 +1269,7 @@
           <span class="lbl">Tổng điểm mảng</span>
           <span class="val" id="kpi-total-val">—</span>
         </div>
-        <div style="margin-top:14px;"><button class="btn" onclick="saveKpi()">Lưu KPI (demo)</button></div>
+        <div style="margin-top:14px;"><button class="btn" onclick="saveKpi()">Lưu KPI</button></div>
       </div>
     </section>
 
@@ -1532,7 +1529,7 @@ let currentPeriod = 'MTD';
 let docCounter = 2;
 let docItems = [
   {id:1, ten:'Tổng hợp danh mục Web App PTVH', loai:'Trình chiếu (Slides)', thuMuc:'Tổng hợp chung', link:'https://docs.google.com/presentation/d/1NLoXW6c4hlqlv--ldOGXfwVrnDgDoTfX/edit?usp=drive_link&ouid=101046524420887053281&rtpof=true&sd=true', ghichu:'Danh sách tổng hợp ban đầu do người dùng cung cấp — cập nhật thủ công các tài liệu tiếp theo tại đây.', nguoiCapNhat:'Nguyễn Thái Dương — Trưởng nhóm', ngayCapNhat:'01/08/2026'},
-  {id:2, ten:'Cổng quản lý công việc PTVH (demo)', loai:'Web app', thuMuc:'Web app nội bộ', link:'https://ptvh-wincommerce.github.io/demo/', ghichu:'Bản demo web app đang được duyệt.', nguoiCapNhat:'Nguyễn Thái Dương — Trưởng nhóm', ngayCapNhat:'20/08/2026'},
+  {id:2, ten:'Cổng quản lý công việc PTVH', loai:'Web app', thuMuc:'Web app nội bộ', link:'https://ptvh-wincommerce.github.io/', ghichu:'Hệ thống quản lý công việc, sự kiện, thi đua của Phòng.', nguoiCapNhat:'Nguyễn Thái Dương — Trưởng nhóm', ngayCapNhat:'20/08/2026'},
 ];
 let docEditId = null;
 
