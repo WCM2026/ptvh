@@ -1017,93 +1017,125 @@
     <!-- ============ PANEL: NGAN SACH ============ -->
     <section class="panel" id="panel-budget">
       <div class="flow-note">
-        <b>Ngân sách PTVH:</b> Ngân sách năm tham chiếu theo mảng, kế hoạch chi theo tháng, và các khoản chi thực tế đã ghi nhận — Dashboard tự tổng hợp tiến độ sử dụng. Mọi khoản ngân sách được phân loại theo <b>Ngân sách Công ty</b> hoặc <b>Ngân sách Công đoàn</b>.
-      </div>
-
-      <div class="filter-row" id="budget-type-filter">
-        <button class="filter-btn" data-t="Tất cả" onclick="setBudgetFilter('Tất cả')">Tất cả</button>
-        <button class="filter-btn" data-t="Công ty" onclick="setBudgetFilter('Công ty')">Ngân sách Công ty</button>
-        <button class="filter-btn" data-t="Công đoàn" onclick="setBudgetFilter('Công đoàn')">Ngân sách Công đoàn</button>
+        <b>Ngân sách PTVH:</b> <b>Ngân sách theo tháng</b> (06) là số tổng đã duyệt/đã chi từng tháng, nhập tay để đối chiếu nhanh. <b>Chi tiết ngân sách</b> (05) là từng khoản chi cụ thể trong năm — 2 sheet này ĐỘC LẬP, không tự cộng dồn qua lại (theo đúng cách Phòng đang quản lý).
       </div>
 
       <div class="card">
-        <h2>Ngân sách năm tham chiếu</h2>
-        <p class="sub">Tổng ngân sách được duyệt cho cả năm, theo từng mảng &amp; loại ngân sách — sửa trực tiếp trong bảng. <span id="budget-ref-source-note">Chưa có dữ liệu Excel tham chiếu được tải lên — số liệu dưới đây chưa được đối chiếu với báo cáo thật, có thể sửa trực tiếp hoặc gửi file Excel để Claude nhập lại theo đúng số liệu thật.</span></p>
+        <h2>Ngân sách theo tháng</h2>
+        <p class="sub">Luôn đủ 12 tháng — bấm Sửa để cập nhật số của từng tháng.</p>
         <div class="table-wrap">
         <table>
-          <thead><tr><th>Mảng</th><th>Loại ngân sách</th><th>Ngân sách năm (đ)</th><th>Đã chi thực tế</th><th>% đã dùng</th></tr></thead>
-          <tbody id="budget-ref-body"></tbody>
+          <thead><tr><th>Tháng</th><th>NS phê duyệt chủ trương</th><th>NS phê duyệt tài chính/Công đoàn</th><th>NS đã chi</th><th>NS chưa sử dụng</th><th></th></tr></thead>
+          <tbody id="budget-thang-body"></tbody>
         </table>
+        </div>
+      </div>
+
+      <div class="sk-overlay" id="ns-detail-overlay" onclick="closeNganSachDetail()"></div>
+      <div class="sk-drawer" id="ns-detail-card">
+        <div class="sk-drawer-head">
+          <button class="sk-close-btn" onclick="closeNganSachDetail()">✕</button>
+          <div class="sk-eyebrow" id="ns-detail-sub"></div>
+          <h2 id="ns-detail-title"></h2>
+        </div>
+        <div class="sk-drawer-body">
+          <div id="ns-detail-body"></div>
+        </div>
+        <div class="sk-drawer-actions">
+          <button class="btn" style="flex:1;" onclick="startNganSachEditFromDetail()">✏️ Sửa</button>
+          <button class="btn ghost sm" style="color:var(--danger); border-color:var(--danger);" onclick="deleteNganSachFromDetail()">🗑️ Xoá</button>
+        </div>
+      </div>
+
+      <div class="card edit-card" id="ns-edit-card" style="display:none;">
+        <h2 id="ns-edit-title">Sửa khoản chi</h2>
+        <div class="grid2">
+          <div class="field"><label>Chương trình</label><input type="text" id="nse-chuongtrinh"></div>
+          <div class="field"><label>Phân tách (nhóm chi phí)</label><input type="text" id="nse-phantach"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Nội dung chi</label><input type="text" id="nse-noidung"></div>
+          <div class="field"><label>Thời gian</label><input type="text" id="nse-thoigian" placeholder="VD: Tháng 5"></div>
+        </div>
+        <p class="sub" style="margin:14px 0 4px;"><b>Kế hoạch (KH)</b></p>
+        <div class="grid3">
+          <div class="field"><label>Đơn giá KH (đ)</label><input type="text" inputmode="numeric" id="nse-dongiakh" oninput="formatMoneyInput(this)"></div>
+          <div class="field"><label>SL KH</label><input type="text" inputmode="numeric" id="nse-slkh" oninput="formatMoneyInput(this)"></div>
+          <div class="field"><label>&nbsp;</label><div class="sub" id="nse-tongkh" style="padding-top:10px;">Tổng: 0đ</div></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Công ty KH (đ)</label><input type="text" inputmode="numeric" id="nse-congtykh" oninput="formatMoneyInput(this)"></div>
+          <div class="field"><label>Công đoàn KH (đ)</label><input type="text" inputmode="numeric" id="nse-congdoankh" oninput="formatMoneyInput(this)"></div>
+        </div>
+        <p class="sub" style="margin:14px 0 4px;"><b>Thực tế (TT)</b></p>
+        <div class="grid2">
+          <div class="field"><label>Đơn giá TT (đ)</label><input type="text" inputmode="numeric" id="nse-dongiatt" oninput="formatMoneyInput(this)"></div>
+          <div class="field"><label>SL TT</label><input type="text" inputmode="numeric" id="nse-sltt" oninput="formatMoneyInput(this)"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Công ty TT (đ)</label><input type="text" inputmode="numeric" id="nse-congtytt" oninput="formatMoneyInput(this)"></div>
+          <div class="field"><label>Công đoàn TT (đ)</label><input type="text" inputmode="numeric" id="nse-congdoantt" oninput="formatMoneyInput(this)"></div>
+        </div>
+        <p class="sub" style="margin:14px 0 4px;"><b>Khác</b></p>
+        <div class="grid2">
+          <div class="field"><label>Phân loại thanh toán</label><select id="nse-phanloai"></select></div>
+          <div class="field"><label>Sự kiện liên quan (nếu có)</label><select id="nse-sukien"></select></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Tham khảo 2024 (đ)</label><input type="text" inputmode="numeric" id="nse-tk2024" oninput="formatMoneyInput(this)"></div>
+          <div class="field"><label>Tham khảo 2025 (đ)</label><input type="text" inputmode="numeric" id="nse-tk2025" oninput="formatMoneyInput(this)"></div>
+        </div>
+        <div class="field"><label>Ghi chú</label><textarea id="nse-ghichu"></textarea></div>
+        <div class="demo-row" style="display:flex; gap:10px;">
+          <button class="btn" onclick="saveNganSachEdit()">Lưu thay đổi</button>
+          <button class="btn ghost" onclick="cancelNganSachEdit()">Hủy</button>
         </div>
       </div>
 
       <div class="card">
         <div class="card-head-row">
           <div>
-            <h2>Kế hoạch chi theo tháng</h2>
-            <p class="sub" style="margin-bottom:0;">Dự trù khoản chi cho tháng sắp tới, theo mảng</p>
+            <h2>Chi tiết ngân sách</h2>
+            <p class="sub" style="margin-bottom:0;">Từng khoản chi cụ thể trong năm — bấm tên để xem/sửa đầy đủ.</p>
           </div>
-          <button class="btn secondary sm" onclick="toggleForm('budget-plan-form')">+ Thêm kế hoạch</button>
+          <button class="btn secondary sm" onclick="toggleForm('ns-add-form')">+ Thêm khoản chi</button>
         </div>
-        <div id="budget-plan-form" class="collapsible-form" style="display:none;">
-          <div class="grid3">
-            <div class="field"><label>Tháng</label><input type="text" id="bp-thang" placeholder="VD: 09/2026"></div>
-            <div class="field"><label>Mảng</label><select id="bp-mang"></select></div>
-            <div class="field"><label>Loại ngân sách</label><select id="bp-loains"><option>Công ty</option><option>Công đoàn</option></select></div>
+        <div id="ns-add-form" class="collapsible-form" style="display:none;">
+          <div class="grid2">
+            <div class="field"><label>Chương trình</label><input type="text" id="ns-chuongtrinh" placeholder="VD: Trung thu 2026"></div>
+            <div class="field"><label>Phân tách (nhóm chi phí)</label><input type="text" id="ns-phantach" placeholder="VD: Chi phí sự kiện"></div>
           </div>
           <div class="grid2">
-            <div class="field"><label>Hạng mục</label><input type="text" id="bp-hangmuc" placeholder="VD: Trung thu 2026"></div>
-            <div class="field"><label>Số tiền kế hoạch (đ)</label><input type="number" id="bp-sotien" placeholder="0"></div>
+            <div class="field"><label>Nội dung chi</label><input type="text" id="ns-noidung" placeholder="VD: Thuê MC + âm thanh"></div>
+            <div class="field"><label>Thời gian</label><input type="text" id="ns-thoigian" placeholder="VD: Tháng 9"></div>
           </div>
-          <button class="btn" onclick="addBudgetPlan()">Lưu kế hoạch</button>
+          <div class="grid3">
+            <div class="field"><label>Đơn giá KH (đ)</label><input type="text" inputmode="numeric" id="ns-dongiakh" placeholder="0" oninput="formatMoneyInput(this)"></div>
+            <div class="field"><label>SL KH</label><input type="text" inputmode="numeric" id="ns-slkh" placeholder="1" oninput="formatMoneyInput(this)"></div>
+            <div class="field"><label>Phân loại thanh toán</label><select id="ns-phanloai"></select></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Công ty KH (đ)</label><input type="text" inputmode="numeric" id="ns-congtykh" placeholder="0" oninput="formatMoneyInput(this)"></div>
+            <div class="field"><label>Công đoàn KH (đ)</label><input type="text" inputmode="numeric" id="ns-congdoankh" placeholder="0" oninput="formatMoneyInput(this)"></div>
+          </div>
+          <div class="field"><label>Sự kiện liên quan (nếu có)</label><select id="ns-sukien"></select></div>
+          <button class="btn" onclick="addNganSach()">Lưu khoản chi</button>
         </div>
-        <div class="search-bar" style="margin-top:16px;"><span class="search-ic">🔍</span><input type="text" id="budget-plan-search" placeholder="Tìm theo tháng, mảng, hạng mục..." oninput="renderBudgetPlan()"></div>
+        <div class="search-bar" style="margin-top:16px;"><span class="search-ic">🔍</span><input type="text" id="ns-search" placeholder="Tìm theo chương trình, nội dung chi, phân tách..." oninput="renderNganSachChiTiet()"></div>
         <div class="table-wrap">
         <table>
-          <thead><tr><th>Tháng</th><th>Mảng</th><th>Loại NS</th><th>Hạng mục</th><th>Kế hoạch chi</th><th></th></tr></thead>
-          <tbody id="budget-plan-body"></tbody>
-        </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-head-row">
-          <div>
-            <h2>Khoản chi thực tế đã ghi nhận</h2>
-          </div>
-          <button class="btn secondary sm" onclick="toggleForm('budget-actual-form')">+ Thêm khoản chi</button>
-        </div>
-        <div id="budget-actual-form" class="collapsible-form" style="display:none;">
-          <div class="grid3">
-            <div class="field"><label>Tháng</label><input type="text" id="b-thang" placeholder="VD: 08/2026"></div>
-            <div class="field"><label>Mảng</label><select id="b-mang"></select></div>
-            <div class="field"><label>Loại ngân sách</label><select id="b-loains"><option>Công ty</option><option>Công đoàn</option></select></div>
-          </div>
-          <div class="grid2">
-            <div class="field"><label>Hạng mục</label><input type="text" id="b-hangmuc" placeholder="VD: Sự kiện Cà Mau"></div>
-            <div class="field"><label>Sự kiện liên quan (nếu có)</label><select id="b-sukien"></select></div>
-          </div>
-          <div class="grid2">
-            <div class="field"><label>Ngân sách duyệt (đ)</label><input type="number" id="b-duyet" placeholder="0"></div>
-            <div class="field"><label>Thực chi (đ)</label><input type="number" id="b-thucchi" placeholder="0"></div>
-          </div>
-          <button class="btn" onclick="addBudget()">Lưu khoản chi</button>
-        </div>
-        <div class="search-bar" style="margin-top:16px;"><span class="search-ic">🔍</span><input type="text" id="budget-actual-search" placeholder="Tìm theo tháng, mảng, hạng mục..." oninput="renderBudgetActual()"></div>
-        <div class="table-wrap">
-        <table>
-          <thead><tr><th>Tháng</th><th>Mảng</th><th>Loại NS</th><th>Hạng mục</th><th>Sự kiện</th><th>Duyệt</th><th>Thực chi</th><th>% dùng</th><th></th></tr></thead>
-          <tbody id="budget-body"></tbody>
+          <thead><tr><th>Chương trình</th><th>Phân tách</th><th>Thời gian</th><th>Tổng KH</th><th>Tổng TT</th><th>Phân loại</th><th></th></tr></thead>
+          <tbody id="ns-body"></tbody>
         </table>
         </div>
       </div>
 
       <div class="card">
         <h2>Tổng hợp ngân sách theo sự kiện</h2>
-        <p class="sub">Tự động tổng hợp từ các khoản chi thực tế đã gắn với từng sự kiện</p>
+        <p class="sub">Tự động tổng hợp từ các khoản chi đã gắn "Sự kiện liên quan" ở trên.</p>
         <div class="table-wrap">
         <table>
-          <thead><tr><th>Sự kiện</th><th>Mảng</th><th>NS duyệt (sự kiện)</th><th>Tổng thực chi (đã ghi nhận)</th><th>% dùng</th></tr></thead>
+          <thead><tr><th>Sự kiện</th><th>Số khoản chi</th><th>Tổng KH</th><th>Tổng TT</th></tr></thead>
           <tbody id="budget-by-event-body"></tbody>
         </table>
         </div>
@@ -1372,7 +1404,7 @@
         <p class="sub">Kết nối tới hệ thống quản lý/thống kê Thi đua (Google Apps Script) đang chạy riêng, để đồng bộ dữ liệu vào tab Thi đua thay vì nhập tay lại. Xem chi tiết phương án ở ghi chú bên dưới.</p>
         <div class="grid2">
           <div class="field"><label>URL API JSON của hệ thống Thi đua</label><input type="url" id="thidua-api-url" placeholder="https://script.google.com/macros/s/XXX/exec?api=competitions"></div>
-          <div class="field"><label>Khóa truy cập (tùy chọn)</label><input type="text" id="thidua-api-key" placeholder="Dán API key nếu hệ thống yêu cầu"></div>
+          <div class="field"><label>Khóa truy cập (tùy chọn)</label><input type="password" id="thidua-api-key" placeholder="Dán API key nếu hệ thống yêu cầu" autocomplete="off"></div>
         </div>
         <button class="btn secondary sm" onclick="saveThiDuaApiConfig()">Lưu cấu hình</button>
         <div class="subtext" id="thidua-sync-status" style="margin-top:10px;"></div>
@@ -1398,6 +1430,26 @@
 
 let currentUser = null; // { name, role }
 
+/* ---------------- AN TOÀN HIỂN THỊ (chống XSS) ----------------
+ * MỌI dữ liệu lấy từ Sheet/API (tên việc, ghi chú, dữ liệu đồng bộ từ hệ thống Thi đua...)
+ * khi chèn vào innerHTML PHẢI đi qua esc() — nếu không, 1 chuỗi kiểu "<img src=x onerror=...>"
+ * trong Sheet sẽ chạy như mã JS trên máy người xem và lấy được phiên đăng nhập của họ.
+ *   esc(v)     — chèn vào nội dung HTML hoặc giá trị thuộc tính (value="", alt="", id=""...)
+ *   jsArg(v)   — chèn làm THAM SỐ trong onclick="fn(...)" (tự thêm dấu nháy, không cần '...')
+ *   safeUrl(u) — chèn vào href/src: chỉ cho http(s), đường dẫn tương đối, data:image; còn lại -> '#'
+ */
+function esc(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function jsArg(v) { return esc(JSON.stringify(v == null ? '' : v)); }
+function safeUrl(u) {
+  const s = String(u == null ? '' : u).trim();
+  if (/^https?:\/\//i.test(s) || /^data:image\/(png|jpe?g|gif|webp);/i.test(s) || /^[./#?]/.test(s)) return esc(s);
+  return '#';
+}
+
 function whoAmI() { return currentUser ? currentUser.name : 'N/A'; }
 function stampMeta(obj) {
   const now = fmtDate(new Date());
@@ -1407,7 +1459,7 @@ function stampMeta(obj) {
 }
 function metaLine(obj) {
   if (!obj || !obj.nguoiCapNhat) return '';
-  return `<div class="subtext">✎ ${obj.nguoiCapNhat} · ${obj.ngayCapNhat}</div>`;
+  return `<div class="subtext">✎ ${esc(obj.nguoiCapNhat)} · ${esc(obj.ngayCapNhat)}</div>`;
 }
 
 let staffCounter = 7;
@@ -1437,6 +1489,9 @@ async function loadBootstrapData() {
   voucherDotsLoaded = true;
   competitions = (r.data.thiDua || []).map(mapThiDuaFromApi_);
   competitionsLoaded = true;
+  // Ngân sách cũng đã có sẵn trong gói bootstrap — dùng luôn, khỏi gọi thêm 2 API lúc mở tab.
+  if (Array.isArray(r.data.nganSachThang)) { nganSachThang = r.data.nganSachThang; nganSachThangLoaded = true; }
+  if (Array.isArray(r.data.nganSachChiTiet)) { nganSachChiTiet = r.data.nganSachChiTiet; nganSachChiTietLoaded = true; }
   return true;
 }
 async function refreshStaffList() {
@@ -1476,36 +1531,16 @@ let competitionDetailMaCT = null;
 let thiDuaLastSync = null;
 let competitionFilterType = 'Tất cả';
 
-const LOAI_NS_LIST = ['Công ty', 'Công đoàn'];
-let budgetYearRef = [
-  {mang:'Truyền thông nội bộ', loaiNS:'Công ty', nsNam: 260000000},
-  {mang:'Truyền thông nội bộ', loaiNS:'Công đoàn', nsNam: 40000000},
-  {mang:'Sự kiện & Phong trào', loaiNS:'Công ty', nsNam: 500000000},
-  {mang:'Sự kiện & Phong trào', loaiNS:'Công đoàn', nsNam: 150000000},
-  {mang:'EB', loaiNS:'Công ty', nsNam: 200000000},
-  {mang:'EB', loaiNS:'Công đoàn', nsNam: 0},
-  {mang:'Thi đua', loaiNS:'Công ty', nsNam: 80000000},
-  {mang:'Thi đua', loaiNS:'Công đoàn', nsNam: 70000000},
-  {mang:'Thiết kế & Media', loaiNS:'Công ty', nsNam: 120000000},
-  {mang:'Thiết kế & Media', loaiNS:'Công đoàn', nsNam: 0},
-  {mang:'Khác', loaiNS:'Công ty', nsNam: 30000000},
-  {mang:'Khác', loaiNS:'Công đoàn', nsNam: 20000000},
-];
-
-let budgetPlanCounter = 2;
-let budgetPlanItems = [
-  {thang:'09/2026', mang:'Thiết kế & Media', loaiNS:'Công ty', hangmuc:'Trung thu 2026', keHoach:150000000},
-  {thang:'09/2026', mang:'Truyền thông nội bộ', loaiNS:'Công ty', hangmuc:'Masan Puzzle', keHoach:20000000},
-];
-let budgetPlanEditIndex = null;
-
-let budgetCounter = 2;
-let budgetItems = [
-  {thang:'08/2026', mang:'Sự kiện & Phong trào', loaiNS:'Công ty', hangmuc:'Sự kiện Cà Mau', duyet:250000000, thucchi:238000000, suKien:'Khai trương WinMart+/WiN+ & Đêm nhạc Cà Mau'},
-  {thang:'08/2026', mang:'Sự kiện & Phong trào', loaiNS:'Công đoàn', hangmuc:'Hành trình triệu phú Hồ Tràm', duyet:180000000, thucchi:175500000, suKien:'Hành trình triệu phú Hồ Tràm'},
-];
-let budgetActualEditIndex = null;
-let budgetFilterType = 'Tất cả';
+// Module 5 đã nối API thật — nganSachThang (06, 12 tháng cố định) và nganSachChiTiet
+// (05, từng khoản chi) giờ nạp từ Google Sheet, không còn dữ liệu mock theo Mảng như trước
+// (dữ liệu thật không phân theo Mảng — xem HANDOFF.md về quyết định giữ 05/06 độc lập).
+let nganSachThang = [];
+let nganSachThangLoaded = false;
+let nganSachThangEditThang = null; // số tháng (1-12) đang sửa inline, null nếu không có
+let nganSachChiTiet = [];
+let nganSachChiTietLoaded = false;
+let nganSachEditMaKhoan = null;
+let nganSachDetailMaKhoan = null;
 
 let giftCounter = 1;
 let gifts = [
@@ -1589,6 +1624,12 @@ function isMonthStrInPeriod(thang, period) {
   if (period === 'MTD') return yyyy === now.getFullYear() && mm === now.getMonth();
   return yyyy === now.getFullYear();
 }
+/** 06.Ngân sách theo tháng chỉ có số tháng 1-12 (không có năm — sheet chỉ dùng cho năm hiện tại). */
+function isThangSoInPeriod(thangSo, period) {
+  const thangHienTai = new Date().getMonth() + 1;
+  if (period === 'MTD') return Number(thangSo) === thangHienTai;
+  return Number(thangSo) <= thangHienTai; // YTD: từ đầu năm tới hết tháng hiện tại
+}
 function moneyFmt(n) { return (n/1e6).toLocaleString('vi-VN', {maximumFractionDigits:1}) + 'tr'; }
 /** Gõ tới đâu tự chèn dấu chấm phân cách hàng nghìn tới đó (kiểu 3.846.700) — dùng cho mọi ô nhập tiền. */
 function formatMoneyInput(el) {
@@ -1604,15 +1645,18 @@ function pctFmt(used, total) { return total ? Math.round(used/total*100) + '%' :
 
 function fillMangSelect(sel, includeBlank) {
   sel.innerHTML = (includeBlank ? '<option value="">— Không chọn —</option>' : '') +
-    MANG_LIST.map(m => `<option>${m}</option>`).join('');
+    MANG_LIST.map(m => `<option>${esc(m)}</option>`).join('');
 }
 function initAllMangSelects() {
   fillMangSelect(document.getElementById('w-mang'), false);
-  fillMangSelect(document.getElementById('bp-mang'), false);
-  fillMangSelect(document.getElementById('b-mang'), false);
-  fillLoaiNSSelect(document.getElementById('bp-loains'));
-  fillLoaiNSSelect(document.getElementById('b-loains'));
-  fillSuKienSelect(document.getElementById('b-sukien'));
+}
+const PHAN_LOAI_THANH_TOAN_LIST = ['Tiền mặt/Chuyển khoản', 'E-Voucher', 'ESOP', 'Tiền mặt/E-voucher'];
+function fillPhanLoaiSelect(sel, current) {
+  sel.innerHTML = PHAN_LOAI_THANH_TOAN_LIST.map(l => `<option ${l===current?'selected':''}>${esc(l)}</option>`).join('');
+}
+function fillSuKienSelectByMa(sel, current) {
+  sel.innerHTML = '<option value="">— Không gắn sự kiện —</option>' +
+    programs.map(p => `<option value="${esc(p.maSuKien)}" ${p.maSuKien===current?'selected':''}>${esc(p.ten)}</option>`).join('');
 }
 
 /* ---------------- SIDEBAR / NAV ---------------- */
@@ -1634,14 +1678,14 @@ function renderSidebar() {
   const nav = document.getElementById('sidebar-nav');
   const userBox = document.getElementById('sidebar-user');
   if (!currentUser) { nav.innerHTML = ''; userBox.innerHTML = ''; return; }
-  userBox.innerHTML = `<b>${currentUser.name}</b>${currentUser.role}`;
+  userBox.innerHTML = `<b>${esc(currentUser.name)}</b>${esc(currentUser.role)}`;
   nav.innerHTML = '';
   SIDEBAR_ITEMS.forEach(t => {
     if (t.roleOnly && !isAdminRole(currentUser.role)) return;
     const btn = document.createElement('button');
     btn.className = 'sidebar-nav-item';
     btn.dataset.id = t.id;
-    btn.innerHTML = `<span class="ic">${t.icon}</span> ${t.label}`;
+    btn.innerHTML = `<span class="ic">${esc(t.icon)}</span> ${esc(t.label)}`;
     btn.onclick = () => go(t.id);
     nav.appendChild(btn);
   });
@@ -1696,7 +1740,14 @@ async function callPtvhApi(action, payload) {
       body: JSON.stringify(Object.assign({ action, token: sessionToken }, payload || {})),
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    return await res.json();
+    const data = await res.json();
+    // Phiên hết hạn (8 tiếng) hoặc bị huỷ -> đưa về màn hình đăng nhập thay vì báo lỗi khó hiểu.
+    if (data && data.error === 'UNAUTHORIZED' && sessionToken) {
+      sessionToken = '';
+      alert('Phiên đăng nhập đã hết hạn — vui lòng đăng nhập lại.');
+      doLogout();
+    }
+    return data;
   } catch (err) {
     showToast('Không kết nối được Backend PTVH: ' + err.message);
     return { ok: false, error: 'NETWORK_ERROR', message: err.message };
@@ -1784,6 +1835,7 @@ async function submitPinStep() {
 
   if (!r.ok) {
     if (r.error === 'PIN_NOT_SET') { showToast('Tài khoản chưa khởi tạo PIN — quay lại nhập email để nhận OTP'); backToEmailStep(); return; }
+    if (r.error === 'PIN_RESET_REQUIRED') { showToast(r.message); backToEmailStep(); return; }
     if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Đăng nhập thất bại');
     return;
   }
@@ -1821,12 +1873,12 @@ async function loginSuccess(user, token) {
 }
 
 async function doLogout() {
-  if (sessionToken) callPtvhApi('logout', {});
+  if (sessionToken) { try { await callPtvhApi('logout', {}); } catch (e) {} }
   currentUser = null;
   sessionToken = '';
-  backToEmailStep();
-  renderSidebar();
-  go('login');
+  // Tải lại trang để xoá sạch mọi dữ liệu nội bộ còn nằm trong bộ nhớ/DOM (danh sách công việc,
+  // ngân sách...) — quan trọng khi dùng chung máy tính: người sau không thấy dữ liệu người trước.
+  location.reload();
 }
 
 function isAdminRole(role) {
@@ -1834,7 +1886,13 @@ function isAdminRole(role) {
 }
 
 function saveGasApiConfig() {
-  ptvhApiUrl = document.getElementById('ptvh-api-url').value.trim();
+  const url = document.getElementById('ptvh-api-url').value.trim();
+  // Chỉ nhận URL Apps Script thật — token đăng nhập được gửi kèm MỌI request, không để lộ sang máy chủ lạ.
+  if (url && !/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url)) {
+    showToast('URL không hợp lệ — phải có dạng https://script.google.com/macros/s/.../exec');
+    return;
+  }
+  ptvhApiUrl = url;
   showToast(ptvhApiUrl ? 'Đã lưu URL Backend PTVH' : 'Đã xoá URL Backend PTVH');
 }
 
@@ -1854,7 +1912,13 @@ async function refreshNotifySettings() {
   const urlInput = document.getElementById('thidua-api-url');
   const keyInput = document.getElementById('thidua-api-key');
   if (urlInput) urlInput.value = (r.data && r.data.thiDuaApiUrl) || '';
-  if (keyInput) keyInput.value = (r.data && r.data.thiDuaApiKey) || '';
+  if (keyInput) {
+    keyInput.value = (r.data && r.data.thiDuaApiKey) || '';
+    // Khoá chỉ gửi về cho Trưởng phòng/Trưởng nhóm — người khác chỉ thấy trạng thái đã cấu hình hay chưa.
+    keyInput.placeholder = (r.data && r.data.thiDuaApiKeySet && !keyInput.value)
+      ? '(Đã cấu hình — chỉ Trưởng phòng/Trưởng nhóm xem/sửa được)'
+      : 'Dán API key nếu hệ thống yêu cầu';
+  }
   renderThiDuaSyncStatus((r.data && r.data.thiDuaApiUrl) || '');
 }
 
@@ -1886,8 +1950,8 @@ function renderDashboard() {
   const doing = workItems.filter(w => w.trangThai === 'Đang thực hiện').length;
   const confirmed = workItems.filter(w => w.xacNhan).length;
 
-  const nsNamTong = budgetYearRef.reduce((s,b)=>s+b.nsNam,0);
-  const nsThucChiTong = budgetItems.reduce((s,b)=>s+b.thucchi,0);
+  const nsNamTong = nganSachThang.reduce((s,t)=>s+t.nsPheDuyetChuTruong+t.nsPheDuyetTaiChinhCongDoan,0);
+  const nsThucChiTong = nganSachThang.reduce((s,t)=>s+t.nsDaChi,0);
   const nsPct = nsNamTong ? Math.round(nsThucChiTong/nsNamTong*100) : 0;
   const tonKhoVoucher = voucherDots.reduce((s,v)=>s+(v.soLuongTon||0),0);
 
@@ -1926,7 +1990,7 @@ function renderDashboard() {
   const rows = Object.entries(byMang).sort((a,b) => b[1]-a[1]);
   document.getElementById('bar-chart').innerHTML = rows.map(([name, n]) => `
     <div class="bar-row">
-      <div class="name">${name}</div>
+      <div class="name">${esc(name)}</div>
       <div class="bar-track"><div class="bar-fill" style="width:${(n/maxV*100).toFixed(0)}%"></div></div>
       <div class="n">${n}</div>
     </div>`).join('');
@@ -1949,7 +2013,7 @@ function renderPeriodFilterUI() {
 }
 function renderPeriodStats() {
   const period = currentPeriod;
-  const nsThucChiPeriod = budgetItems.filter(b => isMonthStrInPeriod(b.thang, period)).reduce((s,b)=>s+b.thucchi,0);
+  const nsThucChiPeriod = nganSachThang.filter(t => isThangSoInPeriod(t.thang, period)).reduce((s,t)=>s+t.nsDaChi,0);
   const congViecHTPeriod = workItems.filter(w => w.trangThai === 'Hoàn thành' && isDateInPeriod(w.han, period)).length;
   const congViecMoiPeriod = workItems.filter(w => isDateInPeriod(w.han, period)).length;
   const chuongTrinhPeriod = programs.filter(p => p.trangThai === 'Hoàn thành' && isDateInPeriod(p.ngay, period)).length;
@@ -1972,12 +2036,9 @@ function renderPeriodStats() {
 function renderEbStats() {
   const ebWork = workItems.filter(w => w.mang === 'EB');
   const ebDone = ebWork.filter(w => w.trangThai === 'Hoàn thành').length;
-  const ebThucChi = budgetItems.filter(b => b.mang === 'EB').reduce((s,b)=>s+b.thucchi,0);
-  const ebNam = budgetYearRef.filter(b => b.mang === 'EB').reduce((s,b)=>s+b.nsNam,0);
   const items = [
     {lbl:'Tổng đầu việc EB', val: ebWork.length, delta: 'Trong tổng ' + workItems.length + ' đầu việc'},
     {lbl:'Đã hoàn thành', val: ebDone, delta: ebWork.length ? Math.round(ebDone/ebWork.length*100) + '% đầu việc EB' : 'Chưa có dữ liệu'},
-    {lbl:'Ngân sách EB đã dùng', val: pctFmt(ebThucChi, ebNam), delta: moneyFmt(ebThucChi) + ' / ' + moneyFmt(ebNam) + ' ngân sách năm'},
   ];
   document.getElementById('eb-stats').innerHTML = items.map(s => `
     <div class="stat-tile">
@@ -1991,7 +2052,7 @@ function renderEbStats() {
 function populateWorkProgramSelect() {
   const sel = document.getElementById('w-chuongtrinh');
   sel.innerHTML = '<option value="">— Không thuộc sự kiện nào —</option>' +
-    programs.map(p => `<option value="${p.ten}">${p.ten}</option>`).join('');
+    programs.map(p => `<option value="${esc(p.ten)}">${esc(p.ten)}</option>`).join('');
 }
 
 document.getElementById('w-phanloai').addEventListener('click', (e) => {
@@ -2006,7 +2067,7 @@ document.getElementById('w-phanloai').addEventListener('click', (e) => {
 
 function ownerRowHTML() {
   return `<div class="owner-row" style="display:flex; gap:6px; margin-bottom:6px;">
-    <select class="owner-select" style="flex:1;">${staffNames().map(s => `<option>${s}</option>`).join('')}</select>
+    <select class="owner-select" style="flex:1;">${staffNames().map(s => `<option>${esc(s)}</option>`).join('')}</select>
     <button type="button" class="btn secondary sm" onclick="removeOwnerRow(this)" title="Bỏ người này">×</button>
   </div>`;
 }
@@ -2156,13 +2217,13 @@ function statusSelectClass_(trangThai) {
 }
 function statusPillHTML_(trangThai) {
   const cls = trangThai === 'Hoàn thành' ? 'done' : trangThai === 'Đang thực hiện' ? 'doing' : 'pending';
-  return `<span class="status-pill ${cls}">${trangThai}</span>`;
+  return `<span class="status-pill ${esc(cls)}">${esc(trangThai)}</span>`;
 }
 function workLinkCellHTML_(w, i) {
   const isUrl = /^https?:\/\//i.test(w.linkThuMuc || '');
   const openBtn = isUrl
-    ? `<a class="btn ghost sm" href="${w.linkThuMuc}" target="_blank" rel="noopener" title="Mở link lưu trữ">🔗</a>`
-    : (w.linkThuMuc ? `<button class="btn ghost sm" onclick='showToast("Nội dung đã lưu (không phải link bấm được): " + ${JSON.stringify(w.linkThuMuc)})' title="Xem nội dung đã lưu">📄</button>` : '');
+    ? `<a class="btn ghost sm" href="${safeUrl(w.linkThuMuc)}" target="_blank" rel="noopener" title="Mở link lưu trữ">🔗</a>`
+    : (w.linkThuMuc ? `<button class="btn ghost sm" onclick="showToast('Nội dung đã lưu (không phải link bấm được): ' + ${jsArg(w.linkThuMuc)})" title="Xem nội dung đã lưu">📄</button>` : '');
   return `${openBtn}<button class="btn ghost sm" onclick="promptWorkLink(${i})" title="Sửa link lưu trữ">✏️</button>`;
 }
 function renderWorkTaskView() {
@@ -2173,15 +2234,15 @@ function renderWorkTaskView() {
     .filter(({w}) => !term || [w.ma, w.mang, w.ten, w.phanLoai, w.nguoi.join(' '), w.chuongTrinh, w.trangThai, w.moTa].join(' ').toLowerCase().includes(term));
   document.getElementById('work-body').innerHTML = rows.length ? rows.map(({w, i}) => `
     <tr>
-      <td style="font-weight:700;">${w.ma}</td>
-      <td>${w.mang}</td>
-      <td style="cursor:pointer;" onclick="openWorkDetail(${i})">${w.ten}
-        ${w.moTa ? `<div class="subtext">${truncateText_(w.moTa, 70)}</div>` : ''}
-        ${w.chuongTrinh ? `<div class="subtext tag-prog">🎪 ${w.chuongTrinh}</div>` : ''}
+      <td style="font-weight:700;">${esc(w.ma)}</td>
+      <td>${esc(w.mang)}</td>
+      <td style="cursor:pointer;" onclick="openWorkDetail(${i})">${esc(w.ten)}
+        ${w.moTa ? `<div class="subtext">${esc(truncateText_(w.moTa, 70))}</div>` : ''}
+        ${w.chuongTrinh ? `<div class="subtext tag-prog">🎪 ${esc(w.chuongTrinh)}</div>` : ''}
       </td>
-      <td>${w.phanLoai}</td>
-      <td>${w.nguoi.join(', ')}</td>
-      <td>${w.han || '—'}${overdueWarnHTML(w)}</td>
+      <td>${esc(w.phanLoai)}</td>
+      <td>${esc(w.nguoi.join(', '))}</td>
+      <td>${esc(w.han || '—')}${overdueWarnHTML(w)}</td>
       <td style="white-space:nowrap;">${workLinkCellHTML_(w, i)}</td>
       <td>
         <select class="inline ${statusSelectClass_(w.trangThai)}" id="wt-${i}" onchange="updateWorkStatus(${i})">
@@ -2209,23 +2270,23 @@ function openWorkDetail(i) {
   const isUrlGoc = /^https?:\/\//i.test(w.link || '');
   document.getElementById('work-detail-body').innerHTML = `
     <div class="stat-row-3" style="margin:14px 0;">
-      <div class="stat-tile flat"><div class="lbl">Người phụ trách</div><div class="val" style="font-size:15px;">${w.nguoi.join(', ') || '—'}</div></div>
-      <div class="stat-tile flat"><div class="lbl">Hạn hoàn thành</div><div class="val" style="font-size:15px;">${w.han || '—'}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Người phụ trách</div><div class="val" style="font-size:15px;">${esc(w.nguoi.join(', ') || '—')}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Hạn hoàn thành</div><div class="val" style="font-size:15px;">${esc(w.han || '—')}</div></div>
       <div class="stat-tile flat"><div class="lbl">Trạng thái</div><div class="val" style="font-size:15px;">${statusPillHTML_(w.trangThai)} ${w.xacNhan ? '<span class="status-pill done">Đã xác nhận</span>' : ''}</div></div>
     </div>
-    ${w.chuongTrinh ? `<p class="sub" style="margin-bottom:4px;"><b>Thuộc sự kiện</b></p><p style="margin-top:0;">🎪 ${w.chuongTrinh}</p>` : ''}
+    ${w.chuongTrinh ? `<p class="sub" style="margin-bottom:4px;"><b>Thuộc sự kiện</b></p><p style="margin-top:0;">🎪 ${esc(w.chuongTrinh)}</p>` : ''}
     <p class="sub" style="margin-bottom:4px;"><b>Mô tả / kế hoạch hành động</b></p>
-    <p style="margin-top:0; white-space:pre-line;">${w.moTa || '—'}</p>
+    <p style="margin-top:0; white-space:pre-line;">${esc(w.moTa || '—')}</p>
     <p class="sub" style="margin-bottom:4px;"><b>Link (từ báo cáo gốc, chỉ xem)</b></p>
-    <p style="margin-top:0;">${w.link ? (isUrlGoc ? `<a href="${w.link}" target="_blank" rel="noopener">🔗 Mở link</a>` : w.link) : '—'}</p>
+    <p style="margin-top:0;">${w.link ? (isUrlGoc ? `<a href="${safeUrl(w.link)}" target="_blank" rel="noopener">🔗 Mở link</a>` : esc(w.link)) : '—'}</p>
     <p class="sub" style="margin-bottom:4px;"><b>Link lưu trữ</b></p>
     <p style="margin-top:0;">
-      ${w.linkThuMuc ? (isUrlLuuTru ? `<a href="${w.linkThuMuc}" target="_blank" rel="noopener">🔗 Mở link</a>` : w.linkThuMuc) : '—'}
+      ${w.linkThuMuc ? (isUrlLuuTru ? `<a href="${safeUrl(w.linkThuMuc)}" target="_blank" rel="noopener">🔗 Mở link</a>` : esc(w.linkThuMuc)) : '—'}
       <button class="btn ghost sm" onclick="promptWorkLink(${workItems.indexOf(w)})">✏️ Sửa</button>
     </p>
     ${metaLine(w)}
     <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--gridline);">
-      <button class="btn ghost sm" style="color:var(--danger); border-color:var(--danger);" onclick="deleteWorkItem('${w.ma}')">🗑️ Xoá đầu việc này</button>
+      <button class="btn ghost sm" style="color:var(--danger); border-color:var(--danger);" onclick="deleteWorkItem(${jsArg(w.ma)})">🗑️ Xoá đầu việc này</button>
     </div>
   `;
   document.getElementById('work-detail-card').scrollIntoView({behavior:'smooth', block:'center'});
@@ -2288,7 +2349,7 @@ function overdueWarnHTML(w) {
   if (!created) return '';
   const days = Math.floor((new Date() - created) / (1000*60*60*24));
   if (days < 7) return '';
-  return `<div class="subtext" style="color:var(--danger); font-weight:700;">⚠️ Chưa có hạn HT — quá ${days} ngày, cần cảnh báo tiến độ</div>`;
+  return `<div class="subtext" style="color:var(--danger); font-weight:700;">⚠️ Chưa có hạn HT — quá ${esc(days)} ngày, cần cảnh báo tiến độ</div>`;
 }
 async function updateWorkStatus(i) {
   const val = document.getElementById('wt-' + i).value;
@@ -2327,8 +2388,8 @@ async function confirmWork(i) {
 /* ---------------- SU KIEN (truoc day: Chuong trinh) ---------------- */
 function linkRowHTML(l) {
   return `<div class="link-row">
-    <input type="text" class="prog-link-name" placeholder="Tên link (VD: Link Drive)" value="${l ? l.ten : ''}">
-    <input type="url" class="prog-link-url" placeholder="https://..." value="${l ? l.url : ''}">
+    <input type="text" class="prog-link-name" placeholder="Tên link (VD: Link Drive)" value="${esc(l ? l.ten : '')}">
+    <input type="url" class="prog-link-url" placeholder="https://..." value="${esc(l ? l.url : '')}">
     <button type="button" class="btn secondary sm" onclick="removeProgramLinkRow(this)" title="Bỏ link này">×</button>
   </div>`;
 }
@@ -2392,14 +2453,14 @@ function programCardHTML_(p) {
   const dkTotal = (p.nsCongDoanDuKien||0) + (p.nsCongTyDuKien||0);
   const tcTotal = p.trangThai === 'Hoàn thành' ? (p.nsCongDoanThucChi||0) + (p.nsCongTyThucChi||0) : null;
   return `
-  <div class="sk-event-card" onclick="openProgramDetail('${p.maSuKien}')">
+  <div class="sk-event-card" onclick="openProgramDetail(${jsArg(p.maSuKien)})">
     <div class="sk-thumb ${!p.anh ? 'no-image' : ''}">
-      ${p.anh ? `<img src="${p.anh}" alt="${p.ten}" loading="lazy">` : THANG_ICON_MAC_DINH}
+      ${p.anh ? `<img src="${safeUrl(p.anh)}" alt="${esc(p.ten)}" loading="lazy">` : THANG_ICON_MAC_DINH}
       <span class="sk-status-dot ${p.trangThai==='Đang lên kế hoạch'?'plan':''}"></span>
     </div>
     <div class="sk-body">
-      <div class="sk-ten">${p.ten}</div>
-      <div class="sk-highlight">${p.thoiGianGoc || p.ngay || '—'}</div>
+      <div class="sk-ten">${esc(p.ten)}</div>
+      <div class="sk-highlight">${esc(p.thoiGianGoc || p.ngay || '—')}</div>
       <div class="sk-foot">
         <span class="sk-ns">${moneyFmt(tcTotal !== null ? tcTotal : dkTotal)}</span>
         <span class="status-pill ${p.trangThai==='Hoàn thành'?'done':'plan'}">${p.trangThai==='Hoàn thành'?'Hoàn thành':'Kế hoạch'}</span>
@@ -2411,17 +2472,17 @@ function programCardHTML_(p) {
 /* ---- Tab "Lộ trình năm": Gantt theo 12 tháng, không chia làn (chỉ 1 loại sự kiện) ---- */
 function renderProgramsRoadmap_(list) {
   const thangHienTai = new Date().getMonth() + 1;
-  document.getElementById('sk-roadmap-quarters').innerHTML = ['Q1','Q2','Q3','Q4'].map(q => `<div class="sk-q-cell">${q}</div>`).join('');
+  document.getElementById('sk-roadmap-quarters').innerHTML = ['Q1','Q2','Q3','Q4'].map(q => `<div class="sk-q-cell">${esc(q)}</div>`).join('');
   document.getElementById('sk-roadmap-months').innerHTML = Array.from({length:12}, (_,i) => i+1)
-    .map(m => `<div class="sk-m-cell ${m===thangHienTai?'current':''}">Th ${m}</div>`).join('');
+    .map(m => `<div class="sk-m-cell ${m===thangHienTai?'current':''}">Th ${esc(m)}</div>`).join('');
   document.getElementById('sk-roadmap-grid').innerHTML = Array.from({length:12}, (_,i) => i+1).map(m => {
     const items = list.filter(p => p.thang === m);
     return `<div class="sk-roadmap-col">${items.map(p => {
       const dkTotal = (p.nsCongDoanDuKien||0) + (p.nsCongTyDuKien||0);
       const tcTotal = p.trangThai === 'Hoàn thành' ? (p.nsCongDoanThucChi||0) + (p.nsCongTyThucChi||0) : null;
       return `
-      <div class="sk-rm-block ${p.trangThai==='Đang lên kế hoạch'?'plan':''}" onclick="openProgramDetail('${p.maSuKien}')">
-        <div class="sk-ten">${p.ten}</div>
+      <div class="sk-rm-block ${p.trangThai==='Đang lên kế hoạch'?'plan':''}" onclick="openProgramDetail(${jsArg(p.maSuKien)})">
+        <div class="sk-ten">${esc(p.ten)}</div>
         <div class="sk-ns">${moneyFmt(tcTotal !== null ? tcTotal : dkTotal)}</div>
       </div>`;
     }).join('')}</div>`;
@@ -2550,31 +2611,31 @@ function openProgramDetail(maSuKien) {
   if (!p) return;
   const bannerEl = document.getElementById('program-detail-banner');
   bannerEl.className = 'sk-drawer-banner' + (p.anh ? '' : ' no-image');
-  bannerEl.innerHTML = p.anh ? `<img src="${p.anh}" alt="${p.ten}">` : THANG_ICON_MAC_DINH;
+  bannerEl.innerHTML = p.anh ? `<img src="${safeUrl(p.anh)}" alt="${esc(p.ten)}">` : THANG_ICON_MAC_DINH;
   document.getElementById('program-detail-title').textContent = p.ten;
   document.getElementById('program-detail-sub').textContent = p.thoiGianGoc || p.ngay || '—';
   const linksHTML = (p.links && p.links.length)
-    ? `<div class="link-chip-list">${p.links.map(l => `<a class="btn secondary sm" href="${l.url}" target="_blank" rel="noopener">🔗 ${l.ten || l.url}</a>`).join('')}</div>`
+    ? `<div class="link-chip-list">${p.links.map(l => `<a class="btn secondary sm" href="${safeUrl(l.url)}" target="_blank" rel="noopener">🔗 ${esc(l.ten || l.url)}</a>`).join('')}</div>`
     : '<p class="sub" style="margin:6px 0 0;">Chưa có link nào được đính kèm.</p>';
   const voucherRows = voucherDots.filter(v => v.maSuKien === maSuKien);
   const voucherHTML = voucherRows.length
     ? `<div class="table-wrap"><table><thead><tr><th>Đợt</th><th>Loại NS</th><th>Mệnh giá</th><th>SL</th><th>Tồn</th></tr></thead><tbody>${
-        voucherRows.map(v => `<tr><td>${v.tenDot}</td><td>${v.loaiNS}</td><td>${moneyFmt(v.menhGia)}</td><td>${v.soLuong}</td><td>${v.soLuongTon}</td></tr>`).join('')
+        voucherRows.map(v => `<tr><td>${esc(v.tenDot)}</td><td>${esc(v.loaiNS)}</td><td>${moneyFmt(v.menhGia)}</td><td>${esc(v.soLuong)}</td><td>${esc(v.soLuongTon)}</td></tr>`).join('')
       }</tbody></table></div>`
     : '<p class="sub" style="margin:6px 0 0;">Chưa có đợt order voucher nào.</p>';
   document.getElementById('program-detail-body').innerHTML = `
-    <span class="status-pill ${p.trangThai==='Hoàn thành'?'done':'plan'}" style="margin-bottom:14px;">${p.trangThai}</span>
+    <span class="status-pill ${p.trangThai==='Hoàn thành'?'done':'plan'}" style="margin-bottom:14px;">${esc(p.trangThai)}</span>
     <div class="stat-row-3" style="margin:14px 0;">
       <div class="stat-tile flat"><div class="lbl">NS Công đoàn (dự kiến / thực chi)</div><div class="val" style="font-size:15px;">${moneyFmt(p.nsCongDoanDuKien)} / ${p.trangThai==='Hoàn thành'?moneyFmt(p.nsCongDoanThucChi):'—'}</div></div>
       <div class="stat-tile flat"><div class="lbl">NS Công ty (dự kiến / thực chi)</div><div class="val" style="font-size:15px;">${moneyFmt(p.nsCongTyDuKien)} / ${p.trangThai==='Hoàn thành'?moneyFmt(p.nsCongTyThucChi):'—'}</div></div>
-      <div class="stat-tile flat"><div class="lbl">Đánh giá hài lòng</div><div class="val" style="font-size:20px;">${p.danhGiaHaiLong ? p.danhGiaHaiLong + '%' : '—'}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Đánh giá hài lòng</div><div class="val" style="font-size:20px;">${p.danhGiaHaiLong ? esc(p.danhGiaHaiLong) + '%' : '—'}</div></div>
     </div>
-    <p class="sub" style="margin-bottom:4px;"><b>Đối tượng</b></p><p style="margin-top:0;">${p.doiTuong || '—'}</p>
-    <p class="sub" style="margin-bottom:4px;"><b>Địa điểm</b></p><p style="margin-top:0;">${p.diaDiem || '—'}</p>
-    <p class="sub" style="margin-bottom:4px;"><b>Số lượng tham dự</b></p><p style="margin-top:0;">${p.soLuongThamDu || '—'}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Đối tượng</b></p><p style="margin-top:0;">${esc(p.doiTuong || '—')}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Địa điểm</b></p><p style="margin-top:0;">${esc(p.diaDiem || '—')}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Số lượng tham dự</b></p><p style="margin-top:0;">${esc(p.soLuongThamDu || '—')}</p>
     <p class="sub" style="margin-bottom:4px;"><b>Nội dung triển khai</b></p>
-    <p style="margin-top:0; white-space:pre-line;">${p.noiDung || '—'}</p>
-    ${p.ketqua ? `<p class="sub" style="margin-bottom:4px;"><b>Kết quả nổi bật / sự cố</b></p><p style="margin-top:0;">${p.ketqua}</p>` : ''}
+    <p style="margin-top:0; white-space:pre-line;">${esc(p.noiDung || '—')}</p>
+    ${p.ketqua ? `<p class="sub" style="margin-bottom:4px;"><b>Kết quả nổi bật / sự cố</b></p><p style="margin-top:0;">${esc(p.ketqua)}</p>` : ''}
     <p class="sub" style="margin-bottom:4px;"><b>Đợt order voucher</b></p>
     ${voucherHTML}
     <p class="sub" style="margin-bottom:4px;"><b>Đường link liên quan</b></p>
@@ -2613,7 +2674,7 @@ async function deleteProgramFromDetail() {
 /* ---------------- TONG HOP THI DUA (Module 4 — API thật) ---------------- */
 function statusBadgeWork(status) {
   const map = { 'Chưa triển khai': 'muted', 'Đang thực hiện': 'warning', 'Hoàn thành': 'good' };
-  return `<span class="badge"><span class="dot ${map[status]||'muted'}"></span>${status}</span>`;
+  return `<span class="badge"><span class="dot ${map[status]||'muted'}"></span>${esc(status)}</span>`;
 }
 async function refreshThiDua(showLoadingToast) {
   if (showLoadingToast) showToast('Đang tải danh sách thi đua...');
@@ -2670,7 +2731,7 @@ function thiDuaStatusPillHTML_(status) {
     'Thiết kế': 'td-status-design',
     'HUỶ': 'td-status-cancel',
   };
-  return `<span class="td-status-pill ${CLASS_MAP[s] || 'td-status-blank'}">${s || 'Chưa cập nhật'}</span>`;
+  return `<span class="td-status-pill ${CLASS_MAP[s] || 'td-status-blank'}">${esc(s || 'Chưa cập nhật')}</span>`;
 }
 function soNgayThiDuaHTML_(c) {
   const bd = toDateInputValue_(c.batDau), kt = toDateInputValue_(c.ketThuc);
@@ -2681,15 +2742,15 @@ function soNgayThiDuaHTML_(c) {
 function competitionRowHTML_(c) {
   return `
     <tr>
-      <td style="font-weight:700; cursor:pointer;" onclick="openCompetitionDetail('${c.maCT}')">${c.ten}${c.maDongBo ? ' <span class="webapp-type-tag" title="Đồng bộ tự động từ hệ thống Thi đua">🔄 Đồng bộ</span>' : ''}${metaLine(c)}</td>
+      <td style="font-weight:700; cursor:pointer;" onclick="openCompetitionDetail(${jsArg(c.maCT)})">${esc(c.ten)}${c.maDongBo ? ' <span class="webapp-type-tag" title="Đồng bộ tự động từ hệ thống Thi đua">🔄 Đồng bộ</span>' : ''}${metaLine(c)}</td>
       <td>${competitionTypeTag(c)}</td>
-      <td>${c.phamVi || '—'}</td>
-      <td>${thoiGianThiDuaText_(c)}</td>
+      <td>${esc(c.phamVi || '—')}</td>
+      <td>${esc(thoiGianThiDuaText_(c))}</td>
       <td>${soNgayThiDuaHTML_(c)}</td>
       <td>${thiDuaStatusPillHTML_(c.tinhTrang)}</td>
       <td style="white-space:nowrap;">
-        <button class="btn ghost sm" onclick="openCompetitionDetail('${c.maCT}')">👁 Chi tiết</button>
-        <button class="btn secondary sm" onclick="startCompetitionEdit('${c.maCT}')">✏️ Sửa</button>
+        <button class="btn ghost sm" onclick="openCompetitionDetail(${jsArg(c.maCT)})">👁 Chi tiết</button>
+        <button class="btn secondary sm" onclick="startCompetitionEdit(${jsArg(c.maCT)})">✏️ Sửa</button>
       </td>
     </tr>`;
 }
@@ -2733,10 +2794,10 @@ function renderCompetitions() {
     const collapsed = collapsedThiDuaMonths.has(key);
     return `
     <div class="td-month-group">
-      <div class="td-month-head ${collapsed ? 'collapsed' : ''}" id="td-head-${key}" onclick="toggleThiDuaMonth('${key}')">
-        <span class="chevron">▾</span> ${thangLabelThiDua_(key)} <span class="count">(${items.length})</span>
+      <div class="td-month-head ${collapsed ? 'collapsed' : ''}" id="td-head-${esc(key)}" onclick="toggleThiDuaMonth(${jsArg(key)})">
+        <span class="chevron">▾</span> ${thangLabelThiDua_(key)} <span class="count">(${esc(items.length)})</span>
       </div>
-      <div class="td-month-body ${collapsed ? 'collapsed' : ''}" id="td-body-${key}">
+      <div class="td-month-body ${collapsed ? 'collapsed' : ''}" id="td-body-${esc(key)}">
         <div class="table-wrap">
         <table>
           <thead><tr><th>Chương trình</th><th>Loại</th><th>Phạm vi</th><th>Thời gian</th><th>Số ngày</th><th>Tình trạng</th><th></th></tr></thead>
@@ -2838,19 +2899,19 @@ function openCompetitionDetail(maCT) {
   document.getElementById('competition-detail-title').textContent = c.ten;
   document.getElementById('competition-detail-sub').textContent = thoiGianThiDuaText_(c) + (c.maDongBo ? ' · 🔄 Đồng bộ' : '');
   document.getElementById('competition-detail-body').innerHTML = `
-    <span class="webapp-type-tag" style="margin-bottom:14px;">${c.tinhTrang || 'Chưa có tình trạng'}</span>
+    <span class="webapp-type-tag" style="margin-bottom:14px;">${esc(c.tinhTrang || 'Chưa có tình trạng')}</span>
     <div class="stat-row-3" style="margin:14px 0;">
-      <div class="stat-tile flat"><div class="lbl">Loại</div><div class="val" style="font-size:15px;">${c.loai}</div></div>
-      <div class="stat-tile flat"><div class="lbl">Phạm vi</div><div class="val" style="font-size:15px;">${c.phamVi || '—'}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Loại</div><div class="val" style="font-size:15px;">${esc(c.loai)}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Phạm vi</div><div class="val" style="font-size:15px;">${esc(c.phamVi || '—')}</div></div>
       <div class="stat-tile flat"><div class="lbl">Tiền chi thưởng</div><div class="val" style="font-size:15px;">${c.soTienChiThuong ? c.soTienChiThuong.toLocaleString('vi-VN') + ' đ' : '—'}</div></div>
     </div>
-    <p class="sub" style="margin-bottom:4px;"><b>Đầu mối order</b></p><p style="margin-top:0;">${c.dauMoiOrder || '—'}</p>
-    <p class="sub" style="margin-bottom:4px;"><b>Truyền thông</b></p><p style="margin-top:0;">${c.truyenThong || '—'}</p>
-    <p class="sub" style="margin-bottom:4px;"><b>Gửi C&B</b></p><p style="margin-top:0;">${c.guiCB || '—'}</p>
-    <p class="sub" style="margin-bottom:4px;"><b>Ngày air bài / phát động</b></p><p style="margin-top:0; white-space:pre-line;">${c.ngayAirBai || '—'}</p>
-    <p class="sub" style="margin-bottom:4px;"><b>Ghi chú</b></p><p style="margin-top:0; white-space:pre-line;">${c.ghiChu || '—'}</p>
-    <p class="sub" style="margin-bottom:4px;"><b>Ghi chú/Link (báo cáo gốc)</b></p><p style="margin-top:0;">${c.ghiChuLink || '—'}</p>
-    ${c.linkPoster ? `<p class="sub" style="margin-bottom:4px;"><b>Poster</b></p><a class="btn secondary sm" href="${c.linkPoster}" target="_blank" rel="noopener">🖼 Xem poster</a>` : ''}
+    <p class="sub" style="margin-bottom:4px;"><b>Đầu mối order</b></p><p style="margin-top:0;">${esc(c.dauMoiOrder || '—')}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Truyền thông</b></p><p style="margin-top:0;">${esc(c.truyenThong || '—')}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Gửi C&B</b></p><p style="margin-top:0;">${esc(c.guiCB || '—')}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Ngày air bài / phát động</b></p><p style="margin-top:0; white-space:pre-line;">${esc(c.ngayAirBai || '—')}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Ghi chú</b></p><p style="margin-top:0; white-space:pre-line;">${esc(c.ghiChu || '—')}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Ghi chú/Link (báo cáo gốc)</b></p><p style="margin-top:0;">${esc(c.ghiChuLink || '—')}</p>
+    ${c.linkPoster ? `<p class="sub" style="margin-bottom:4px;"><b>Poster</b></p><a class="btn secondary sm" href="${safeUrl(c.linkPoster)}" target="_blank" rel="noopener">🖼 Xem poster</a>` : ''}
     ${metaLine(c)}
   `;
   document.getElementById('competition-detail-overlay').classList.add('open');
@@ -2919,225 +2980,258 @@ async function syncFromThiDuaSystem() {
 }
 
 /* ---------------- NGAN SACH ---------------- */
-function setBudgetFilter(t) {
-  budgetFilterType = t;
-  document.querySelectorAll('#budget-type-filter .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.t === t));
-  renderBudget();
+/* ---------------- 06. NGAN SACH THEO THANG (12 dong co dinh, chi sua) ---------------- */
+async function refreshNganSachThang(showLoadingToast) {
+  if (showLoadingToast) showToast('Đang tải ngân sách theo tháng...');
+  const r = await callPtvhApi('getNganSachThangList', {});
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không tải được ngân sách theo tháng');
+    return;
+  }
+  nganSachThang = r.data || [];
+  nganSachThangLoaded = true;
+  renderNganSachThang();
 }
-function fillLoaiNSSelect(sel) {
-  sel.innerHTML = LOAI_NS_LIST.map(l => `<option>${l}</option>`).join('');
-}
-function fillSuKienSelect(sel) {
-  sel.innerHTML = '<option value="">— Không gắn sự kiện —</option>' + programs.map(p => `<option>${p.ten}</option>`).join('');
-}
-function passesBudgetFilter(loaiNS) { return budgetFilterType === 'Tất cả' || loaiNS === budgetFilterType; }
-
-function renderBudgetRef() {
-  const rows = budgetYearRef.map((b, i) => ({b, i})).filter(({b}) => passesBudgetFilter(b.loaiNS));
-  document.getElementById('budget-ref-body').innerHTML = rows.map(({b, i}) => {
-    const thucChi = budgetItems.filter(x => x.mang === b.mang && x.loaiNS === b.loaiNS).reduce((s,x)=>s+x.thucchi,0);
+function nganSachThangRowHTML_(t) {
+  if (nganSachThangEditThang === t.thang) {
     return `
     <tr>
-      <td style="font-weight:700;">${b.mang}</td>
-      <td>${b.loaiNS}</td>
-      <td><input class="inline" type="number" style="width:140px" value="${b.nsNam}" onchange="updateBudgetRef(${i}, this.value)"></td>
-      <td>${moneyFmt(thucChi)}</td>
-      <td>${pctFmt(thucChi, b.nsNam)}</td>
-    </tr>`;
-  }).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;">Không có dữ liệu</td></tr>';
-}
-function updateBudgetRef(i, val) {
-  budgetYearRef[i].nsNam = parseFloat(val) || 0;
-  stampMeta(budgetYearRef[i]);
-  showToast('Đã cập nhật ngân sách năm — ' + budgetYearRef[i].mang + ' (' + budgetYearRef[i].loaiNS + ')');
-  renderBudgetRef();
-}
-
-function budgetPlanRowHTML(b, i) {
-  if (i === budgetPlanEditIndex) {
-    return `
-    <tr>
-      <td><input type="text" class="inline" style="width:90px" id="bpe-thang-${i}" value="${b.thang}"></td>
-      <td><select class="inline" id="bpe-mang-${i}"></select></td>
-      <td><select class="inline" id="bpe-loains-${i}"></select></td>
-      <td><input type="text" class="inline" style="width:100%" id="bpe-hangmuc-${i}" value="${b.hangmuc}"></td>
-      <td><input type="number" class="inline" style="width:120px" id="bpe-sotien-${i}" value="${b.keHoach}"></td>
+      <td style="font-weight:700;">Tháng ${esc(t.thang)}</td>
+      <td><input type="text" inputmode="numeric" class="inline" style="width:130px" id="nst-chutruong-${esc(t.thang)}" value="${t.nsPheDuyetChuTruong.toLocaleString('vi-VN')}" oninput="formatMoneyInput(this)"></td>
+      <td><input type="text" inputmode="numeric" class="inline" style="width:130px" id="nst-taichinh-${esc(t.thang)}" value="${t.nsPheDuyetTaiChinhCongDoan.toLocaleString('vi-VN')}" oninput="formatMoneyInput(this)"></td>
+      <td><input type="text" inputmode="numeric" class="inline" style="width:130px" id="nst-dachi-${esc(t.thang)}" value="${t.nsDaChi.toLocaleString('vi-VN')}" oninput="formatMoneyInput(this)"></td>
+      <td><input type="text" inputmode="numeric" class="inline" style="width:130px" id="nst-chuadung-${esc(t.thang)}" value="${t.nsChuaSuDung.toLocaleString('vi-VN')}" oninput="formatMoneyInput(this)"></td>
       <td style="white-space:nowrap;">
-        <button class="btn secondary sm" onclick="saveBudgetPlanEdit(${i})">Lưu</button>
-        <button class="btn ghost sm" onclick="cancelBudgetPlanEdit()">Hủy</button>
+        <button class="btn secondary sm" onclick="saveNganSachThangEdit(${esc(t.thang)})">Lưu</button>
+        <button class="btn ghost sm" onclick="cancelNganSachThangEdit()">Hủy</button>
       </td>
     </tr>`;
   }
   return `
     <tr>
-      <td>${b.thang}</td>
-      <td>${b.mang}</td>
-      <td>${b.loaiNS}</td>
-      <td>${b.hangmuc}${metaLine(b)}</td>
-      <td>${moneyFmt(b.keHoach)}</td>
-      <td><button class="btn secondary sm" onclick="startBudgetPlanEdit(${i})">✏️ Sửa</button></td>
+      <td style="font-weight:700;">Tháng ${esc(t.thang)}</td>
+      <td>${moneyFmt(t.nsPheDuyetChuTruong)}</td>
+      <td>${moneyFmt(t.nsPheDuyetTaiChinhCongDoan)}</td>
+      <td>${moneyFmt(t.nsDaChi)}</td>
+      <td>${moneyFmt(t.nsChuaSuDung)}</td>
+      <td><button class="btn secondary sm" onclick="startNganSachThangEdit(${esc(t.thang)})">✏️ Sửa</button></td>
     </tr>`;
 }
-function renderBudgetPlan() {
-  const term = (document.getElementById('budget-plan-search')?.value || '').toLowerCase().trim();
-  const rows = budgetPlanItems
-    .map((b, i) => ({b, i}))
-    .filter(({b}) => passesBudgetFilter(b.loaiNS))
-    .filter(({b}) => !term || [b.thang, b.mang, b.hangmuc].join(' ').toLowerCase().includes(term));
-  document.getElementById('budget-plan-body').innerHTML = rows.length ? rows.map(({b, i}) => budgetPlanRowHTML(b, i)).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy kế hoạch phù hợp</td></tr>';
-  if (budgetPlanEditIndex !== null) {
-    const sel = document.getElementById('bpe-mang-' + budgetPlanEditIndex);
-    if (sel) { fillMangSelect(sel, false); sel.value = budgetPlanItems[budgetPlanEditIndex].mang; }
-    const lsel = document.getElementById('bpe-loains-' + budgetPlanEditIndex);
-    if (lsel) { fillLoaiNSSelect(lsel); lsel.value = budgetPlanItems[budgetPlanEditIndex].loaiNS; }
-  }
+function renderNganSachThang() {
+  if (!nganSachThangLoaded) { refreshNganSachThang(); return; }
+  const rows = [...nganSachThang].sort((a,b) => a.thang - b.thang);
+  document.getElementById('budget-thang-body').innerHTML = rows.map(nganSachThangRowHTML_).join('');
 }
-function startBudgetPlanEdit(i) { budgetPlanEditIndex = i; renderBudgetPlan(); }
-function cancelBudgetPlanEdit() { budgetPlanEditIndex = null; renderBudgetPlan(); }
-function saveBudgetPlanEdit(i) {
-  const b = budgetPlanItems[i];
-  const hangmuc = document.getElementById('bpe-hangmuc-' + i).value.trim();
-  if (!hangmuc) { showToast('Vui lòng nhập Hạng mục'); return; }
-  b.thang = document.getElementById('bpe-thang-' + i).value.trim() || '—';
-  b.mang = document.getElementById('bpe-mang-' + i).value;
-  b.loaiNS = document.getElementById('bpe-loains-' + i).value;
-  b.hangmuc = hangmuc;
-  b.keHoach = parseFloat(document.getElementById('bpe-sotien-' + i).value) || 0;
-  budgetPlanEditIndex = null;
-  stampMeta(b);
-  showToast('Đã lưu thay đổi kế hoạch chi');
-  renderBudgetPlan();
-}
-function addBudgetPlan() {
-  const hangmuc = document.getElementById('bp-hangmuc').value.trim();
-  if (!hangmuc) { showToast('Vui lòng nhập Hạng mục'); return; }
-  budgetPlanCounter++;
-  budgetPlanItems.unshift({
-    thang: document.getElementById('bp-thang').value || '—',
-    mang: document.getElementById('bp-mang').value,
-    loaiNS: document.getElementById('bp-loains').value,
-    hangmuc,
-    keHoach: parseFloat(document.getElementById('bp-sotien').value) || 0,
-  });
-  stampMeta(budgetPlanItems[0]);
-  ['bp-thang','bp-hangmuc','bp-sotien'].forEach(id => document.getElementById(id).value = '');
-  showToast('Đã lưu kế hoạch chi tháng');
-  closeForm('budget-plan-form');
-  renderBudgetPlan();
+function startNganSachThangEdit(thang) { nganSachThangEditThang = thang; renderNganSachThang(); }
+function cancelNganSachThangEdit() { nganSachThangEditThang = null; renderNganSachThang(); }
+async function saveNganSachThangEdit(thang) {
+  const payload = {
+    nsPheDuyetChuTruong: parseMoneyInput('nst-chutruong-' + thang),
+    nsPheDuyetTaiChinhCongDoan: parseMoneyInput('nst-taichinh-' + thang),
+    nsDaChi: parseMoneyInput('nst-dachi-' + thang),
+    nsChuaSuDung: parseMoneyInput('nst-chuadung-' + thang),
+  };
+  const r = await callPtvhApi('updateNganSachThang', { thang, payload });
+  if (!r.ok) { showToast(r.message || 'Không lưu được'); return; }
+  showToast('Đã lưu Tháng ' + thang);
+  nganSachThangEditThang = null;
+  await refreshNganSachThang();
 }
 
-function budgetActualRowHTML(b, i) {
-  if (i === budgetActualEditIndex) {
-    return `
-    <tr>
-      <td><input type="text" class="inline" style="width:90px" id="bae-thang-${i}" value="${b.thang}"></td>
-      <td><select class="inline" id="bae-mang-${i}"></select></td>
-      <td><select class="inline" id="bae-loains-${i}"></select></td>
-      <td><input type="text" class="inline" style="width:100%" id="bae-hangmuc-${i}" value="${b.hangmuc}"></td>
-      <td><select class="inline" id="bae-sukien-${i}"></select></td>
-      <td><input type="number" class="inline" style="width:110px" id="bae-duyet-${i}" value="${b.duyet}"></td>
-      <td><input type="number" class="inline" style="width:110px" id="bae-thucchi-${i}" value="${b.thucchi}"></td>
-      <td>—</td>
-      <td style="white-space:nowrap;">
-        <button class="btn secondary sm" onclick="saveBudgetActualEdit(${i})">Lưu</button>
-        <button class="btn ghost sm" onclick="cancelBudgetActualEdit()">Hủy</button>
-      </td>
-    </tr>`;
+/* ---------------- 05. CHI TIET NGAN SACH (CRUD day du) ---------------- */
+async function refreshNganSachChiTiet(showLoadingToast) {
+  if (showLoadingToast) showToast('Đang tải chi tiết ngân sách...');
+  const r = await callPtvhApi('getNganSachChiTietList', {});
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không tải được chi tiết ngân sách');
+    return;
   }
+  nganSachChiTiet = r.data || [];
+  nganSachChiTietLoaded = true;
+  renderNganSachChiTiet();
+  renderBudgetByEvent();
+}
+function tongKH_(it) { return (it.congTyKH||0) + (it.congDoanKH||0); }
+function tongTT_(it) { return (it.congTyTT||0) + (it.congDoanTT||0); }
+function nganSachRowHTML_(it) {
   return `
     <tr>
-      <td>${b.thang}</td>
-      <td>${b.mang}</td>
-      <td>${b.loaiNS}</td>
-      <td>${b.hangmuc}${metaLine(b)}</td>
-      <td>${b.suKien ? `<span class="subtext tag-prog">🎪 ${b.suKien}</span>` : '—'}</td>
-      <td>${moneyFmt(b.duyet)}</td>
-      <td>${moneyFmt(b.thucchi)}</td>
-      <td>${pctFmt(b.thucchi, b.duyet)}</td>
-      <td><button class="btn secondary sm" onclick="startBudgetActualEdit(${i})">✏️ Sửa</button></td>
+      <td style="font-weight:700; cursor:pointer;" onclick="openNganSachDetail(${jsArg(it.maKhoan)})">${esc(it.chuongTrinh)}${it.noiDungChi ? `<div class="subtext">${esc(truncateText_(it.noiDungChi, 70))}</div>` : ''}${metaLine({nguoiCapNhat: (it.nguoiNgayCapNhat||'').split(' · ')[0], ngayCapNhat: (it.nguoiNgayCapNhat||'').split(' · ')[1]})}</td>
+      <td>${esc(it.phanTach || '—')}</td>
+      <td>${esc(it.thoiGian || '—')}</td>
+      <td>${moneyFmt(tongKH_(it))}</td>
+      <td>${moneyFmt(tongTT_(it))}</td>
+      <td>${esc(it.phanLoai || '—')}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn ghost sm" onclick="openNganSachDetail(${jsArg(it.maKhoan)})">👁 Chi tiết</button>
+        <button class="btn secondary sm" onclick="startNganSachEdit(${jsArg(it.maKhoan)})">✏️ Sửa</button>
+      </td>
     </tr>`;
 }
-function renderBudgetActual() {
-  const term = (document.getElementById('budget-actual-search')?.value || '').toLowerCase().trim();
-  const rows = budgetItems
-    .map((b, i) => ({b, i}))
-    .filter(({b}) => passesBudgetFilter(b.loaiNS))
-    .filter(({b}) => !term || [b.thang, b.mang, b.hangmuc].join(' ').toLowerCase().includes(term));
-  document.getElementById('budget-body').innerHTML = rows.length ? rows.map(({b, i}) => budgetActualRowHTML(b, i)).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy khoản chi phù hợp</td></tr>';
-  if (budgetActualEditIndex !== null) {
-    const sel = document.getElementById('bae-mang-' + budgetActualEditIndex);
-    if (sel) { fillMangSelect(sel, false); sel.value = budgetItems[budgetActualEditIndex].mang; }
-    const lsel = document.getElementById('bae-loains-' + budgetActualEditIndex);
-    if (lsel) { fillLoaiNSSelect(lsel); lsel.value = budgetItems[budgetActualEditIndex].loaiNS; }
-    const ssel = document.getElementById('bae-sukien-' + budgetActualEditIndex);
-    if (ssel) { fillSuKienSelect(ssel); ssel.value = budgetItems[budgetActualEditIndex].suKien || ''; }
-  }
+function renderNganSachChiTiet() {
+  if (!nganSachChiTietLoaded) { refreshNganSachChiTiet(); return; }
+  const term = (document.getElementById('ns-search')?.value || '').toLowerCase().trim();
+  const rows = nganSachChiTiet.filter(it => !term || [it.chuongTrinh, it.noiDungChi, it.phanTach].join(' ').toLowerCase().includes(term));
+  document.getElementById('ns-body').innerHTML = rows.length ? rows.map(nganSachRowHTML_).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy khoản chi phù hợp</td></tr>';
 }
-function startBudgetActualEdit(i) { budgetActualEditIndex = i; renderBudgetActual(); }
-function cancelBudgetActualEdit() { budgetActualEditIndex = null; renderBudgetActual(); }
-function saveBudgetActualEdit(i) {
-  const b = budgetItems[i];
-  const hangmuc = document.getElementById('bae-hangmuc-' + i).value.trim();
-  if (!hangmuc) { showToast('Vui lòng nhập Hạng mục'); return; }
-  b.thang = document.getElementById('bae-thang-' + i).value.trim() || '—';
-  b.mang = document.getElementById('bae-mang-' + i).value;
-  b.loaiNS = document.getElementById('bae-loains-' + i).value;
-  b.hangmuc = hangmuc;
-  b.suKien = document.getElementById('bae-sukien-' + i).value;
-  b.duyet = parseFloat(document.getElementById('bae-duyet-' + i).value) || 0;
-  b.thucchi = parseFloat(document.getElementById('bae-thucchi-' + i).value) || 0;
-  budgetActualEditIndex = null;
-  stampMeta(b);
+async function addNganSach() {
+  const chuongTrinh = document.getElementById('ns-chuongtrinh').value.trim();
+  if (!chuongTrinh) { showToast('Vui lòng nhập Chương trình'); return; }
+  const payload = {
+    chuongTrinh,
+    phanTach: document.getElementById('ns-phantach').value.trim(),
+    noiDungChi: document.getElementById('ns-noidung').value.trim(),
+    thoiGian: document.getElementById('ns-thoigian').value.trim(),
+    donGiaKH: parseMoneyInput('ns-dongiakh'),
+    slKH: parseMoneyInput('ns-slkh'),
+    congTyKH: parseMoneyInput('ns-congtykh'),
+    congDoanKH: parseMoneyInput('ns-congdoankh'),
+    phanLoai: document.getElementById('ns-phanloai').value,
+    suKienLienQuan: document.getElementById('ns-sukien').value,
+  };
+  const r = await callPtvhApi('addNganSachChiTiet', { payload });
+  if (!r.ok) { showToast(r.message || 'Không tạo được khoản chi'); return; }
+  ['ns-chuongtrinh','ns-phantach','ns-noidung','ns-thoigian','ns-dongiakh','ns-slkh','ns-congtykh','ns-congdoankh'].forEach(id => document.getElementById(id).value = '');
+  showToast('Đã lưu khoản chi ngân sách');
+  closeForm('ns-add-form');
+  await refreshNganSachChiTiet();
+}
+function openNganSachDetail(maKhoan) {
+  nganSachDetailMaKhoan = maKhoan;
+  const it = nganSachChiTiet.find(x => x.maKhoan === maKhoan);
+  if (!it) return;
+  document.getElementById('ns-detail-title').textContent = it.chuongTrinh;
+  document.getElementById('ns-detail-sub').textContent = (it.phanTach || '—') + ' · ' + (it.thoiGian || '—');
+  const suKien = programs.find(p => p.maSuKien === it.suKienLienQuan);
+  document.getElementById('ns-detail-body').innerHTML = `
+    <div class="stat-row-3" style="margin:14px 0;">
+      <div class="stat-tile flat"><div class="lbl">Tổng KH</div><div class="val" style="font-size:16px;">${moneyFmt(tongKH_(it))}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Tổng TT</div><div class="val" style="font-size:16px;">${moneyFmt(tongTT_(it))}</div></div>
+      <div class="stat-tile flat"><div class="lbl">% đã dùng</div><div class="val" style="font-size:16px;">${pctFmt(tongTT_(it), tongKH_(it))}</div></div>
+    </div>
+    <p class="sub" style="margin-bottom:4px;"><b>Nội dung chi</b></p><p style="margin-top:0;">${esc(it.noiDungChi || '—')}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Kế hoạch (KH)</b></p>
+    <p style="margin-top:0;">Đơn giá: ${moneyFmt(it.donGiaKH)} · SL: ${it.slKH || 0} · Công ty: ${moneyFmt(it.congTyKH)} · Công đoàn: ${moneyFmt(it.congDoanKH)}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Thực tế (TT)</b></p>
+    <p style="margin-top:0;">Đơn giá: ${moneyFmt(it.donGiaTT)} · SL: ${it.slTT || 0} · Công ty: ${moneyFmt(it.congTyTT)} · Công đoàn: ${moneyFmt(it.congDoanTT)}</p>
+    <p class="sub" style="margin-bottom:4px;"><b>Tham khảo 2024 / 2025</b></p><p style="margin-top:0;">${moneyFmt(it.namThamKhao2024)} / ${moneyFmt(it.namThamKhao2025)}</p>
+    ${it.ghiChu ? `<p class="sub" style="margin-bottom:4px;"><b>Ghi chú</b></p><p style="margin-top:0; white-space:pre-line;">${esc(it.ghiChu)}</p>` : ''}
+    ${suKien ? `<p class="sub" style="margin-bottom:4px;"><b>Sự kiện liên quan</b></p><p style="margin-top:0;">🎪 ${esc(suKien.ten)}</p>` : ''}
+    ${metaLine({nguoiCapNhat: (it.nguoiNgayCapNhat||'').split(' · ')[0], ngayCapNhat: (it.nguoiNgayCapNhat||'').split(' · ')[1]})}
+  `;
+  document.getElementById('ns-detail-overlay').classList.add('open');
+  document.getElementById('ns-detail-card').classList.add('open');
+}
+function closeNganSachDetail() {
+  nganSachDetailMaKhoan = null;
+  document.getElementById('ns-detail-overlay').classList.remove('open');
+  document.getElementById('ns-detail-card').classList.remove('open');
+}
+function startNganSachEdit(maKhoan) {
+  nganSachEditMaKhoan = maKhoan;
+  const it = nganSachChiTiet.find(x => x.maKhoan === maKhoan);
+  if (!it) return;
+  document.getElementById('ns-edit-card').style.display = 'block';
+  document.getElementById('ns-edit-title').textContent = 'Sửa: ' + it.chuongTrinh;
+  document.getElementById('nse-chuongtrinh').value = it.chuongTrinh;
+  document.getElementById('nse-phantach').value = it.phanTach || '';
+  document.getElementById('nse-noidung').value = it.noiDungChi || '';
+  document.getElementById('nse-thoigian').value = it.thoiGian || '';
+  document.getElementById('nse-dongiakh').value = it.donGiaKH ? it.donGiaKH.toLocaleString('vi-VN') : '';
+  document.getElementById('nse-slkh').value = it.slKH ? it.slKH.toLocaleString('vi-VN') : '';
+  document.getElementById('nse-congtykh').value = it.congTyKH ? it.congTyKH.toLocaleString('vi-VN') : '';
+  document.getElementById('nse-congdoankh').value = it.congDoanKH ? it.congDoanKH.toLocaleString('vi-VN') : '';
+  document.getElementById('nse-dongiatt').value = it.donGiaTT ? it.donGiaTT.toLocaleString('vi-VN') : '';
+  document.getElementById('nse-sltt').value = it.slTT ? it.slTT.toLocaleString('vi-VN') : '';
+  document.getElementById('nse-congtytt').value = it.congTyTT ? it.congTyTT.toLocaleString('vi-VN') : '';
+  document.getElementById('nse-congdoantt').value = it.congDoanTT ? it.congDoanTT.toLocaleString('vi-VN') : '';
+  document.getElementById('nse-tk2024').value = it.namThamKhao2024 ? it.namThamKhao2024.toLocaleString('vi-VN') : '';
+  document.getElementById('nse-tk2025').value = it.namThamKhao2025 ? it.namThamKhao2025.toLocaleString('vi-VN') : '';
+  document.getElementById('nse-ghichu').value = it.ghiChu || '';
+  fillPhanLoaiSelect(document.getElementById('nse-phanloai'), it.phanLoai);
+  fillSuKienSelectByMa(document.getElementById('nse-sukien'), it.suKienLienQuan);
+  document.getElementById('ns-edit-card').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function cancelNganSachEdit() {
+  nganSachEditMaKhoan = null;
+  document.getElementById('ns-edit-card').style.display = 'none';
+}
+async function saveNganSachEdit() {
+  if (!nganSachEditMaKhoan) return;
+  const chuongTrinh = document.getElementById('nse-chuongtrinh').value.trim();
+  if (!chuongTrinh) { showToast('Vui lòng nhập Chương trình'); return; }
+  const payload = {
+    chuongTrinh,
+    phanTach: document.getElementById('nse-phantach').value.trim(),
+    noiDungChi: document.getElementById('nse-noidung').value.trim(),
+    thoiGian: document.getElementById('nse-thoigian').value.trim(),
+    donGiaKH: parseMoneyInput('nse-dongiakh'),
+    slKH: parseMoneyInput('nse-slkh'),
+    congTyKH: parseMoneyInput('nse-congtykh'),
+    congDoanKH: parseMoneyInput('nse-congdoankh'),
+    donGiaTT: parseMoneyInput('nse-dongiatt'),
+    slTT: parseMoneyInput('nse-sltt'),
+    congTyTT: parseMoneyInput('nse-congtytt'),
+    congDoanTT: parseMoneyInput('nse-congdoantt'),
+    namThamKhao2024: parseMoneyInput('nse-tk2024'),
+    namThamKhao2025: parseMoneyInput('nse-tk2025'),
+    phanLoai: document.getElementById('nse-phanloai').value,
+    suKienLienQuan: document.getElementById('nse-sukien').value,
+    ghiChu: document.getElementById('nse-ghichu').value.trim(),
+  };
+  const r = await callPtvhApi('updateNganSachChiTiet', { maKhoan: nganSachEditMaKhoan, payload });
+  if (!r.ok) { showToast(r.message || 'Không lưu được thay đổi'); return; }
   showToast('Đã lưu thay đổi khoản chi');
-  renderBudgetActual();
-  renderBudgetRef();
-  renderBudgetByEvent();
+  cancelNganSachEdit();
+  await refreshNganSachChiTiet();
 }
-function addBudget() {
-  const hangmuc = document.getElementById('b-hangmuc').value.trim();
-  if (!hangmuc) { showToast('Vui lòng nhập Hạng mục'); return; }
-  budgetCounter++;
-  budgetItems.unshift({
-    thang: document.getElementById('b-thang').value || '—',
-    mang: document.getElementById('b-mang').value,
-    loaiNS: document.getElementById('b-loains').value,
-    hangmuc,
-    suKien: document.getElementById('b-sukien').value,
-    duyet: parseFloat(document.getElementById('b-duyet').value) || 0,
-    thucchi: parseFloat(document.getElementById('b-thucchi').value) || 0,
-  });
-  stampMeta(budgetItems[0]);
-  ['b-thang','b-hangmuc','b-duyet','b-thucchi'].forEach(id => document.getElementById(id).value = '');
-  showToast('Đã lưu khoản chi — Dashboard cập nhật tiến độ ngân sách ngay');
-  closeForm('budget-actual-form');
-  renderBudgetActual();
-  renderBudgetRef();
-  renderBudgetByEvent();
+function startNganSachEditFromDetail() {
+  const maKhoan = nganSachDetailMaKhoan;
+  closeNganSachDetail();
+  if (maKhoan) startNganSachEdit(maKhoan);
+}
+async function deleteNganSachFromDetail() {
+  const maKhoan = nganSachDetailMaKhoan;
+  const it = nganSachChiTiet.find(x => x.maKhoan === maKhoan);
+  if (!it) return;
+  if (!confirm('Xoá hẳn khoản chi "' + it.chuongTrinh + ' — ' + (it.noiDungChi||'') + '"? Thao tác này KHÔNG thể hoàn tác.')) return;
+  const r = await callPtvhApi('deleteNganSachChiTiet', { maKhoan });
+  if (!r.ok) { showToast(r.message || 'Không xoá được khoản chi'); return; }
+  showToast('Đã xoá khoản chi ngân sách');
+  closeNganSachDetail();
+  await refreshNganSachChiTiet();
 }
 function renderBudgetByEvent() {
   const el = document.getElementById('budget-by-event-body');
   if (!el) return;
-  if (!programs.length) { el.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;">Chưa có sự kiện nào</td></tr>'; return; }
-  el.innerHTML = programs.map((p, idx) => {
-    const thucChi = budgetItems.filter(b => b.suKien === p.ten).reduce((s,b)=>s+b.thucchi,0);
+  const grouped = {};
+  nganSachChiTiet.forEach(it => {
+    if (!it.suKienLienQuan) return;
+    if (!grouped[it.suKienLienQuan]) grouped[it.suKienLienQuan] = { count: 0, kh: 0, tt: 0 };
+    grouped[it.suKienLienQuan].count++;
+    grouped[it.suKienLienQuan].kh += tongKH_(it);
+    grouped[it.suKienLienQuan].tt += tongTT_(it);
+  });
+  const maSuKiens = Object.keys(grouped);
+  if (!maSuKiens.length) { el.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px;">Chưa có khoản chi nào gắn Sự kiện liên quan</td></tr>'; return; }
+  el.innerHTML = maSuKiens.map(ma => {
+    const p = programs.find(x => x.maSuKien === ma);
+    const g = grouped[ma];
     return `
     <tr>
-      <td style="font-weight:700; cursor:pointer;" onclick="go('programs'); setTimeout(()=>openProgramDetail(${idx}),0);">${p.ten}</td>
-      <td>${p.mang || '—'}</td>
-      <td>${moneyFmt(p.nsDuyet)}</td>
-      <td>${moneyFmt(thucChi)}</td>
-      <td>${pctFmt(thucChi, p.nsDuyet)}</td>
+      <td style="font-weight:700; cursor:pointer;" onclick="go('programs'); setTimeout(()=>openProgramDetail(${jsArg(ma)}),0);">${esc(p ? p.ten : ma)}</td>
+      <td>${esc(g.count)}</td>
+      <td>${moneyFmt(g.kh)}</td>
+      <td>${moneyFmt(g.tt)}</td>
     </tr>`;
   }).join('');
 }
 function renderBudget() {
-  document.querySelectorAll('#budget-type-filter .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.t === budgetFilterType));
-  fillSuKienSelect(document.getElementById('b-sukien'));
-  renderBudgetRef();
-  renderBudgetPlan();
-  renderBudgetActual();
+  renderNganSachThang();
+  renderNganSachChiTiet();
   renderBudgetByEvent();
 }
+
 
 /* ---------------- QUA TANG (nhập/xuất — giữ nguyên mô hình cũ, KHÔNG còn dùng chung với voucher) ---------------- */
 function inventoryStore(kind) { return gifts; }
@@ -3154,7 +3248,7 @@ function populateInventoryProgramOptions(kind) {
     sel.innerHTML = '<option value="">— Chưa có chương trình nào, tạo ở tab Sự kiện/Thi đua trước —</option>';
     return;
   }
-  sel.innerHTML = opts.map(o => `<option value="${o}">${o}</option>`).join('');
+  sel.innerHTML = opts.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('');
 }
 function previewInventoryImage(event, kind) {
   const file = event.target.files[0];
@@ -3168,7 +3262,7 @@ function previewInventoryImage(event, kind) {
   reader.readAsDataURL(file);
 }
 function inventoryThumb(item) {
-  if (item.image) return `<img src="${item.image}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--gridline);">`;
+  if (item.image) return `<img src="${safeUrl(item.image)}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--gridline);">`;
   return `<div style="width:40px;height:40px;border-radius:6px;background:#fdeceb;display:flex;align-items:center;justify-content:center;font-size:16px;">🎁</div>`;
 }
 function giftTonKho(g) {
@@ -3181,10 +3275,10 @@ function inventoryRowHTML(kind, item, i) {
     return `
     <tr>
       <td>${inventoryThumb(item)}</td>
-      <td><input type="text" class="inline" style="width:100%" id="${prefix}-loai-${i}" value="${item.loai}"></td>
+      <td><input type="text" class="inline" style="width:100%" id="${prefix}-loai-${i}" value="${esc(item.loai)}"></td>
       <td><select class="inline" id="${prefix}-ct-${i}"></select></td>
-      <td><input type="number" class="inline" style="width:70px" id="${prefix}-nhap-${i}" value="${item.nhap}"></td>
-      <td><input type="number" class="inline" style="width:70px" id="${prefix}-xuat-${i}" value="${item.xuat}"></td>
+      <td><input type="number" class="inline" style="width:70px" id="${prefix}-nhap-${i}" value="${esc(item.nhap)}"></td>
+      <td><input type="number" class="inline" style="width:70px" id="${prefix}-xuat-${i}" value="${esc(item.xuat)}"></td>
       <td>—</td>
       <td style="white-space:nowrap;">
         <button class="btn secondary sm" onclick="saveInventoryEdit('gifts', ${i})">Lưu</button>
@@ -3195,10 +3289,10 @@ function inventoryRowHTML(kind, item, i) {
   return `
     <tr>
       <td>${inventoryThumb(item)}</td>
-      <td>${item.loai}</td>
-      <td>${item.chuongtrinh}</td>
-      <td>${item.nhap}</td>
-      <td>${item.xuat}</td>
+      <td>${esc(item.loai)}</td>
+      <td>${esc(item.chuongtrinh)}</td>
+      <td>${esc(item.nhap)}</td>
+      <td>${esc(item.xuat)}</td>
       <td style="font-weight:700;">${giftTonKho(item)}</td>
       <td style="white-space:nowrap;">
         <button class="btn secondary sm" onclick="startInventoryEdit('gifts', ${i})">✏️ Sửa</button>
@@ -3218,7 +3312,7 @@ function renderInventory(kind) {
     const sel = document.getElementById('ie-g-ct-' + inventoryEditIndex.gifts);
     if (sel) {
       const opts = programOptionsList();
-      sel.innerHTML = opts.map(o => `<option value="${o}">${o}</option>`).join('');
+      sel.innerHTML = opts.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('');
       sel.value = data[inventoryEditIndex.gifts].chuongtrinh;
     }
   }
@@ -3247,8 +3341,8 @@ function openGiftDetail(i) {
   document.getElementById('gift-detail-title').textContent = 'Chi tiết: ' + g.loai;
   document.getElementById('gift-detail-sub').textContent = g.chuongtrinh;
   document.getElementById('gift-detail-stats').innerHTML = `
-    <div class="stat-tile flat"><div class="lbl">Nhập</div><div class="val" style="font-size:22px;">${g.nhap}</div></div>
-    <div class="stat-tile flat"><div class="lbl">Xuất</div><div class="val" style="font-size:22px;">${g.xuat}</div></div>
+    <div class="stat-tile flat"><div class="lbl">Nhập</div><div class="val" style="font-size:22px;">${esc(g.nhap)}</div></div>
+    <div class="stat-tile flat"><div class="lbl">Xuất</div><div class="val" style="font-size:22px;">${esc(g.xuat)}</div></div>
     <div class="stat-tile flat"><div class="lbl">Tồn hiện tại</div><div class="val" style="font-size:22px;">${giftTonKho(g)}</div></div>`;
   document.getElementById('gd-ngay').value = new Date().toISOString().slice(0, 10);
   document.getElementById('gd-lydo').value = '';
@@ -3271,9 +3365,9 @@ function renderGiftHistory() {
   }
   body.innerHTML = history.slice().reverse().map(h => `
     <tr>
-      <td>${h.ngay}</td>
-      <td>${h.lyDo || '—'}</td>
-      <td style="font-weight:700; color:${h.soLuong < 0 ? 'var(--danger)' : 'var(--success)'};">${h.soLuong > 0 ? '+' : ''}${h.soLuong}</td>
+      <td>${esc(h.ngay)}</td>
+      <td>${esc(h.lyDo || '—')}</td>
+      <td style="font-weight:700; color:${h.soLuong < 0 ? 'var(--danger)' : 'var(--success)'};">${h.soLuong > 0 ? '+' : ''}${esc(h.soLuong)}</td>
     </tr>`).join('');
 }
 function addGiftHistoryEntry() {
@@ -3321,7 +3415,7 @@ function fillVoucherSuKienSelect() {
     return;
   }
   const current = sel.value;
-  sel.innerHTML = programs.map(p => `<option value="${p.maSuKien}">${p.ten}</option>`).join('');
+  sel.innerHTML = programs.map(p => `<option value="${esc(p.maSuKien)}">${esc(p.ten)}</option>`).join('');
   if (current) sel.value = current;
 }
 function renderVouchers() {
@@ -3335,34 +3429,34 @@ function voucherRowHTML_(v) {
   if (voucherEditMaDot === v.maDot) {
     return `
     <tr>
-      <td>${v.tenSuKien}</td>
-      <td><input type="text" class="inline" style="width:100%" id="ve-tendot-${v.maDot}" value="${v.tenDot}"></td>
-      <td><select class="inline" id="ve-loains-${v.maDot}"><option ${v.loaiNS==='Công ty'?'selected':''}>Công ty</option><option ${v.loaiNS==='Công đoàn'?'selected':''}>Công đoàn</option></select></td>
-      <td><input type="text" inputmode="numeric" class="inline" style="width:90px" id="ve-menhgia-${v.maDot}" value="${v.menhGia.toLocaleString('vi-VN')}" oninput="formatMoneyInput(this)"></td>
-      <td><input type="number" class="inline" style="width:70px" id="ve-soluong-${v.maDot}" value="${v.soLuong}"></td>
+      <td>${esc(v.tenSuKien)}</td>
+      <td><input type="text" class="inline" style="width:100%" id="ve-tendot-${esc(v.maDot)}" value="${esc(v.tenDot)}"></td>
+      <td><select class="inline" id="ve-loains-${esc(v.maDot)}"><option ${v.loaiNS==='Công ty'?'selected':''}>Công ty</option><option ${v.loaiNS==='Công đoàn'?'selected':''}>Công đoàn</option></select></td>
+      <td><input type="text" inputmode="numeric" class="inline" style="width:90px" id="ve-menhgia-${esc(v.maDot)}" value="${v.menhGia.toLocaleString('vi-VN')}" oninput="formatMoneyInput(this)"></td>
+      <td><input type="number" class="inline" style="width:70px" id="ve-soluong-${esc(v.maDot)}" value="${esc(v.soLuong)}"></td>
       <td>${moneyFmt(v.tongNS)}</td>
-      <td><input type="number" class="inline" style="width:70px" id="ve-ton-${v.maDot}" value="${v.soLuongTon}"></td>
+      <td><input type="number" class="inline" style="width:70px" id="ve-ton-${esc(v.maDot)}" value="${esc(v.soLuongTon)}"></td>
       <td>${moneyFmt(v.tongNSTon)}</td>
-      <td><input type="text" class="inline" style="width:100%" id="ve-quanly-${v.maDot}" value="${v.quanLy || ''}"></td>
+      <td><input type="text" class="inline" style="width:100%" id="ve-quanly-${esc(v.maDot)}" value="${esc(v.quanLy || '')}"></td>
       <td style="white-space:nowrap;">
-        <button class="btn secondary sm" onclick="saveVoucherEdit('${v.maDot}')">Lưu</button>
+        <button class="btn secondary sm" onclick="saveVoucherEdit(${jsArg(v.maDot)})">Lưu</button>
         <button class="btn ghost sm" onclick="cancelVoucherEdit()">Hủy</button>
-        <button class="btn ghost sm" style="color:var(--danger); border-color:var(--danger);" onclick="deleteVoucherRow('${v.maDot}')">🗑️</button>
+        <button class="btn ghost sm" style="color:var(--danger); border-color:var(--danger);" onclick="deleteVoucherRow(${jsArg(v.maDot)})">🗑️</button>
       </td>
     </tr>`;
   }
   return `
     <tr>
-      <td style="font-weight:700;">${v.tenSuKien}</td>
-      <td>${v.tenDot}</td>
-      <td>${v.loaiNS}</td>
+      <td style="font-weight:700;">${esc(v.tenSuKien)}</td>
+      <td>${esc(v.tenDot)}</td>
+      <td>${esc(v.loaiNS)}</td>
       <td>${moneyFmt(v.menhGia)}</td>
-      <td>${v.soLuong}</td>
+      <td>${esc(v.soLuong)}</td>
       <td>${moneyFmt(v.tongNS)}</td>
-      <td style="font-weight:700;">${v.soLuongTon}</td>
+      <td style="font-weight:700;">${esc(v.soLuongTon)}</td>
       <td>${moneyFmt(v.tongNSTon)}</td>
-      <td>${v.quanLy || '—'}</td>
-      <td><button class="btn secondary sm" onclick="startVoucherEdit('${v.maDot}')">✏️ Sửa</button></td>
+      <td>${esc(v.quanLy || '—')}</td>
+      <td><button class="btn secondary sm" onclick="startVoucherEdit(${jsArg(v.maDot)})">✏️ Sửa</button></td>
     </tr>`;
 }
 async function deleteVoucherRow(maDot) {
@@ -3427,9 +3521,9 @@ const KPI_ITEMS = [
 function renderKpi() {
   document.getElementById('kpi-body').innerHTML = KPI_ITEMS.map((k, i) => `
     <tr>
-      <td>${k.ten}</td>
+      <td>${esc(k.ten)}</td>
       <td class="num">${Math.round(k.trongso*100)}%</td>
-      <td class="num">${k.target}${k.unit==='%'?'%':''}</td>
+      <td class="num">${esc(k.target)}${k.unit==='%'?'%':''}</td>
       <td class="num"><input type="number" class="inline" style="width:70px;text-align:right" id="kv-${i}" oninput="calcKpi()"></td>
       <td class="num" id="kp-${i}">—</td>
     </tr>`).join('');
@@ -3460,7 +3554,7 @@ function populateDocFolderDatalist() {
   const dl = document.getElementById('doc-folder-list');
   if (!dl) return;
   const folders = [...new Set(docItems.map(d => d.thuMuc || 'Chưa phân loại'))].sort();
-  dl.innerHTML = folders.map(f => `<option value="${f}"></option>`).join('');
+  dl.innerHTML = folders.map(f => `<option value="${esc(f)}"></option>`).join('');
 }
 const DOC_TYPES = ['Web app', 'Google Sheet', 'Trình chiếu (Slides)', 'Tài liệu (Docs)', 'Biểu mẫu', 'Khác'];
 function docRowHTML(d, showFolderCol) {
@@ -3469,20 +3563,20 @@ function docRowHTML(d, showFolderCol) {
       <tr>
         <td colspan="${showFolderCol ? 4 : 3}">
           <div class="grid2" style="margin-top:6px;">
-            <div class="field"><label>Tên tài liệu</label><input type="text" class="inline" style="width:100%" id="de-ten-${d.id}" value="${d.ten}"></div>
+            <div class="field"><label>Tên tài liệu</label><input type="text" class="inline" style="width:100%" id="de-ten-${esc(d.id)}" value="${esc(d.ten)}"></div>
             <div class="field"><label>Loại</label>
-              <select class="inline" id="de-loai-${d.id}">
-                ${DOC_TYPES.map(t => `<option ${d.loai===t?'selected':''}>${t}</option>`).join('')}
+              <select class="inline" id="de-loai-${esc(d.id)}">
+                ${DOC_TYPES.map(t => `<option ${d.loai===t?'selected':''}>${esc(t)}</option>`).join('')}
               </select>
             </div>
           </div>
           <div class="grid2">
-            <div class="field"><label>Thư mục</label><input type="text" class="inline" style="width:100%" id="de-thumuc-${d.id}" value="${d.thuMuc || ''}" list="doc-folder-list"></div>
-            <div class="field"><label>Link</label><input type="url" class="inline" style="width:100%" id="de-link-${d.id}" value="${d.link}"></div>
+            <div class="field"><label>Thư mục</label><input type="text" class="inline" style="width:100%" id="de-thumuc-${esc(d.id)}" value="${esc(d.thuMuc || '')}" list="doc-folder-list"></div>
+            <div class="field"><label>Link</label><input type="url" class="inline" style="width:100%" id="de-link-${esc(d.id)}" value="${esc(d.link)}"></div>
           </div>
-          <div class="field"><label>Ghi chú</label><textarea class="inline" style="width:100%" id="de-ghichu-${d.id}">${d.ghichu || ''}</textarea></div>
+          <div class="field"><label>Ghi chú</label><textarea class="inline" style="width:100%" id="de-ghichu-${esc(d.id)}">${esc(d.ghichu || '')}</textarea></div>
           <div style="display:flex; gap:8px; margin:8px 0 4px;">
-            <button class="btn secondary sm" onclick="saveDocEdit(${d.id})">Lưu</button>
+            <button class="btn secondary sm" onclick="saveDocEdit(${esc(d.id)})">Lưu</button>
             <button class="btn ghost sm" onclick="cancelDocEdit()">Hủy</button>
           </div>
         </td>
@@ -3490,12 +3584,12 @@ function docRowHTML(d, showFolderCol) {
   }
   return `
       <tr>
-        <td style="font-weight:700;">${d.ten}${d.ghichu ? `<div class="subtext">${d.ghichu}</div>` : ''}</td>
-        <td><span class="webapp-type-tag">${d.loai}</span></td>
-        ${showFolderCol ? `<td>${d.thuMuc || 'Chưa phân loại'}</td>` : ''}
+        <td style="font-weight:700;">${esc(d.ten)}${d.ghichu ? `<div class="subtext">${esc(d.ghichu)}</div>` : ''}</td>
+        <td><span class="webapp-type-tag">${esc(d.loai)}</span></td>
+        ${showFolderCol ? `<td>${esc(d.thuMuc || 'Chưa phân loại')}</td>` : ''}
         <td style="white-space:nowrap;">
-          <a class="btn secondary sm" href="${d.link}" target="_blank" rel="noopener">Mở liên kết ↗</a>
-          <button class="btn ghost sm" onclick="startDocEdit(${d.id})">✏️ Sửa</button>
+          <a class="btn secondary sm" href="${safeUrl(d.link)}" target="_blank" rel="noopener">Mở liên kết ↗</a>
+          <button class="btn ghost sm" onclick="startDocEdit(${esc(d.id)})">✏️ Sửa</button>
         </td>
       </tr>`;
 }
@@ -3525,7 +3619,7 @@ function renderDocs() {
   });
   container.innerHTML = Object.keys(folders).sort().map(f => `
     <div class="doc-folder-block">
-      <div class="doc-folder-title">📁 ${f} <span class="doc-folder-count">${folders[f].length}</span></div>
+      <div class="doc-folder-title">📁 ${esc(f)} <span class="doc-folder-count">${folders[f].length}</span></div>
       ${docsTableHTML(folders[f], false)}
     </div>`).join('');
 }
@@ -3579,12 +3673,12 @@ function renderStaffStats() {
     const confirmed = mine.filter(w => w.xacNhan).length;
     return `
     <tr>
-      <td style="font-weight:700;">${s.name}</td>
-      <td class="num">${pending}</td>
-      <td class="num">${doing}</td>
-      <td class="num">${done}</td>
-      <td class="num">${confirmed}</td>
-      <td class="num" style="font-weight:800;">${mine.length}</td>
+      <td style="font-weight:700;">${esc(s.name)}</td>
+      <td class="num">${esc(pending)}</td>
+      <td class="num">${esc(doing)}</td>
+      <td class="num">${esc(done)}</td>
+      <td class="num">${esc(confirmed)}</td>
+      <td class="num" style="font-weight:800;">${esc(mine.length)}</td>
     </tr>`;
   }).join('');
   renderWorkPipeline();
@@ -3604,9 +3698,9 @@ function renderWorkPipeline() {
   ];
   el.innerHTML = stages.map((s, idx) => `
     ${idx > 0 ? '<div class="pipeline-arrow">→</div>' : ''}
-    <div class="pipeline-stage ${s.cls}">
-      <div class="n">${s.n}</div>
-      <div class="lbl">${s.lbl}</div>
+    <div class="pipeline-stage ${esc(s.cls)}">
+      <div class="n">${esc(s.n)}</div>
+      <div class="lbl">${esc(s.lbl)}</div>
     </div>`).join('');
 }
 
@@ -3618,8 +3712,8 @@ function renderStaffSettings() {
   el.innerHTML = STAFF.map((s, i) => {
     if (i === staffEditIndex) {
       return `<tr>
-        <td><input type="text" class="inline" style="width:100%" id="se-name-${i}" value="${s.name}"></td>
-        <td><input type="email" class="inline" style="width:100%" id="se-email-${i}" value="${s.email || ''}"></td>
+        <td><input type="text" class="inline" style="width:100%" id="se-name-${i}" value="${esc(s.name)}"></td>
+        <td><input type="email" class="inline" style="width:100%" id="se-email-${i}" value="${esc(s.email || '')}"></td>
         <td style="white-space:nowrap;">
           <button class="btn secondary sm" onclick="saveStaffEdit(${i})">Lưu</button>
           <button class="btn ghost sm" onclick="cancelStaffEdit()">Hủy</button>
@@ -3627,8 +3721,8 @@ function renderStaffSettings() {
       </tr>`;
     }
     return `<tr>
-      <td style="font-weight:700;">${s.name}</td>
-      <td>${s.email || '—'}</td>
+      <td style="font-weight:700;">${esc(s.name)}</td>
+      <td>${esc(s.email || '—')}</td>
       <td style="white-space:nowrap;">
         <button class="btn secondary sm" onclick="startStaffEdit(${i})">✏️ Sửa</button>
         <button class="btn ghost sm" onclick="removeStaffMember(${i})">🗑 Xóa</button>
@@ -3669,7 +3763,7 @@ function populateStaffTaskSelect() {
   const sel = document.getElementById('st-task-select');
   if (!sel) return;
   const prev = sel.value;
-  sel.innerHTML = staffNames().map(n => `<option>${n}</option>`).join('');
+  sel.innerHTML = staffNames().map(n => `<option>${esc(n)}</option>`).join('');
   if (prev && staffNames().includes(prev)) sel.value = prev;
 }
 function renderStaffTasks() {
@@ -3683,10 +3777,10 @@ function renderStaffTasks() {
   document.getElementById('st-task-progress-bar').style.width = pct + '%';
   document.getElementById('st-task-body').innerHTML = mine.length ? mine.map(({w,i}) => `
     <tr>
-      <td style="font-weight:700;">${w.ma}</td>
-      <td>${w.ten}</td>
-      <td>${w.mang}</td>
-      <td>${w.han || '<span class="badge"><span class="dot warning"></span>Chưa có hạn</span>'}</td>
+      <td style="font-weight:700;">${esc(w.ma)}</td>
+      <td>${esc(w.ten)}</td>
+      <td>${esc(w.mang)}</td>
+      <td>${w.han ? esc(w.han) : '<span class="badge"><span class="dot warning"></span>Chưa có hạn</span>'}</td>
       <td>${statusBadgeWork(w.trangThai)}</td>
     </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;">Không có đầu việc</td></tr>';
 }
@@ -3697,10 +3791,10 @@ function renderWebApps() {
   const el = document.getElementById('webapp-grid');
   if (!apps.length) { el.innerHTML = '<p class="sub" style="text-align:center;padding:20px 0;">Chưa có Web App nào — thêm mới ở form bên trên.</p>'; return; }
   el.innerHTML = apps.map(d => `
-    <a class="webapp-card" href="${d.link}" target="_blank" rel="noopener">
+    <a class="webapp-card" href="${safeUrl(d.link)}" target="_blank" rel="noopener">
       <div class="webapp-card-icon">🧩</div>
-      <div class="webapp-card-title">${d.ten}</div>
-      <div class="webapp-card-sub">${d.ghichu || 'Mở web app ↗'}</div>
+      <div class="webapp-card-title">${esc(d.ten)}</div>
+      <div class="webapp-card-sub">${esc(d.ghichu || 'Mở web app ↗')}</div>
     </a>`).join('');
 }
 function addWebApp() {
