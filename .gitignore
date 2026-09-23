@@ -1,0 +1,6 @@
+# Mã nguồn Apps Script (.gs) và dữ liệu KHÔNG lưu trên GitHub (repo công khai) — chỉ dán trực tiếp vào Apps Script.
+*.gs
+gas/
+*.xlsx
+*.csv
+HANDOFF.md
