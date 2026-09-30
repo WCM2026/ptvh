@@ -1142,35 +1142,35 @@
       </div>
     </section>
 
-    <!-- ============ PANEL: QUA TANG ============ -->
+    <!-- ============ PANEL: QUA TANG (Module 6 — API thật, sheet 07/07b) ============ -->
     <section class="panel" id="panel-gifts">
       <div class="flow-note">
-        <b>Quà tặng:</b> theo dõi nhập – xuất – tồn theo từng loại quà hiện vật, gắn với sự kiện phát ra để đối soát khi có khiếu nại.
+        <b>Quà tặng:</b> theo dõi nhập – xuất – tồn theo từng loại quà hiện vật, gắn với sự kiện/chương trình thi đua để đối soát khi có khiếu nại. Mọi thay đổi số lượng ngoài lần nhập/xuất ban đầu (kiểm kê, hỏng, phát bổ sung) ghi vào <b>Lịch sử điều chỉnh</b> — chỉ thêm, không sửa/xoá từng dòng.
       </div>
+
+      <div class="stat-row" id="gifts-stats"></div>
+
       <div class="card">
         <div class="card-head-row">
-          <div>
-            <h2>Ghi nhận nhập/xuất quà tặng</h2>
-          </div>
-          <button class="btn secondary sm" onclick="toggleForm('gifts-form')">+ Ghi nhận</button>
+          <div><h2>Thêm loại quà</h2></div>
+          <button class="btn secondary sm" onclick="toggleForm('gifts-form')">+ Thêm loại quà</button>
         </div>
         <div id="gifts-form" class="collapsible-form" style="display:none;">
           <div class="grid2">
-            <div class="field"><label>Loại quà tặng</label><input type="text" id="g-loai" placeholder="VD: Linh vật + bằng khen"></div>
-            <div class="field"><label>Gắn với sự kiện</label><select id="g-chuongtrinh"></select></div>
+            <div class="field"><label>Loại quà tặng *</label><input type="text" id="g-loai" placeholder="VD: Linh vật + bằng khen"></div>
+            <div class="field"><label>Gắn với sự kiện / thi đua</label><select id="g-lienquan"></select></div>
           </div>
           <div class="grid2">
-            <div class="field"><label>Số lượng nhập</label><input type="number" id="g-nhap" placeholder="0"></div>
-            <div class="field"><label>Số lượng xuất (đã phát)</label><input type="number" id="g-xuat" placeholder="0"></div>
+            <div class="field"><label>Số lượng nhập</label><input type="number" min="0" id="g-nhap" placeholder="0"></div>
+            <div class="field"><label>Số lượng xuất (đã phát)</label><input type="number" min="0" id="g-xuat" placeholder="0"></div>
           </div>
+          <div class="field"><label>Ghi chú</label><input type="text" id="g-ghichu" placeholder="VD: Nhà cung cấp, nơi cất giữ..."></div>
           <div class="field">
             <label>Hình ảnh minh họa</label>
-            <input type="file" accept="image/*" id="g-image" onchange="previewInventoryImage(event, 'gifts')">
-            <div id="g-image-preview-wrap" style="margin-top:8px; display:none;">
-              <img id="g-image-preview" style="width:72px; height:72px; object-fit:cover; border-radius:8px; border:1px solid var(--gridline);">
-            </div>
+            <input type="file" accept="image/*" id="g-anh" onchange="previewQuaTangImage(event, 'g')">
+            <img id="g-anh-preview" class="sk-image-preview" style="display:none;">
           </div>
-          <button class="btn" onclick="addInventoryItem('gifts')">Lưu</button>
+          <button class="btn" id="g-save-btn" onclick="addQuaTangUI()">Lưu</button>
         </div>
       </div>
 
@@ -1180,34 +1180,65 @@
             <h2 id="gift-detail-title">Chi tiết quà tặng</h2>
             <p class="sub" id="gift-detail-sub" style="margin-bottom:0;"></p>
           </div>
-          <button class="btn ghost sm" onclick="closeGiftDetail()">✕ Đóng</button>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button class="btn secondary sm" onclick="startQuaTangEdit()">✏️ Sửa</button>
+            <button class="btn ghost sm" onclick="deleteQuaTangUI()">🗑️ Xoá</button>
+            <button class="btn ghost sm" onclick="closeGiftDetail()">✕ Đóng</button>
+          </div>
         </div>
-        <div class="stat-row-3" id="gift-detail-stats" style="margin:16px 0;"></div>
+        <div class="stat-row" id="gift-detail-stats" style="margin:16px 0;"></div>
 
-        <h2 style="font-size:14px;">Cập nhật quà (điều chỉnh số lượng)</h2>
-        <p class="sub">Ghi nhận khi phát sinh thay đổi số lượng ngoài lần nhập/xuất ban đầu — VD: kiểm kê, hỏng hóc, phát bổ sung</p>
+        <div id="gift-edit-form" style="display:none; margin-bottom:18px;">
+          <h2 style="font-size:14px;">Sửa thông tin loại quà</h2>
+          <div class="grid2">
+            <div class="field"><label>Loại quà tặng *</label><input type="text" id="ge-loai"></div>
+            <div class="field"><label>Gắn với sự kiện / thi đua</label><select id="ge-lienquan"></select></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Số lượng nhập</label><input type="number" min="0" id="ge-nhap"></div>
+            <div class="field"><label>Số lượng xuất (đã phát)</label><input type="number" min="0" id="ge-xuat"></div>
+          </div>
+          <div class="field"><label>Ghi chú</label><input type="text" id="ge-ghichu"></div>
+          <div class="field">
+            <label>Đổi ảnh (bỏ trống = giữ ảnh cũ)</label>
+            <input type="file" accept="image/*" id="ge-anh" onchange="previewQuaTangImage(event, 'ge')">
+            <img id="ge-anh-preview" class="sk-image-preview" style="display:none;">
+          </div>
+          <button class="btn sm" id="ge-save-btn" onclick="saveQuaTangEdit()">Lưu thay đổi</button>
+          <button class="btn ghost sm" onclick="cancelQuaTangEdit()">Hủy</button>
+        </div>
+
+        <h2 style="font-size:14px;">Điều chỉnh số lượng</h2>
+        <p class="sub">Ghi nhận khi phát sinh thay đổi ngoài lần nhập/xuất ban đầu — VD: kiểm kê, hỏng hóc, phát bổ sung. Số âm = giảm.</p>
         <div class="grid3">
-          <div class="field"><label>Ngày cập nhật</label><input type="date" id="gd-ngay"></div>
-          <div class="field"><label>Lý do</label><input type="text" id="gd-lydo" placeholder="VD: Phát bổ sung cho sự kiện phát sinh"></div>
-          <div class="field"><label>Số lượng thay đổi</label><input type="number" id="gd-soluong" placeholder="VD: -3 hoặc 10"></div>
+          <div class="field"><label>Ngày phát sinh</label><input type="date" id="gd-ngay"></div>
+          <div class="field"><label>Lý do *</label><input type="text" id="gd-lydo" placeholder="VD: Phát bổ sung cho sự kiện phát sinh"></div>
+          <div class="field"><label>Số lượng thay đổi *</label><input type="number" id="gd-soluong" placeholder="VD: -3 hoặc 10"></div>
         </div>
-        <button class="btn secondary sm" onclick="addGiftHistoryEntry()">+ Ghi nhận cập nhật</button>
+        <button class="btn secondary sm" id="gd-save-btn" onclick="addGiftHistoryEntry()">+ Ghi nhận điều chỉnh</button>
 
-        <h2 style="font-size:14px; margin-top:22px;">Lịch sử cập nhật</h2>
+        <h2 style="font-size:14px; margin-top:22px;">Lịch sử điều chỉnh</h2>
         <div class="table-wrap">
         <table>
-          <thead><tr><th>Ngày</th><th>Lý do</th><th>Số lượng thay đổi</th></tr></thead>
+          <thead><tr><th>Ngày</th><th>Lý do</th><th>SL thay đổi</th><th>Người ghi</th></tr></thead>
           <tbody id="gift-history-body"></tbody>
         </table>
         </div>
+        <div class="subtext" id="gift-detail-meta" style="margin-top:10px;"></div>
       </div>
 
       <div class="card">
-        <h2>Tồn kho quà tặng hiện tại</h2>
-        <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="gifts-search" placeholder="Tìm theo loại, sự kiện..." oninput="renderInventory('gifts')"></div>
+        <div class="card-head-row">
+          <div><h2>Tồn kho quà tặng hiện tại</h2></div>
+          <button class="btn ghost sm" onclick="refreshQuaTang(true)">🔄 Tải lại</button>
+        </div>
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+          <div class="search-bar" style="flex:1; min-width:220px;"><span class="search-ic">🔍</span><input type="text" id="gifts-search" placeholder="Tìm theo mã, loại, sự kiện..." oninput="renderGifts()"></div>
+          <label style="font-size:12.5px; display:flex; gap:6px; align-items:center; white-space:nowrap;"><input type="checkbox" id="gifts-only-low" onchange="renderGifts()" style="width:auto;"> Chỉ hiện sắp hết</label>
+        </div>
         <div class="table-wrap">
         <table>
-          <thead><tr><th>Ảnh</th><th>Loại</th><th>Sự kiện</th><th>Nhập</th><th>Xuất</th><th>Tồn</th><th></th></tr></thead>
+          <thead><tr><th>Ảnh</th><th>Loại quà</th><th>Gắn với</th><th>Nhập</th><th>Xuất</th><th>Đ.chỉnh</th><th>Tồn</th><th></th></tr></thead>
           <tbody id="gifts-body"></tbody>
         </table>
         </div>
@@ -1492,6 +1523,7 @@ async function loadBootstrapData() {
   // Ngân sách cũng đã có sẵn trong gói bootstrap — dùng luôn, khỏi gọi thêm 2 API lúc mở tab.
   if (Array.isArray(r.data.nganSachThang)) { nganSachThang = r.data.nganSachThang; nganSachThangLoaded = true; }
   if (Array.isArray(r.data.nganSachChiTiet)) { nganSachChiTiet = r.data.nganSachChiTiet; nganSachChiTietLoaded = true; }
+  if (Array.isArray(r.data.quaTang)) { quaTang = r.data.quaTang; quaTangLoaded = true; }
   return true;
 }
 async function refreshStaffList() {
@@ -1542,13 +1574,13 @@ let nganSachChiTietLoaded = false;
 let nganSachEditMaKhoan = null;
 let nganSachDetailMaKhoan = null;
 
-let giftCounter = 1;
-let gifts = [
-  {loai:'Linh vật + bằng khen', chuongtrinh:'[Thi đua] Đại sứ Win Q1/2026', nhap:55, xuat:51, image:'', lichSu:[
-    {ngay:'15/08/2026', lyDo:'Kiểm kê định kỳ — phát hiện thiếu hụt', soLuong:-1, nguoiCapNhat:'Nguyễn Thái Dương — Trưởng nhóm'},
-  ], nguoiTao:'Nhân viên PTVH', ngayTao:'01/08/2026', nguoiCapNhat:'Nguyễn Thái Dương — Trưởng nhóm', ngayCapNhat:'15/08/2026'},
-];
-let giftDetailIndex = null;
+// Module 6 đã nối API thật — quaTang nạp từ "07.Quà tặng" + "07b.Quà tặng_Lịch sử" qua
+// getQuaTangList() (xem refreshQuaTang()). Mỗi phần tử = 1 loại quà, kèm lichSu[] + ton tự tính.
+let quaTang = [];
+let quaTangLoaded = false;
+let quaTangDetailMa = null;          // mã quà đang xem chi tiết (không dùng index vì mảng reload sau mỗi lần lưu)
+let quaTangNguongTonThap = 5;        // backend trả về giá trị thật (CONFIG.QUATANG_NGUONG_TON_THAP)
+let pendingQuaTangImage = { g: null, ge: null };
 
 // Module 3 đã nối API thật — voucherDots giờ nạp từ "03b.Sự kiện_Voucher" qua getVoucherDotList()
 // (xem refreshVoucherDot()). Mỗi phần tử = 1 đợt order voucher gắn theo 1 sự kiện (KHÁC hẳn mô
@@ -1556,8 +1588,6 @@ let giftDetailIndex = null;
 let voucherDots = [];
 let voucherDotsLoaded = false;
 let voucherEditMaDot = null;
-let pendingInventoryImage = { gifts: '' };
-let inventoryEditIndex = { gifts: null };
 
 let currentPeriod = 'MTD';
 
@@ -1714,7 +1744,7 @@ function go(id) {
   if (id === 'programs') renderPrograms();
   if (id === 'competitions') renderCompetitions();
   if (id === 'budget') renderBudget();
-  if (id === 'gifts') renderInventory('gifts');
+  if (id === 'gifts') renderGifts();
   if (id === 'vouchers') renderVouchers();
   if (id === 'webapps') renderWebApps();
   if (id === 'kpi') renderKpi();
@@ -1741,7 +1771,7 @@ async function callPtvhApi(action, payload) {
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    // Phiên hết hạn (8 tiếng) hoặc bị huỷ -> đưa về màn hình đăng nhập thay vì báo lỗi khó hiểu.
+    // Phiên hết hạn (6 tiếng) hoặc bị huỷ -> đưa về màn hình đăng nhập thay vì báo lỗi khó hiểu.
     if (data && data.error === 'UNAUTHORIZED' && sessionToken) {
       sessionToken = '';
       alert('Phiên đăng nhập đã hết hạn — vui lòng đăng nhập lại.');
@@ -3233,177 +3263,238 @@ function renderBudget() {
 }
 
 
-/* ---------------- QUA TANG (nhập/xuất — giữ nguyên mô hình cũ, KHÔNG còn dùng chung với voucher) ---------------- */
-function inventoryStore(kind) { return gifts; }
-function programOptionsList() {
-  return [
-    ...programs.map(p => '[Sự kiện] ' + p.ten),
-    ...competitions.map(c => '[Thi đua] ' + c.ten),
-  ];
-}
-function populateInventoryProgramOptions(kind) {
-  const sel = document.getElementById('g-chuongtrinh');
-  const opts = programOptionsList();
-  if (opts.length === 0) {
-    sel.innerHTML = '<option value="">— Chưa có chương trình nào, tạo ở tab Sự kiện/Thi đua trước —</option>';
+/* ---------------- QUA TANG (Module 6 — API thật, sheet 07.Quà tặng + 07b.Quà tặng_Lịch sử) ---------------- */
+async function refreshQuaTang(showLoadingToast) {
+  if (showLoadingToast) showToast('Đang tải danh sách quà tặng...');
+  const r = await callPtvhApi('getQuaTangList', {});
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không tải được danh sách quà tặng');
     return;
   }
-  sel.innerHTML = opts.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('');
+  quaTang = r.data || [];
+  if (r.nguongTonThap != null) quaTangNguongTonThap = Number(r.nguongTonThap) || quaTangNguongTonThap;
+  quaTangLoaded = true;
+  renderGifts();
 }
-function previewInventoryImage(event, kind) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    pendingInventoryImage.gifts = e.target.result;
-    document.getElementById('g-image-preview').src = pendingInventoryImage.gifts;
-    document.getElementById('g-image-preview-wrap').style.display = 'block';
-  };
-  reader.readAsDataURL(file);
+function findQuaTang_(maQua) { return quaTang.find(q => q.maQua === maQua) || null; }
+
+/** Dropdown "Gắn với": value = mã SK-/TD- (ổn định), nhãn = tên hiện tại. */
+function lienQuanOptionsHTML_(selectedMa) {
+  const skOpts = programs.map(p => `<option value="${esc(p.maSuKien)}"${p.maSuKien === selectedMa ? ' selected' : ''}>${esc(p.ten)}</option>`).join('');
+  const tdOpts = competitions.map(c => `<option value="${esc(c.maCT)}"${c.maCT === selectedMa ? ' selected' : ''}>${esc(c.ten)}</option>`).join('');
+  return `<option value="">— Không gắn —</option>`
+    + (skOpts ? `<optgroup label="Sự kiện">${skOpts}</optgroup>` : '')
+    + (tdOpts ? `<optgroup label="Thi đua">${tdOpts}</optgroup>` : '');
 }
-function inventoryThumb(item) {
-  if (item.image) return `<img src="${safeUrl(item.image)}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--gridline);">`;
+/** Tên hiển thị của mã liên quan — ưu tiên tên HIỆN TẠI (nếu SK/TĐ đã đổi tên), fallback tên lưu lúc tạo. */
+function tenLienQuan_(q) {
+  if (!q.maLienQuan) return '';
+  const p = programs.find(x => x.maSuKien === q.maLienQuan);
+  if (p) return '[Sự kiện] ' + p.ten;
+  const c = competitions.find(x => x.maCT === q.maLienQuan);
+  if (c) return '[Thi đua] ' + c.ten;
+  return (q.tenLienQuan || q.maLienQuan) + ' (đã xoá?)';
+}
+function tenTheoMaLienQuan_(ma) {
+  const p = programs.find(x => x.maSuKien === ma);
+  if (p) return p.ten;
+  const c = competitions.find(x => x.maCT === ma);
+  return c ? c.ten : '';
+}
+function quaTangThumb_(q) {
+  if (q.anh) return `<img src="${safeUrl(q.anh)}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--gridline);" loading="lazy">`;
   return `<div style="width:40px;height:40px;border-radius:6px;background:#fdeceb;display:flex;align-items:center;justify-content:center;font-size:16px;">🎁</div>`;
 }
-function giftTonKho(g) {
-  const adj = (g.lichSu || []).reduce((s, h) => s + h.soLuong, 0);
-  return g.nhap - g.xuat + adj;
+function tonHTML_(q) {
+  const low = q.ton <= quaTangNguongTonThap;
+  const color = q.ton <= 0 ? 'var(--danger)' : low ? '#b45309' : 'inherit';
+  return `<span style="font-weight:800;color:${color};">${esc(q.ton)}</span>${q.ton <= 0 ? ' <span class="subtext" style="color:var(--danger);">Hết</span>' : low ? ' <span class="subtext" style="color:#b45309;">Sắp hết</span>' : ''}`;
 }
-function inventoryRowHTML(kind, item, i) {
-  const prefix = 'ie-g';
-  if (inventoryEditIndex.gifts === i) {
-    return `
-    <tr>
-      <td>${inventoryThumb(item)}</td>
-      <td><input type="text" class="inline" style="width:100%" id="${prefix}-loai-${i}" value="${esc(item.loai)}"></td>
-      <td><select class="inline" id="${prefix}-ct-${i}"></select></td>
-      <td><input type="number" class="inline" style="width:70px" id="${prefix}-nhap-${i}" value="${esc(item.nhap)}"></td>
-      <td><input type="number" class="inline" style="width:70px" id="${prefix}-xuat-${i}" value="${esc(item.xuat)}"></td>
-      <td>—</td>
-      <td style="white-space:nowrap;">
-        <button class="btn secondary sm" onclick="saveInventoryEdit('gifts', ${i})">Lưu</button>
-        <button class="btn ghost sm" onclick="cancelInventoryEdit('gifts')">Hủy</button>
-      </td>
-    </tr>`;
+function renderGifts() {
+  document.getElementById('g-lienquan').innerHTML = lienQuanOptionsHTML_(document.getElementById('g-lienquan').value || '');
+  const body = document.getElementById('gifts-body');
+  if (!quaTangLoaded) {
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px;">Đang tải...</td></tr>';
+    refreshQuaTang();
+    return;
   }
-  return `
+  // Thống kê nhanh
+  const tongTon = quaTang.reduce((s, q) => s + q.ton, 0);
+  const tongXuat = quaTang.reduce((s, q) => s + q.soXuat, 0);
+  const soSapHet = quaTang.filter(q => q.ton <= quaTangNguongTonThap).length;
+  document.getElementById('gifts-stats').innerHTML = `
+    <div class="stat-tile"><div class="lbl">Số loại quà</div><div class="val">${quaTang.length}</div></div>
+    <div class="stat-tile"><div class="lbl">Tổng tồn</div><div class="val">${tongTon}</div></div>
+    <div class="stat-tile"><div class="lbl">Đã phát (xuất)</div><div class="val">${tongXuat}</div></div>
+    <div class="stat-tile ${soSapHet ? 'warn' : ''}"><div class="lbl">Sắp hết (≤ ${esc(quaTangNguongTonThap)})</div><div class="val">${soSapHet}</div></div>`;
+
+  const term = (document.getElementById('gifts-search').value || '').toLowerCase().trim();
+  const onlyLow = document.getElementById('gifts-only-low').checked;
+  const rows = quaTang
+    .filter(q => !onlyLow || q.ton <= quaTangNguongTonThap)
+    .filter(q => !term || [q.maQua, q.loai, tenLienQuan_(q), q.ghiChu].join(' ').toLowerCase().includes(term));
+  body.innerHTML = rows.length ? rows.map(q => `
     <tr>
-      <td>${inventoryThumb(item)}</td>
-      <td>${esc(item.loai)}</td>
-      <td>${esc(item.chuongtrinh)}</td>
-      <td>${esc(item.nhap)}</td>
-      <td>${esc(item.xuat)}</td>
-      <td style="font-weight:700;">${giftTonKho(item)}</td>
-      <td style="white-space:nowrap;">
-        <button class="btn secondary sm" onclick="startInventoryEdit('gifts', ${i})">✏️ Sửa</button>
-        <button class="btn ghost sm" onclick="openGiftDetail(${i})">👁 Chi tiết</button>
-      </td>
-    </tr>`;
-}
-function renderInventory(kind) {
-  populateInventoryProgramOptions('gifts');
-  const data = gifts;
-  const term = (document.getElementById('gifts-search')?.value || '').toLowerCase().trim();
-  const rows = data
-    .map((item, i) => ({item, i}))
-    .filter(({item}) => !term || [item.loai, item.chuongtrinh].join(' ').toLowerCase().includes(term));
-  document.getElementById('gifts-body').innerHTML = rows.length ? rows.map(({item, i}) => inventoryRowHTML('gifts', item, i)).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy quà tặng phù hợp</td></tr>';
-  if (inventoryEditIndex.gifts !== null) {
-    const sel = document.getElementById('ie-g-ct-' + inventoryEditIndex.gifts);
-    if (sel) {
-      const opts = programOptionsList();
-      sel.innerHTML = opts.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('');
-      sel.value = data[inventoryEditIndex.gifts].chuongtrinh;
-    }
-  }
-}
-function startInventoryEdit(kind, i) { inventoryEditIndex.gifts = i; renderInventory('gifts'); }
-function cancelInventoryEdit(kind) { inventoryEditIndex.gifts = null; renderInventory('gifts'); }
-function saveInventoryEdit(kind, i) {
-  const prefix = 'ie-g';
-  const item = gifts[i];
-  const loai = document.getElementById(prefix + '-loai-' + i).value.trim();
-  if (!loai) { showToast('Vui lòng nhập Loại'); return; }
-  item.loai = loai;
-  item.chuongtrinh = document.getElementById(prefix + '-ct-' + i).value || '(chưa gắn sự kiện)';
-  item.nhap = parseInt(document.getElementById(prefix + '-nhap-' + i).value) || 0;
-  item.xuat = parseInt(document.getElementById(prefix + '-xuat-' + i).value) || 0;
-  inventoryEditIndex.gifts = null;
-  showToast('Đã lưu thay đổi — tồn kho tự tính lại');
-  renderInventory('gifts');
+      <td>${quaTangThumb_(q)}</td>
+      <td><div style="font-weight:700;">${esc(q.loai)}</div><div class="subtext">${esc(q.maQua)}</div></td>
+      <td>${esc(tenLienQuan_(q) || '—')}</td>
+      <td>${esc(q.soNhap)}</td>
+      <td>${esc(q.soXuat)}</td>
+      <td style="color:${q.dieuChinh < 0 ? 'var(--danger)' : q.dieuChinh > 0 ? 'var(--success)' : 'inherit'};">${q.dieuChinh > 0 ? '+' : ''}${esc(q.dieuChinh)}</td>
+      <td>${tonHTML_(q)}</td>
+      <td><button class="btn ghost sm" onclick="openGiftDetail(${jsArg(q.maQua)})">👁 Chi tiết</button></td>
+    </tr>`).join('')
+    : `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px;">${quaTang.length ? 'Không tìm thấy quà tặng phù hợp' : 'Chưa có loại quà nào — bấm "+ Thêm loại quà"'}</td></tr>`;
+
+  if (quaTangDetailMa) renderGiftDetail_();
 }
 
-/* ---------------- CHI TIET QUA TANG + LICH SU CAP NHAT ---------------- */
-function openGiftDetail(i) {
-  giftDetailIndex = i;
-  const g = gifts[i];
-  document.getElementById('gift-detail-card').style.display = 'block';
-  document.getElementById('gift-detail-title').textContent = 'Chi tiết: ' + g.loai;
-  document.getElementById('gift-detail-sub').textContent = g.chuongtrinh;
-  document.getElementById('gift-detail-stats').innerHTML = `
-    <div class="stat-tile flat"><div class="lbl">Nhập</div><div class="val" style="font-size:22px;">${esc(g.nhap)}</div></div>
-    <div class="stat-tile flat"><div class="lbl">Xuất</div><div class="val" style="font-size:22px;">${esc(g.xuat)}</div></div>
-    <div class="stat-tile flat"><div class="lbl">Tồn hiện tại</div><div class="val" style="font-size:22px;">${giftTonKho(g)}</div></div>`;
+/* ---- Ảnh: nén trên trình duyệt trước khi gửi (dùng chung resizeImageFile_ của Sự kiện) ---- */
+function previewQuaTangImage(event, prefix) {
+  const file = event.target.files[0];
+  if (!file) return;
+  resizeImageFile_(file, 600, 0.75, (base64, mime) => {
+    pendingQuaTangImage[prefix] = { data: base64, mime };
+    const img = document.getElementById(prefix + '-anh-preview');
+    img.src = 'data:' + mime + ';base64,' + base64;
+    img.style.display = 'block';
+  });
+}
+function resetQuaTangImage_(prefix) {
+  pendingQuaTangImage[prefix] = null;
+  document.getElementById(prefix + '-anh').value = '';
+  document.getElementById(prefix + '-anh-preview').style.display = 'none';
+}
+function setBtnBusy_(id, busy, text) {
+  const b = document.getElementById(id);
+  if (!b) return;
+  if (busy) { b.dataset.label = b.textContent; b.textContent = text || 'Đang lưu...'; b.disabled = true; }
+  else { b.textContent = b.dataset.label || b.textContent; b.disabled = false; }
+}
+
+async function addQuaTangUI() {
+  const loai = document.getElementById('g-loai').value.trim();
+  if (!loai) { showToast('Vui lòng nhập Loại quà tặng'); return; }
+  const soNhap = parseInt(document.getElementById('g-nhap').value) || 0;
+  const soXuat = parseInt(document.getElementById('g-xuat').value) || 0;
+  if (soNhap < 0 || soXuat < 0) { showToast('Số lượng không được âm'); return; }
+  if (soXuat > soNhap) { showToast('Số lượng xuất không thể lớn hơn số lượng nhập'); return; }
+  const maLienQuan = document.getElementById('g-lienquan').value;
+  const payload = { loai, maLienQuan, tenLienQuan: tenTheoMaLienQuan_(maLienQuan), soNhap, soXuat, ghiChu: document.getElementById('g-ghichu').value.trim() };
+  if (pendingQuaTangImage.g) { payload.anhBase64 = pendingQuaTangImage.g.data; payload.anhMimeType = pendingQuaTangImage.g.mime; }
+  setBtnBusy_('g-save-btn', true);
+  const r = await callPtvhApi('addQuaTang', { payload });
+  setBtnBusy_('g-save-btn', false);
+  if (!r.ok) { if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không lưu được'); return; }
+  ['g-loai', 'g-nhap', 'g-xuat', 'g-ghichu'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('g-lienquan').value = '';
+  resetQuaTangImage_('g');
+  closeForm('gifts-form');
+  showToast('Đã thêm ' + r.maQua + ' — ' + loai);
+  await refreshQuaTang();
+}
+
+/* ---- Chi tiết + sửa + xoá + lịch sử ---- */
+function openGiftDetail(maQua) {
+  quaTangDetailMa = maQua;
+  cancelQuaTangEdit();
   document.getElementById('gd-ngay').value = new Date().toISOString().slice(0, 10);
   document.getElementById('gd-lydo').value = '';
   document.getElementById('gd-soluong').value = '';
-  renderGiftHistory();
-  document.getElementById('gift-detail-card').scrollIntoView({behavior:'smooth', block:'center'});
+  document.getElementById('gift-detail-card').style.display = 'block';
+  renderGiftDetail_();
+  document.getElementById('gift-detail-card').scrollIntoView({behavior:'smooth', block:'start'});
 }
 function closeGiftDetail() {
-  giftDetailIndex = null;
+  quaTangDetailMa = null;
+  cancelQuaTangEdit();
   document.getElementById('gift-detail-card').style.display = 'none';
 }
-function renderGiftHistory() {
-  if (giftDetailIndex === null) return;
-  const g = gifts[giftDetailIndex];
-  const history = g.lichSu || [];
-  const body = document.getElementById('gift-history-body');
-  if (!history.length) {
-    body.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:16px;">Chưa có lịch sử cập nhật</td></tr>';
-    return;
-  }
-  body.innerHTML = history.slice().reverse().map(h => `
-    <tr>
-      <td>${esc(h.ngay)}</td>
-      <td>${esc(h.lyDo || '—')}</td>
-      <td style="font-weight:700; color:${h.soLuong < 0 ? 'var(--danger)' : 'var(--success)'};">${h.soLuong > 0 ? '+' : ''}${esc(h.soLuong)}</td>
-    </tr>`).join('');
+function renderGiftDetail_() {
+  const q = findQuaTang_(quaTangDetailMa);
+  if (!q) { closeGiftDetail(); return; } // đã bị xoá (có thể bởi người khác)
+  document.getElementById('gift-detail-title').textContent = q.loai + ' (' + q.maQua + ')';
+  document.getElementById('gift-detail-sub').textContent = (tenLienQuan_(q) || 'Không gắn sự kiện/thi đua') + (q.ghiChu ? ' · ' + q.ghiChu : '');
+  document.getElementById('gift-detail-stats').innerHTML = `
+    <div class="stat-tile flat"><div class="lbl">Nhập</div><div class="val" style="font-size:22px;">${esc(q.soNhap)}</div></div>
+    <div class="stat-tile flat"><div class="lbl">Xuất</div><div class="val" style="font-size:22px;">${esc(q.soXuat)}</div></div>
+    <div class="stat-tile flat"><div class="lbl">Điều chỉnh</div><div class="val" style="font-size:22px;">${q.dieuChinh > 0 ? '+' : ''}${esc(q.dieuChinh)}</div></div>
+    <div class="stat-tile flat ${q.ton <= quaTangNguongTonThap ? 'warn' : ''}"><div class="lbl">Tồn hiện tại</div><div class="val" style="font-size:22px;">${esc(q.ton)}</div></div>`;
+  const history = q.lichSu || [];
+  document.getElementById('gift-history-body').innerHTML = history.length
+    ? history.slice().reverse().map(h => `
+      <tr>
+        <td>${esc(h.ngay)}</td>
+        <td>${esc(h.lyDo || '—')}</td>
+        <td style="font-weight:700; color:${h.soLuong < 0 ? 'var(--danger)' : 'var(--success)'};">${h.soLuong > 0 ? '+' : ''}${esc(h.soLuong)}</td>
+        <td>${esc(h.nguoiGhi)}<div class="subtext">${esc(h.thoiGianGhi)}</div></td>
+      </tr>`).join('')
+    : '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:16px;">Chưa có lịch sử điều chỉnh</td></tr>';
+  document.getElementById('gift-detail-meta').textContent =
+    'Tạo: ' + (q.nguoiTao || '—') + ' · ' + (q.ngayTao || '—') + '  |  Cập nhật: ' + (q.nguoiCapNhat || '—') + ' · ' + (q.ngayCapNhat || '—');
 }
-function addGiftHistoryEntry() {
-  if (giftDetailIndex === null) return;
-  const g = gifts[giftDetailIndex];
+function startQuaTangEdit() {
+  const q = findQuaTang_(quaTangDetailMa);
+  if (!q) return;
+  document.getElementById('ge-loai').value = q.loai;
+  document.getElementById('ge-lienquan').innerHTML = lienQuanOptionsHTML_(q.maLienQuan);
+  document.getElementById('ge-nhap').value = q.soNhap;
+  document.getElementById('ge-xuat').value = q.soXuat;
+  document.getElementById('ge-ghichu').value = q.ghiChu || '';
+  resetQuaTangImage_('ge');
+  document.getElementById('gift-edit-form').style.display = 'block';
+}
+function cancelQuaTangEdit() {
+  document.getElementById('gift-edit-form').style.display = 'none';
+  resetQuaTangImage_('ge');
+}
+async function saveQuaTangEdit() {
+  const q = findQuaTang_(quaTangDetailMa);
+  if (!q) return;
+  const loai = document.getElementById('ge-loai').value.trim();
+  if (!loai) { showToast('Vui lòng nhập Loại quà tặng'); return; }
+  const soNhap = parseInt(document.getElementById('ge-nhap').value) || 0;
+  const soXuat = parseInt(document.getElementById('ge-xuat').value) || 0;
+  if (soNhap < 0 || soXuat < 0) { showToast('Số lượng không được âm'); return; }
+  if (soNhap - soXuat + q.dieuChinh < 0) { showToast('Sau khi sửa, tồn kho sẽ âm — kiểm tra lại số nhập/xuất'); return; }
+  const maLienQuan = document.getElementById('ge-lienquan').value;
+  const payload = { loai, maLienQuan, tenLienQuan: tenTheoMaLienQuan_(maLienQuan), soNhap, soXuat, ghiChu: document.getElementById('ge-ghichu').value.trim() };
+  if (pendingQuaTangImage.ge) { payload.anhBase64 = pendingQuaTangImage.ge.data; payload.anhMimeType = pendingQuaTangImage.ge.mime; }
+  setBtnBusy_('ge-save-btn', true);
+  const r = await callPtvhApi('updateQuaTang', { maQua: q.maQua, payload });
+  setBtnBusy_('ge-save-btn', false);
+  if (!r.ok) { if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không lưu được'); return; }
+  cancelQuaTangEdit();
+  showToast('Đã lưu thay đổi — tồn kho tự tính lại');
+  await refreshQuaTang();
+}
+async function deleteQuaTangUI() {
+  const q = findQuaTang_(quaTangDetailMa);
+  if (!q) return;
+  const n = (q.lichSu || []).length;
+  if (!confirm('Xoá hẳn loại quà "' + q.loai + '" (' + q.maQua + ')' + (n ? ' KÈM ' + n + ' dòng lịch sử điều chỉnh' : '') + '? Thao tác này KHÔNG thể hoàn tác.')) return;
+  const r = await callPtvhApi('deleteQuaTang', { maQua: q.maQua });
+  if (!r.ok) { if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không xoá được'); return; }
+  closeGiftDetail();
+  showToast('Đã xoá ' + q.maQua);
+  await refreshQuaTang();
+}
+async function addGiftHistoryEntry() {
+  const q = findQuaTang_(quaTangDetailMa);
+  if (!q) return;
   const soLuong = parseInt(document.getElementById('gd-soluong').value);
   if (!soLuong) { showToast('Vui lòng nhập Số lượng thay đổi (khác 0)'); return; }
-  const ngayRaw = document.getElementById('gd-ngay').value;
-  const ngay = ngayRaw ? fmtDate(new Date(ngayRaw)) : fmtDate(new Date());
   const lyDo = document.getElementById('gd-lydo').value.trim();
-  if (!g.lichSu) g.lichSu = [];
-  g.lichSu.push({ngay, lyDo, soLuong});
-  showToast('Đã ghi nhận cập nhật số lượng — tồn kho tự tính lại');
-  openGiftDetail(giftDetailIndex);
-  renderInventory('gifts');
-}
-function addInventoryItem(kind) {
-  const loai = document.getElementById('g-loai').value.trim();
-  if (!loai) { showToast('Vui lòng nhập Loại quà tặng'); return; }
-  const item = {
-    loai,
-    chuongtrinh: document.getElementById('g-chuongtrinh').value || '(chưa gắn sự kiện)',
-    nhap: parseInt(document.getElementById('g-nhap').value) || 0,
-    xuat: parseInt(document.getElementById('g-xuat').value) || 0,
-  };
-  giftCounter++;
-  item.image = pendingInventoryImage.gifts;
-  item.lichSu = [];
-  gifts.unshift(item);
-  document.getElementById('g-image').value = '';
-  document.getElementById('g-image-preview-wrap').style.display = 'none';
-  pendingInventoryImage.gifts = '';
-  ['g-loai', 'g-nhap', 'g-xuat'].forEach(id => document.getElementById(id).value = '');
-  showToast('Đã lưu — tồn kho tự tính lại');
-  closeForm('gifts-form');
-  renderInventory('gifts');
+  if (!lyDo) { showToast('Vui lòng nhập Lý do (dùng để đối soát)'); return; }
+  if (q.ton + soLuong < 0) { showToast('Điều chỉnh này làm tồn kho âm — hiện chỉ còn ' + q.ton); return; }
+  setBtnBusy_('gd-save-btn', true);
+  const r = await callPtvhApi('addQuaTangLichSu', { maQua: q.maQua, payload: { ngay: document.getElementById('gd-ngay').value, lyDo, soLuong } });
+  setBtnBusy_('gd-save-btn', false);
+  if (!r.ok) { if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không lưu được'); return; }
+  document.getElementById('gd-lydo').value = '';
+  document.getElementById('gd-soluong').value = '';
+  showToast('Đã ghi nhận điều chỉnh — tồn mới: ' + r.ton);
+  await refreshQuaTang();
 }
 
 /* ---------------- VOUCHER (đợt order voucher theo sự kiện — API thật, KHÔNG dùng chung với gifts) ---------------- */
