@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PTVH — Cổng quản lý công việc (Sheet + GAS + Web)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap');
 
   :root.viz-root, .viz-root {
     color-scheme: light;
@@ -37,9 +39,13 @@
     --header-h: 66px;
   }
   * { box-sizing: border-box; }
+  /* Ép mọi control dùng Be Vietnam Pro (mặc định trình duyệt không kế thừa font cho input/select/button) */
+  button, input, select, textarea, table { font-family: var(--font); }
   body {
     margin: 0;
     font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.5;
     background: var(--page);
     color: var(--text-primary);
     -webkit-font-smoothing: antialiased;
@@ -71,7 +77,7 @@
   .hamburger-btn {
     display: none; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.3);
     color: #fff; width: 36px; height: 36px; border-radius: 8px;
-    align-items: center; justify-content: center; cursor: pointer; font-size: 16px; flex: none;
+    align-items: center; justify-content: center; cursor: pointer; font-size: 17px; flex: none;
   }
   header.app .brand { display: flex; align-items: center; gap: 12px; }
   header.app .brand .logo {
@@ -79,13 +85,13 @@
     background: rgba(255,255,255,0.16);
     border: 1px solid rgba(255,255,255,0.3);
     display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 15px; letter-spacing: .02em;
+    font-weight: 800; font-size: 16px; letter-spacing: .02em;
   }
-  header.app h1 { font-size: 15.5px; margin: 0; font-weight: 800; }
-  header.app p { margin: 2px 0 0; font-size: 12px; color: rgba(255,255,255,.82); }
+  header.app h1 { font-size: 16.5px; margin: 0; font-weight: 800; }
+  header.app p { margin: 2px 0 0; font-size: 13.5px; color: rgba(255,255,255,.82); }
   header.app .badge-demo {
     position: relative;
-    font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-pill);
+    font-size: 12.5px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-pill);
     background: rgba(255,255,255,0.16); color: #fff; letter-spacing: .02em;
     border: 1px solid rgba(255,255,255,0.28); white-space: nowrap;
   }
@@ -102,11 +108,11 @@
   .sidebar-close { display: none; }
   .sidebar-nav-item {
     display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px;
-    font-size: 13px; font-weight: 700; color: var(--text-secondary); cursor: pointer;
+    font-size: 14.5px; font-weight: 700; color: var(--text-secondary); cursor: pointer;
     margin-bottom: 4px; border: none; background: none; width: 100%; text-align: left;
     font-family: var(--font);
   }
-  .sidebar-nav-item .ic { width: 20px; text-align: center; font-size: 15px; flex: none; }
+  .sidebar-nav-item .ic { width: 20px; text-align: center; font-size: 16px; flex: none; }
   .sidebar-nav-item:hover { background: var(--page); color: var(--primary); }
   .sidebar-nav-item.active { background: #fdeceb; color: var(--primary-dark); }
   .sidebar-foot {
@@ -114,9 +120,9 @@
   }
   .sidebar-foot .sidebar-nav-item { color: var(--text-muted); }
   .sidebar-user {
-    font-size: 11.5px; color: var(--text-muted); padding: 6px 12px 12px; line-height: 1.5;
+    font-size: 13px; color: var(--text-muted); padding: 6px 12px 12px; line-height: 1.5;
   }
-  .sidebar-user b { color: var(--text-primary); display: block; font-size: 12.5px; }
+  .sidebar-user b { color: var(--text-primary); display: block; font-size: 14px; }
 
   .sidebar-backdrop { display: none; }
 
@@ -129,9 +135,9 @@
     .sidebar.open { left: 0; box-shadow: 10px 0 34px rgba(0,0,0,.18); }
     .sidebar-close {
       display: flex; align-items: center; justify-content: space-between; width: 100%;
-      padding: 0 4px 14px; font-size: 13px; font-weight: 800; color: var(--text-primary);
+      padding: 0 4px 14px; font-size: 14.5px; font-weight: 800; color: var(--text-primary);
     }
-    .sidebar-close button { border: none; background: var(--page); border-radius: 8px; width: 30px; height: 30px; cursor: pointer; font-size: 15px; color: var(--text-secondary); }
+    .sidebar-close button { border: none; background: var(--page); border-radius: 8px; width: 30px; height: 30px; cursor: pointer; font-size: 16px; color: var(--text-secondary); }
     .sidebar-backdrop.show {
       display: block; position: fixed; inset: 0; background: rgba(15,15,15,.4); z-index: 50;
     }
@@ -148,17 +154,17 @@
     border-radius: var(--radius-lg); box-shadow: var(--shadow-card);
     padding: 22px 24px; margin-bottom: 18px;
   }
-  .card h2 { font-size: 16px; margin: 0 0 4px; font-weight: 800; }
-  .card .sub { font-size: 12.5px; color: var(--text-muted); margin: 0 0 18px; }
+  .card h2 { font-size: 17px; margin: 0 0 4px; font-weight: 800; }
+  .card .sub { font-size: 14px; color: var(--text-muted); margin: 0 0 18px; }
   .card-head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
 
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
   @media (max-width: 640px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
-  label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+  label { display: block; font-size: 13.5px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
   input[type=text], input[type=email], input[type=date], input[type=number], input[type=url], input[type=password], select, textarea {
     width: 100%; padding: 11px 14px; border: 2px solid var(--border); border-radius: var(--radius-md);
-    font-size: 14px; font-family: var(--font); background: #fff; color: var(--text-primary);
+    font-size: 15.5px; font-family: var(--font); background: #fff; color: var(--text-primary);
     outline: none;
   }
   input:focus, select:focus, textarea:focus { border-color: var(--primary); }
@@ -168,7 +174,7 @@
   .pills { display: flex; gap: 8px; }
   .pill {
     flex: 1; text-align: center; padding: 10px 8px; border: 1.5px solid var(--border);
-    border-radius: 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; color: var(--text-secondary);
+    border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; color: var(--text-secondary);
     background: #fff;
   }
   .pill.selected-A { background: #fdeceb; border-color: var(--primary); color: var(--primary-dark); }
@@ -176,7 +182,7 @@
   .pill.selected-C { background: #fde3e3; border-color: var(--danger); color: #b3271f; }
 
   button.btn, a.btn {
-    display: inline-block; border: none; border-radius: var(--radius-md); padding: 10px 18px; font-size: 13px; font-weight: 700;
+    display: inline-block; border: none; border-radius: var(--radius-md); padding: 10px 18px; font-size: 14.5px; font-weight: 700;
     cursor: pointer; background: var(--primary); color: #fff; font-family: var(--font); text-decoration: none;
   }
   button.btn:hover, a.btn:hover { background: var(--primary-dark); color: #fff; }
@@ -184,7 +190,7 @@
   button.btn.secondary:hover, a.btn.secondary:hover { background: var(--page); color: var(--primary); }
   button.btn.ghost, a.btn.ghost { background: #fff; color: var(--text-secondary); border: 1.5px solid var(--border); }
   button.btn.ghost:hover, a.btn.ghost:hover { background: var(--page); }
-  button.btn.sm, a.btn.sm { padding: 7px 12px; font-size: 12px; }
+  button.btn.sm, a.btn.sm { padding: 7px 12px; font-size: 13.5px; }
   button.btn:disabled { opacity: .6; cursor: not-allowed; }
 
   .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
@@ -194,43 +200,43 @@
     background: var(--surface-1); border: 1.5px solid var(--gridline); border-radius: var(--radius-lg);
     padding: 16px 18px; box-shadow: var(--shadow-card);
   }
-  .stat-tile .lbl { font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .stat-tile .lbl { font-size: 12.5px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
   .stat-tile .val { font-size: 26px; font-weight: 800; margin-top: 6px; font-variant-numeric: tabular-nums; color: var(--primary); }
-  .stat-tile .delta { font-size: 11.5px; margin-top: 4px; color: var(--text-secondary); }
+  .stat-tile .delta { font-size: 13px; margin-top: 4px; color: var(--text-secondary); }
   .stat-tile.warn .val { color: var(--danger); }
   .stat-tile.flat { box-shadow: none; background: var(--page); border-color: var(--gridline); }
 
   .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 12.8px; min-width: 560px; }
-  th { text-align: left; font-size: 11.5px; color: var(--primary-dark); padding: 10px 10px; font-weight: 700; white-space: nowrap; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 560px; }
+  th { text-align: left; font-size: 13px; color: var(--primary-dark); padding: 10px 10px; font-weight: 700; white-space: nowrap; }
   thead th { background: #fdeceb; border-bottom: 2px solid #f3c6c2; }
   thead th:first-child { border-top-left-radius: 8px; }
   thead th:last-child { border-top-right-radius: 8px; }
   td { padding: 10px 10px; border-bottom: 1px solid var(--gridline); vertical-align: middle; }
   tbody tr:hover { background: var(--page); }
   tr:last-child td { border-bottom: none; }
-  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--text-primary); white-space: nowrap; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 700; color: var(--text-primary); white-space: nowrap; }
   .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
   .dot.muted { background: var(--text-muted); }
   .dot.warning { background: var(--warning); }
   .dot.good { background: var(--success); }
   .dot.critical { background: var(--danger); }
-  select.inline { padding: 6px 26px 6px 10px; font-size: 12px; border-radius: 8px; min-width: 128px; border-width: 1.5px; }
-  input.inline { padding: 6px 10px; font-size: 12px; border-radius: 8px; border-width: 1.5px; }
-  .subtext { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  select.inline { padding: 6px 26px 6px 10px; font-size: 13.5px; border-radius: 8px; min-width: 150px; border-width: 1.5px; }
+  input.inline { padding: 6px 10px; font-size: 13.5px; border-radius: 8px; border-width: 1.5px; }
+  .subtext { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
   .subtext.tag-prog { color: var(--primary-dark); }
 
   .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .bar-row .name { width: 190px; font-size: 12.5px; color: var(--text-secondary); flex: none; }
+  .bar-row .name { width: 190px; font-size: 14px; color: var(--text-secondary); flex: none; }
   .bar-track { flex: 1; height: 10px; background: var(--gridline); border-radius: 6px; overflow: hidden; }
   .bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--primary-dark)); border-radius: 6px; }
-  .bar-row .n { width: 28px; text-align: right; font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .bar-row .n { width: 28px; text-align: right; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
 
-  .hint { font-size: 12px; color: var(--text-muted); margin-top: 10px; text-align: center; }
+  .hint { font-size: 13.5px; color: var(--text-muted); margin-top: 10px; text-align: center; }
   .toast {
     position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
     background: var(--text-primary); color: #fff; padding: 12px 20px; border-radius: var(--radius-md);
-    font-size: 13px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,.2);
+    font-size: 14.5px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,.2);
     opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 90; max-width: 90vw;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
@@ -240,11 +246,11 @@
     display: flex; justify-content: space-between; align-items: center;
     margin-top: 14px; padding: 14px 16px; border-radius: var(--radius-md); background: #fdeceb;
   }
-  .kpi-total .lbl { font-size: 13px; font-weight: 700; color: var(--primary-dark); }
+  .kpi-total .lbl { font-size: 14.5px; font-weight: 700; color: var(--primary-dark); }
   .kpi-total .val { font-size: 22px; font-weight: 800; color: var(--primary-dark); font-variant-numeric: tabular-nums; }
 
   .flow-note {
-    font-size: 12px; color: var(--text-muted); background: #fff; border: 1px dashed var(--gridline);
+    font-size: 13.5px; color: var(--text-muted); background: #fff; border: 1px dashed var(--gridline);
     border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 18px;
   }
   .flow-note b { color: var(--text-secondary); }
@@ -252,12 +258,12 @@
   .filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
   .filter-btn {
     padding: 7px 16px; border-radius: var(--radius-pill); border: 1.5px solid var(--border);
-    background: #fff; font-family: var(--font); font-size: 12.5px; font-weight: 700; color: var(--text-muted);
+    background: #fff; font-family: var(--font); font-size: 14px; font-weight: 700; color: var(--text-muted);
     cursor: pointer;
   }
   .filter-btn.active { border-color: var(--primary); background: #fdeceb; color: var(--primary-dark); }
 
-  .status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 700; }
+  .status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 700; }
   .status-pill.plan { background: #eef2ff; color: #3730a3; }
   .status-pill.done { background: #f0fdf4; color: #166534; }
   .status-pill.pending { background: #f4f4f5; color: #52525b; }
@@ -271,17 +277,17 @@
   .staff-stats-table td.num, .staff-stats-table th.num { text-align: center; }
   .webapp-link { font-weight: 700; color: var(--primary-dark); text-decoration: none; }
   .webapp-link:hover { text-decoration: underline; }
-  .webapp-type-tag { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); background: var(--page); color: var(--text-secondary); border: 1px solid var(--gridline); white-space: nowrap; }
+  .webapp-type-tag { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); background: var(--page); color: var(--text-secondary); border: 1px solid var(--gridline); white-space: nowrap; }
 
   .search-bar { position: relative; margin-bottom: 14px; max-width: 320px; }
   .search-bar input { padding-left: 34px; }
-  .search-bar .search-ic { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--text-muted); pointer-events: none; }
+  .search-bar .search-ic { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14.5px; color: var(--text-muted); pointer-events: none; }
 
   .pipeline-row { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; }
   .pipeline-stage { flex: 1; min-width: 130px; background: var(--page); border: 1.5px solid var(--gridline); border-radius: var(--radius-md); padding: 16px; text-align: center; }
   .pipeline-stage .n { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text-primary); }
-  .pipeline-stage .lbl { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .03em; }
-  .pipeline-arrow { display: flex; align-items: center; justify-content: center; width: 30px; color: var(--text-muted); font-size: 18px; flex: none; }
+  .pipeline-stage .lbl { font-size: 12.5px; font-weight: 700; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .03em; }
+  .pipeline-arrow { display: flex; align-items: center; justify-content: center; width: 30px; color: var(--text-muted); font-size: 19px; flex: none; }
   .pipeline-stage.st-pending .n { color: var(--text-muted); }
   .pipeline-stage.st-doing .n { color: var(--warning); }
   .pipeline-stage.st-done .n { color: var(--success); }
@@ -299,16 +305,16 @@
   .work-timeline-dot {
     width: 46px; height: 46px; border-radius: 50%; z-index: 1;
     display: flex; align-items: center; justify-content: center;
-    font-size: 17px; font-weight: 800; color: #fff;
+    font-size: 18px; font-weight: 800; color: #fff;
     box-shadow: 0 3px 10px rgba(0,0,0,.14); border: 3px solid var(--surface-1);
   }
-  .work-timeline-node.total .work-timeline-dot { background: linear-gradient(160deg, var(--text-primary), #334155); font-size: 15px; }
+  .work-timeline-node.total .work-timeline-dot { background: linear-gradient(160deg, var(--text-primary), #334155); font-size: 16px; }
   .work-timeline-node.pending .work-timeline-dot { background: var(--text-muted); }
   .work-timeline-node.doing .work-timeline-dot { background: var(--warning); }
   .work-timeline-node.done .work-timeline-dot { background: var(--success); }
   .work-timeline-node.confirmed .work-timeline-dot { background: var(--primary); }
-  .work-timeline-lbl { margin-top: 9px; font-size: 11.5px; font-weight: 700; color: var(--text-secondary); }
-  .work-timeline-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+  .work-timeline-lbl { margin-top: 9px; font-size: 13px; font-weight: 700; color: var(--text-secondary); }
+  .work-timeline-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 1px; }
   @media (max-width: 640px) {
     .work-timeline { flex-direction: column; align-items: stretch; gap: 14px; }
     .work-timeline-node { flex-direction: row; text-align: left; gap: 12px; }
@@ -326,16 +332,16 @@
   }
   .webapp-card:hover { border-color: var(--primary); transform: translateY(-2px); }
   .webapp-card-icon { width: 44px; height: 44px; border-radius: 12px; background: #fdeceb; display:flex; align-items:center; justify-content:center; font-size: 22px; }
-  .webapp-card-title { font-size: 14px; font-weight: 800; color: var(--text-primary); }
-  .webapp-card-sub { font-size: 12px; color: var(--text-muted); }
+  .webapp-card-title { font-size: 15.5px; font-weight: 800; color: var(--text-primary); }
+  .webapp-card-sub { font-size: 13.5px; color: var(--text-muted); }
   .link-row { display: flex; gap: 6px; margin-bottom: 6px; }
   .link-row input { flex: 1; }
   .link-chip-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 
   .doc-folder-block { margin-bottom: 22px; }
   .doc-folder-block:last-child { margin-bottom: 0; }
-  .doc-folder-title { font-size: 13px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-  .doc-folder-count { font-size: 11px; font-weight: 700; color: var(--text-muted); background: var(--page); border-radius: var(--radius-pill); padding: 1px 8px; }
+  .doc-folder-title { font-size: 14.5px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .doc-folder-count { font-size: 12.5px; font-weight: 700; color: var(--text-muted); background: var(--page); border-radius: var(--radius-pill); padding: 1px 8px; }
 
   /* ================= LOGIN — TRẢI NGHIỆM PREMIUM RIÊNG ================= */
   #panel-login.active { display: flex; }
@@ -379,14 +385,14 @@
     50% { transform: scale(1.05) translateY(-4px); }
   }
   .login-eyebrow {
-    font-size: 11.5px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
     color: rgba(255,255,255,.85); margin-bottom: 8px;
   }
   .login-heading {
     font-size: 24px; font-weight: 800; color: #fff; text-align: center; margin-bottom: 28px;
   }
   .login-sub {
-    font-size: 13px; color: rgba(255,255,255,.82); text-align: center; max-width: 300px;
+    font-size: 14.5px; color: rgba(255,255,255,.82); text-align: center; max-width: 300px;
     line-height: 1.6; margin-bottom: 28px;
   }
   .login-card {
@@ -398,42 +404,42 @@
   }
   .login-card .field label { text-align: left; }
   .login-card input#f-pin, .login-card input#f-otp, .login-card input#f-newpin, .login-card input#f-newpin-confirm {
-    text-align: center; letter-spacing: .5em; font-size: 20px; font-weight: 700;
+    text-align: center; letter-spacing: .5em; font-size: 21px; font-weight: 700;
     padding: 13px 10px 13px 16px;
   }
-  .login-submit-btn { width: 100%; padding: 12px 18px; font-size: 14px; letter-spacing: .01em; margin-bottom: 8px; }
+  .login-submit-btn { width: 100%; padding: 12px 18px; font-size: 15.5px; letter-spacing: .01em; margin-bottom: 8px; }
   .email-input-row { display: flex; align-items: stretch; border: 1px solid var(--gridline); border-radius: 10px; overflow: hidden; background: #fff; }
   .email-input-row input { border: none; border-radius: 0; flex: 1; min-width: 0; }
   .email-input-row input:focus { outline: none; box-shadow: none; }
   .email-domain-suffix {
-    display: flex; align-items: center; padding: 0 12px; font-size: 12.5px;
+    display: flex; align-items: center; padding: 0 12px; font-size: 14px;
     color: var(--text-muted); background: var(--page); white-space: nowrap; border-left: 1px solid var(--gridline);
   }
-  .login-step-note { font-size: 13px; color: var(--text-secondary); text-align: center; margin: 0 0 16px; }
-  .login-hint { font-size: 12px; color: rgba(255,255,255,.75); text-align: center; margin-top: 10px; }
+  .login-step-note { font-size: 14.5px; color: var(--text-secondary); text-align: center; margin: 0 0 16px; }
+  .login-hint { font-size: 13.5px; color: rgba(255,255,255,.75); text-align: center; margin-top: 10px; }
   .login-hint a { color: #fff; text-decoration: underline; }
   #login-email-hint { color: var(--text-muted); }
   .login-divider {
     display: flex; align-items: center; gap: 10px; margin: 18px 0 14px;
-    font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em;
+    font-size: 12.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em;
   }
   .login-divider::before, .login-divider::after { content: ''; flex: 1; height: 1px; background: var(--gridline); }
   .demo-chip-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
   .demo-chip {
     display: inline-flex; align-items: center; gap: 6px;
-    font-size: 11.5px; font-weight: 600; color: var(--text-secondary);
+    font-size: 13px; font-weight: 600; color: var(--text-secondary);
     background: var(--page); border: 1px solid var(--gridline);
     padding: 6px 12px; border-radius: var(--radius-pill);
   }
   .demo-chip b { color: var(--primary); font-weight: 800; font-family: monospace; letter-spacing: .04em; }
   .login-foot {
-    margin-top: 26px; font-size: 11.5px; color: rgba(255,255,255,.7); text-align: center;
+    margin-top: 26px; font-size: 13px; color: rgba(255,255,255,.7); text-align: center;
   }
   /* ===== Sự kiện: Dòng thời gian / Lộ trình năm (namespace sk- để không trùng class cũ) ===== */
   .sk-control-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
   .sk-tabs-bar, .sk-sort-bar { display: flex; gap: 6px; background: #fff; padding: 4px; border-radius: 100px; box-shadow: var(--shadow-card); }
   .sk-tab-btn, .sk-sort-btn {
-    border: none; background: transparent; font-family: var(--font); font-size: 12.5px; font-weight: 700;
+    border: none; background: transparent; font-family: var(--font); font-size: 14px; font-weight: 700;
     padding: 8px 16px; border-radius: 100px; cursor: pointer; color: var(--text-muted);
     transition: background .15s ease, color .15s ease;
   }
@@ -445,7 +451,7 @@
   .sk-month-group:last-child::before { bottom: 0; }
   .sk-month-head { display: flex; align-items: center; margin-bottom: 12px; }
   .sk-month-head .sk-badge {
-    background: var(--primary); color: #fff; font-weight: 800; font-size: 12.5px;
+    background: var(--primary); color: #fff; font-weight: 800; font-size: 14px;
     padding: 5px 14px; border-radius: 100px; white-space: nowrap; position: relative; z-index: 1;
   }
   .sk-month-head .sk-dot {
@@ -469,25 +475,25 @@
   .sk-event-card .sk-thumb .sk-status-dot { position: absolute; top: 7px; right: 7px; width: 9px; height: 9px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,.5); }
   .sk-event-card .sk-thumb .sk-status-dot.plan { background: #fde68a; }
   .sk-event-card .sk-body { padding: 10px 12px 12px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
-  .sk-event-card .sk-ten { font-size: 13px; font-weight: 700; line-height: 1.35; }
-  .sk-event-card .sk-highlight { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+  .sk-event-card .sk-ten { font-size: 14.5px; font-weight: 700; line-height: 1.35; }
+  .sk-event-card .sk-highlight { font-size: 12.5px; color: var(--text-muted); line-height: 1.4; }
   .sk-event-card .sk-foot { margin-top: auto; padding-top: 8px; display: flex; justify-content: space-between; align-items: center; }
-  .sk-event-card .sk-ns { font-size: 11.5px; font-weight: 700; color: var(--primary-dark); }
+  .sk-event-card .sk-ns { font-size: 13px; font-weight: 700; color: var(--primary-dark); }
 
   .sk-roadmap-scroll { overflow-x: auto; background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: 16px; }
   .sk-roadmap-quarters, .sk-roadmap-months, .sk-roadmap-grid { display: grid; grid-template-columns: repeat(12, minmax(140px, 1fr)); gap: 8px; min-width: 1300px; }
   .sk-roadmap-quarters { margin-bottom: 8px; }
-  .sk-q-cell { grid-column: span 3; background: var(--primary-dark); color: #fff; text-align: center; font-weight: 800; font-size: 12.5px; padding: 7px 0; border-radius: var(--radius-md); }
+  .sk-q-cell { grid-column: span 3; background: var(--primary-dark); color: #fff; text-align: center; font-weight: 800; font-size: 14px; padding: 7px 0; border-radius: var(--radius-md); }
   .sk-roadmap-months { margin-bottom: 12px; }
-  .sk-m-cell { background: #fdeceb; color: var(--primary-dark); text-align: center; font-weight: 700; font-size: 12px; padding: 6px 0; border-radius: var(--radius-md); }
+  .sk-m-cell { background: #fdeceb; color: var(--primary-dark); text-align: center; font-weight: 700; font-size: 13.5px; padding: 6px 0; border-radius: var(--radius-md); }
   .sk-m-cell.current { background: var(--primary); color: #fff; }
   .sk-roadmap-grid { align-items: start; }
   .sk-roadmap-col { display: flex; flex-direction: column; gap: 8px; }
   .sk-rm-block { background: #ecfdf3; border: 1px solid #bbf7d0; border-radius: var(--radius-md); padding: 8px 9px; cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; }
   .sk-rm-block:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.1); }
   .sk-rm-block.plan { background: #fffbeb; border-color: #fde68a; }
-  .sk-rm-block .sk-ten { font-size: 11px; font-weight: 700; line-height: 1.35; color: var(--text-primary); }
-  .sk-rm-block .sk-ns { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+  .sk-rm-block .sk-ten { font-size: 12.5px; font-weight: 700; line-height: 1.35; color: var(--text-primary); }
+  .sk-rm-block .sk-ns { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; }
 
   .sk-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.42); opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 60; }
   .sk-overlay.open { opacity: 1; pointer-events: auto; }
@@ -497,9 +503,9 @@
   .sk-drawer-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .sk-drawer-banner.no-image { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 40px; }
   .sk-drawer-head { padding: 16px 22px 14px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; position: relative; flex: none; }
-  .sk-drawer-head .sk-close-btn { position: absolute; top: 14px; right: 14px; background: rgba(255,255,255,.18); border: none; color: #fff; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 14px; line-height: 1; }
-  .sk-drawer-head .sk-eyebrow { font-size: 11.5px; opacity: .85; margin-bottom: 5px; }
-  .sk-drawer-head h2 { margin: 0; font-size: 17px; font-weight: 800; line-height: 1.3; padding-right: 30px; }
+  .sk-drawer-head .sk-close-btn { position: absolute; top: 14px; right: 14px; background: rgba(255,255,255,.18); border: none; color: #fff; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 15.5px; line-height: 1; }
+  .sk-drawer-head .sk-eyebrow { font-size: 13px; opacity: .85; margin-bottom: 5px; }
+  .sk-drawer-head h2 { margin: 0; font-size: 18px; font-weight: 800; line-height: 1.3; padding-right: 30px; }
   .sk-drawer-body { padding: 18px 22px 90px; overflow-y: auto; flex: 1; }
   .sk-drawer-actions { position: absolute; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--gridline); padding: 12px 22px; display: flex; gap: 10px; }
 
@@ -508,15 +514,15 @@
   .td-month-group { border: 1px solid var(--gridline); border-radius: var(--radius-md); margin-bottom: 10px; overflow: hidden; }
   .td-month-head {
     display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--page);
-    cursor: pointer; font-weight: 700; font-size: 13.5px; user-select: none;
+    cursor: pointer; font-weight: 700; font-size: 15px; user-select: none;
   }
   .td-month-head:hover { background: #f4ecea; }
-  .td-month-head .chevron { transition: transform .15s ease; font-size: 11px; color: var(--text-muted); }
+  .td-month-head .chevron { transition: transform .15s ease; font-size: 12.5px; color: var(--text-muted); }
   .td-month-head.collapsed .chevron { transform: rotate(-90deg); }
-  .td-month-head .count { font-weight: 500; color: var(--text-muted); font-size: 12px; }
+  .td-month-head .count { font-weight: 500; color: var(--text-muted); font-size: 13.5px; }
   .td-month-body { display: block; }
   .td-month-body.collapsed { display: none; }
-  .td-status-pill { display: inline-block; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .td-status-pill { display: inline-block; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 700; white-space: nowrap; }
   .td-status-done { background: #f0fdf4; color: #166534; }
   .td-status-wait { background: #fffbeb; color: #92400e; }
   .td-status-review { background: #eff6ff; color: #1e40af; }
@@ -525,6 +531,62 @@
   .td-status-design { background: #eef2ff; color: #3730a3; }
   .td-status-cancel { background: #f4f4f5; color: #52525b; text-decoration: line-through; }
   .td-status-blank { background: #f4f4f5; color: #a1a1aa; font-weight: 500; }
+
+  /* ---- Công việc: recap + bộ lọc theo cột + xem theo sự kiện ---- */
+  .work-recap { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .work-recap .stat-tile { cursor: pointer; transition: transform .12s, border-color .12s; }
+  .work-recap .stat-tile:hover { transform: translateY(-2px); }
+  .work-recap .stat-tile.active { border-color: var(--primary); box-shadow: 0 0 0 2px #fdeceb; }
+  .work-recap .stat-tile .val { font-size: 28px; }
+  .work-recap .stat-tile.t-pending .val { color: #52525b; }
+  .work-recap .stat-tile.t-doing .val { color: #c2410c; }
+  .work-recap .stat-tile.t-done .val { color: var(--success); }
+  .work-recap .stat-tile.t-late .val { color: var(--danger); }
+  .work-recap .stat-tile.t-event .val { color: #4338ca; }
+  .work-recap-note { grid-column: 1 / -1; font-size: 13px; color: var(--text-muted); margin-top: -4px; }
+  .work-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 12px; }
+  .work-toolbar .search-bar { flex: 1 1 240px; margin: 0; }
+  .work-toolbar .field { margin: 0; min-width: 140px; }
+  .work-toolbar .field label { margin-bottom: 4px; }
+  .inline-check { display: flex !important; align-items: center; gap: 6px; font-size: 14px; white-space: nowrap; margin: 0 0 10px; color: var(--text-secondary); }
+  .inline-check input { width: auto !important; }
+  .work-table { min-width: 1180px; }
+  .work-table th.sortable { cursor: pointer; user-select: none; }
+  .work-table th.sortable:hover { text-decoration: underline; }
+  .work-table th.sortable.asc::after { content: ' ▲'; font-size: 10px; }
+  .work-table th.sortable.desc::after { content: ' ▼'; font-size: 10px; }
+  .work-table tr.filter-head th { background: #fff7f6; padding: 6px 6px; border-bottom: 1px solid #f3c6c2; }
+  .work-table tr.filter-head input, .work-table tr.filter-head select { width: 100%; min-width: 80px; padding: 6px 8px; font-size: 13px; border-radius: 8px; font-weight: 500; }
+  .work-table tr.filter-head .is-active { border-color: var(--primary); background: #fff8f7; }
+  .work-table td.ten-cell { cursor: pointer; min-width: 260px; }
+  .work-table select.inline { min-width: 160px; }
+  .work-table td:nth-child(2) { min-width: 120px; }
+  .work-table td:nth-child(5) { min-width: 150px; }
+  .work-table td.ten-cell:hover { color: var(--primary-dark); }
+  .work-table tr.is-late td { background: #fff5f5; }
+  .late-tag { color: var(--danger); font-weight: 700; font-size: 12.5px; }
+  .we-card { background: #fff; border: 1px solid var(--gridline); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); margin-bottom: 12px; overflow: hidden; }
+  .we-head { display: flex; gap: 14px; align-items: center; padding: 14px 18px; cursor: pointer; }
+  .we-head:hover { background: #fffafa; }
+  .we-thumb { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; flex: none; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; }
+  .we-main { flex: 1; min-width: 0; }
+  .we-title { font-weight: 800; font-size: 16px; }
+  .we-meta { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+  .we-progress { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+  .we-progress .bar-track { max-width: 360px; height: 8px; }
+  .we-counts { display: flex; gap: 6px; flex-wrap: wrap; flex: none; }
+  .we-caret { font-size: 14px; color: var(--text-muted); flex: none; transition: transform .15s; }
+  .we-card.open .we-caret { transform: rotate(90deg); }
+  .we-body { display: none; padding: 0 18px 16px; border-top: 1px solid var(--gridline); }
+  .we-card.open .we-body { display: block; }
+  .we-suggest { margin-top: 12px; padding: 10px 12px; background: #fffbeb; border: 1px dashed #f6e2b0; border-radius: 10px; font-size: 13.5px; }
+  .we-suggest-row { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 5px 0; }
+  @media (max-width: 760px) { .we-head { flex-wrap: wrap; } .we-counts { width: 100%; } }
+  .kpi-construct { text-align: center; padding: 56px 24px; }
+  .kpi-construct .ic { font-size: 56px; }
+  .kpi-construct h2 { font-size: 22px !important; margin: 12px 0 6px !important; }
+  .kpi-construct p { color: var(--text-muted); max-width: 520px; margin: 0 auto 6px; }
+  .nav-soon { margin-left: auto; font-size: 10.5px; font-weight: 700; background: #fff7ed; color: #9a3412; border-radius: 999px; padding: 1px 7px; }
 </style>
 </head>
 <body class="viz-root">
@@ -671,13 +733,25 @@
 
     <!-- ============ PANEL: CONG VIEC (gop Yeu cau + Theo doi cong viec) ============ -->
     <section class="panel" id="panel-work">
-      <div class="flow-note">
-        <b>Công việc:</b> đã gộp trang "Nộp yêu cầu" vào đây. Có thể gắn đầu việc vào một Sự kiện (nếu là việc con của sự kiện đó). Người phụ trách tự cập nhật trạng thái + dán link thư mục lưu trữ; khi đã "Hoàn thành", Trưởng nhóm/Trưởng phòng xác nhận lại để chốt trạng thái. Chọn cách xem bên dưới: theo toàn bộ đầu việc, hoặc theo từng nhân sự.
-      </div>
+      <!-- Recap số liệu — tính theo BỘ LỌC hiện tại ở tab "Theo đầu công việc"; bấm ô để lọc nhanh theo trạng thái -->
+      <div class="work-recap" id="work-recap"></div>
 
       <div class="filter-row" id="work-view-filter">
         <button class="filter-btn" data-v="task" onclick="setWorkView('task')">📋 Theo đầu công việc</button>
+        <button class="filter-btn" data-v="event" onclick="setWorkView('event')">🎪 Theo đầu sự kiện</button>
         <button class="filter-btn" data-v="staff" onclick="setWorkView('staff')">👤 Theo đầu nhân sự</button>
+      </div>
+
+      <!-- Card chi tiết dùng chung cho cả 3 cách xem -->
+      <div class="card edit-card" id="work-detail-card" style="display:none;">
+        <div class="card-head-row">
+          <div>
+            <h2 id="work-detail-title">Chi tiết công việc</h2>
+            <p class="sub" id="work-detail-sub" style="margin-bottom:0;"></p>
+          </div>
+          <button class="btn ghost sm" onclick="closeWorkDetail()">✕ Đóng</button>
+        </div>
+        <div id="work-detail-body"></div>
       </div>
 
       <div id="work-view-task">
@@ -706,7 +780,7 @@
             </div>
             <div class="grid2">
               <div class="field"><label>Bộ phận/người yêu cầu (nếu có)</label><input type="text" id="w-bophan" placeholder="VD: Vận hành Miền Nam — để trống nếu là việc nội bộ Phòng"></div>
-              <div class="field"><label>Hạn hoàn thành</label><input type="date" id="w-han"></div>
+              <div class="field"><label>Hạn hoàn thành (gợi ý theo SLA)</label><input type="date" id="w-han"></div>
             </div>
             <div class="field">
               <label>Thuộc sự kiện (nếu có)</label>
@@ -721,26 +795,78 @@
             <button class="btn" onclick="addWork()">Thêm vào bảng theo dõi</button>
           </div>
         </div>
-        <div class="card edit-card" id="work-detail-card" style="display:none;">
+        <div class="card">
           <div class="card-head-row">
             <div>
-              <h2 id="work-detail-title">Chi tiết công việc</h2>
-              <p class="sub" id="work-detail-sub" style="margin-bottom:0;"></p>
+              <h2>Toàn bộ đầu việc đang theo dõi</h2>
+              <p class="sub" id="work-count-lbl" style="margin-bottom:0;"></p>
             </div>
-            <button class="btn ghost sm" onclick="closeWorkDetail()">✕ Đóng</button>
+            <button class="btn ghost sm" onclick="clearWorkFilters()">✕ Xoá bộ lọc</button>
           </div>
-          <div id="work-detail-body"></div>
-        </div>
-        <div class="card">
-          <h2>Toàn bộ đầu việc đang theo dõi</h2>
-          <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="work-search" placeholder="Tìm theo mã việc, tên, mảng, người phụ trách..." oninput="renderWork()"></div>
+          <div class="work-toolbar">
+            <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="work-search" placeholder="Tìm nhanh mọi cột..." oninput="renderWork()"></div>
+            <div class="field"><label>Thời gian triển khai — Tháng</label>
+              <select id="wf-thang" onchange="renderWork()"><option value="">Tất cả tháng</option></select></div>
+            <div class="field"><label>Năm</label>
+              <select id="wf-nam" onchange="renderWork()"><option value="">Tất cả năm</option></select></div>
+            <div class="field"><label>Nhận việc từ ngày</label><input type="date" id="wf-tu" onchange="renderWork()"></div>
+            <div class="field"><label>đến ngày</label><input type="date" id="wf-den" onchange="renderWork()"></div>
+          </div>
           <div class="table-wrap">
-          <table>
-            <thead><tr><th>Mã việc</th><th>Mảng</th><th>Tên công việc</th><th>Phân loại</th><th>Người phụ trách</th><th>Hạn HT</th><th>Link</th><th>Trạng thái</th><th>Xác nhận HT</th></tr></thead>
+          <table class="work-table">
+            <thead>
+              <tr>
+                <th class="sortable" data-k="ma" onclick="sortWork('ma')">Mã việc</th>
+                <th class="sortable" data-k="mang" onclick="sortWork('mang')">Mảng</th>
+                <th class="sortable" data-k="ten" onclick="sortWork('ten')">Tên công việc</th>
+                <th class="sortable" data-k="phanLoai" onclick="sortWork('phanLoai')">Phân loại</th>
+                <th class="sortable" data-k="nguoi" onclick="sortWork('nguoi')">Người phụ trách</th>
+                <th class="sortable" data-k="ngayNhan" onclick="sortWork('ngayNhan')">Ngày nhận</th>
+                <th class="sortable" data-k="han" onclick="sortWork('han')">Hạn HT</th>
+                <th>Link</th>
+                <th class="sortable" data-k="trangThai" onclick="sortWork('trangThai')">Trạng thái</th>
+                <th class="sortable" data-k="xacNhan" onclick="sortWork('xacNhan')">Xác nhận HT</th>
+              </tr>
+              <tr class="filter-head">
+                <th><input type="text" id="wf-ma" placeholder="Lọc mã" oninput="renderWork()"></th>
+                <th><select id="wf-mang" onchange="renderWork()"><option value="">Tất cả</option></select></th>
+                <th><input type="text" id="wf-ten" placeholder="Lọc tên / mô tả" oninput="renderWork()"></th>
+                <th><select id="wf-phanloai" onchange="renderWork()"><option value="">Tất cả</option><option>A</option><option>B</option><option>C</option></select></th>
+                <th><select id="wf-nguoi" onchange="renderWork()"><option value="">Tất cả</option></select></th>
+                <th></th>
+                <th><select id="wf-han" onchange="renderWork()"><option value="">Tất cả</option><option value="quahan">Quá hạn</option><option value="sap">Đến hạn ≤ 3 ngày</option><option value="co">Có hạn</option><option value="chua">Chưa có hạn</option></select></th>
+                <th><select id="wf-link" onchange="renderWork()"><option value="">Tất cả</option><option value="co">Có link</option><option value="chua">Chưa có</option></select></th>
+                <th><select id="wf-trangthai" onchange="renderWork()"><option value="">Tất cả</option><option>Chưa triển khai</option><option>Đang thực hiện</option><option>Hoàn thành</option></select></th>
+                <th><select id="wf-xacnhan" onchange="renderWork()"><option value="">Tất cả</option><option value="da">Đã xác nhận</option><option value="cho">Chờ xác nhận</option><option value="chuaht">Chưa hoàn thành</option></select></th>
+              </tr>
+            </thead>
             <tbody id="work-body"></tbody>
           </table>
           </div>
         </div>
+      </div>
+
+      <div id="work-view-event" style="display:none;">
+        <div class="card">
+          <div class="card-head-row">
+            <div>
+              <h2>Công việc theo sự kiện</h2>
+              <p class="sub" id="we-summary" style="margin-bottom:0;"></p>
+            </div>
+          </div>
+          <div class="work-toolbar" style="margin-top:12px;">
+            <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="we-search" placeholder="Tìm sự kiện hoặc công việc..." oninput="renderWorkEventView()"></div>
+            <div class="field"><label>Sắp xếp</label>
+              <select id="we-sort" onchange="renderWorkEventView()">
+                <option value="thang-desc">Tháng mới nhất trước</option>
+                <option value="thang-asc">Tháng cũ nhất trước</option>
+                <option value="soviec">Nhiều công việc nhất</option>
+                <option value="tiendo">Tiến độ thấp nhất</option>
+              </select></div>
+            <label class="inline-check"><input type="checkbox" id="we-only-has" onchange="renderWorkEventView()" checked> Chỉ hiện sự kiện đã có công việc</label>
+          </div>
+        </div>
+        <div id="we-list"></div>
       </div>
 
       <div id="work-view-staff" style="display:none;">
@@ -752,7 +878,7 @@
             <select id="st-task-select" style="max-width:280px;" onchange="renderStaffTasks()"></select>
           </div>
           <div style="margin-top:10px;">
-            <div class="subtext" id="st-task-progress-lbl" style="font-size:13px; margin-bottom:6px;"></div>
+            <div class="subtext" id="st-task-progress-lbl" style="font-size:14.5px; margin-bottom:6px;"></div>
             <div class="bar-track" style="height:12px;"><div class="bar-fill" id="st-task-progress-bar" style="width:0%"></div></div>
           </div>
         </div>
@@ -1189,7 +1315,7 @@
         <div class="stat-row" id="gift-detail-stats" style="margin:16px 0;"></div>
 
         <div id="gift-edit-form" style="display:none; margin-bottom:18px;">
-          <h2 style="font-size:14px;">Sửa thông tin loại quà</h2>
+          <h2 style="font-size:15.5px;">Sửa thông tin loại quà</h2>
           <div class="grid2">
             <div class="field"><label>Loại quà tặng *</label><input type="text" id="ge-loai"></div>
             <div class="field"><label>Gắn với sự kiện / thi đua</label><select id="ge-lienquan"></select></div>
@@ -1208,7 +1334,7 @@
           <button class="btn ghost sm" onclick="cancelQuaTangEdit()">Hủy</button>
         </div>
 
-        <h2 style="font-size:14px;">Điều chỉnh số lượng</h2>
+        <h2 style="font-size:15.5px;">Điều chỉnh số lượng</h2>
         <p class="sub">Ghi nhận khi phát sinh thay đổi ngoài lần nhập/xuất ban đầu — VD: kiểm kê, hỏng hóc, phát bổ sung. Số âm = giảm.</p>
         <div class="grid3">
           <div class="field"><label>Ngày phát sinh</label><input type="date" id="gd-ngay"></div>
@@ -1217,7 +1343,7 @@
         </div>
         <button class="btn secondary sm" id="gd-save-btn" onclick="addGiftHistoryEntry()">+ Ghi nhận điều chỉnh</button>
 
-        <h2 style="font-size:14px; margin-top:22px;">Lịch sử điều chỉnh</h2>
+        <h2 style="font-size:15.5px; margin-top:22px;">Lịch sử điều chỉnh</h2>
         <div class="table-wrap">
         <table>
           <thead><tr><th>Ngày</th><th>Lý do</th><th>SL thay đổi</th><th>Người ghi</th></tr></thead>
@@ -1234,7 +1360,7 @@
         </div>
         <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
           <div class="search-bar" style="flex:1; min-width:220px;"><span class="search-ic">🔍</span><input type="text" id="gifts-search" placeholder="Tìm theo mã, loại, sự kiện..." oninput="renderGifts()"></div>
-          <label style="font-size:12.5px; display:flex; gap:6px; align-items:center; white-space:nowrap;"><input type="checkbox" id="gifts-only-low" onchange="renderGifts()" style="width:auto;"> Chỉ hiện sắp hết</label>
+          <label style="font-size:14px; display:flex; gap:6px; align-items:center; white-space:nowrap;"><input type="checkbox" id="gifts-only-low" onchange="renderGifts()" style="width:auto;"> Chỉ hiện sắp hết</label>
         </div>
         <div class="table-wrap">
         <table>
@@ -1314,25 +1440,11 @@
 
     <!-- ============ PANEL: KPI ============ -->
     <section class="panel" id="panel-kpi">
-      <div class="flow-note">
-        Chủ mảng nhập số liệu thực hiện tháng — % đạt và điểm quy đổi tính ngay khi gõ (logic giống công thức trong file Excel, chuyển sang JS).
-      </div>
-      <div class="card">
-        <h2>Nhập KPI tháng — Mảng Thi đua</h2>
-        <p class="sub">Nhập cột "Thực hiện", các cột còn lại tự tính</p>
-        <div class="table-wrap">
-        <table class="kpi-table">
-          <thead>
-            <tr><th>Chỉ số</th><th>Trọng số</th><th>Chỉ tiêu</th><th>Thực hiện</th><th>% đạt</th></tr>
-          </thead>
-          <tbody id="kpi-body"></tbody>
-        </table>
-        </div>
-        <div class="kpi-total">
-          <span class="lbl">Tổng điểm mảng</span>
-          <span class="val" id="kpi-total-val">—</span>
-        </div>
-        <div style="margin-top:14px;"><button class="btn" onclick="saveKpi()">Lưu KPI</button></div>
+      <div class="card kpi-construct">
+        <div class="ic">🚧</div>
+        <h2>KPI — đang xây dựng</h2>
+        <p>Module KPI chưa áp dụng. Phòng đang thống nhất bộ chỉ tiêu, trọng số và cách lấy số liệu (tự tính từ Công việc/Sự kiện/Thi đua hay nhập tay theo tháng).</p>
+        <p>Khi chốt xong, tab này sẽ được mở với dữ liệu thật trên Google Sheet.</p>
       </div>
     </section>
 
@@ -1699,7 +1811,7 @@ const SIDEBAR_ITEMS = [
   {id:'gifts', label:'Quà tặng', icon:'🎁'},
   {id:'vouchers', label:'Voucher', icon:'🎟️'},
   {id:'webapps', label:'Web App', icon:'🧩'},
-  {id:'kpi', label:'KPI', icon:'📊'},
+  {id:'kpi', label:'KPI', icon:'📊', soon:true},
   {id:'docs', label:'Tài liệu/Links', icon:'🔗'},
   {id:'settings', label:'Cài đặt', icon:'⚙️', roleOnly:'Trưởng nhóm'},
 ];
@@ -1715,7 +1827,7 @@ function renderSidebar() {
     const btn = document.createElement('button');
     btn.className = 'sidebar-nav-item';
     btn.dataset.id = t.id;
-    btn.innerHTML = `<span class="ic">${esc(t.icon)}</span> ${esc(t.label)}`;
+    btn.innerHTML = `<span class="ic">${esc(t.icon)}</span> ${esc(t.label)}${t.soon ? '<span class="nav-soon">Sắp có</span>' : ''}`;
     btn.onclick = () => go(t.id);
     nav.appendChild(btn);
   });
@@ -2079,11 +2191,6 @@ function renderEbStats() {
 }
 
 /* ---------------- CONG VIEC (gop Yeu cau + TheoDoiCongViec) ---------------- */
-function populateWorkProgramSelect() {
-  const sel = document.getElementById('w-chuongtrinh');
-  sel.innerHTML = '<option value="">— Không thuộc sự kiện nào —</option>' +
-    programs.map(p => `<option value="${esc(p.ten)}">${esc(p.ten)}</option>`).join('');
-}
 
 document.getElementById('w-phanloai').addEventListener('click', (e) => {
   const pill = e.target.closest('.pill');
@@ -2123,14 +2230,14 @@ function xacNhanCellHTML(w, i) {
   return '<span class="badge"><span class="dot warning"></span>Chờ TN/TP xác nhận</span>';
 }
 
-let workViewMode = 'task';
+/* ================= CÔNG VIỆC — recap, lọc theo cột, thời gian triển khai, xem theo sự kiện ================= */
+let workViewMode = 'task';          // 'task' | 'event' | 'staff'
+let workSort = { key: 'ngayNhan', dir: 'desc' }; // mặc định: việc nhận gần nhất lên đầu
+let workEventOpen = {};             // maSuKien/'__none' -> true nếu đang mở (nhớ trong phiên)
+
 function setWorkView(mode) {
   workViewMode = mode;
-  document.querySelectorAll('#work-view-filter .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.v === mode));
-  document.getElementById('work-view-task').style.display = mode === 'task' ? 'block' : 'none';
-  document.getElementById('work-view-staff').style.display = mode === 'staff' ? 'block' : 'none';
-  if (mode === 'task') renderWorkTaskView();
-  else renderStaffTasks();
+  renderWork();
 }
 
 let congViecLoaded = false;
@@ -2146,8 +2253,20 @@ async function refreshCongViec(showLoadingToast) {
   renderWork();
 }
 
+/** Parse ngày từ API: Date đã JSON hoá (ISO) hoặc chuỗi dd/mm/yyyy — trả Date hoặc null. */
+function parseNgayApi_(v) {
+  if (!v) return null;
+  if (typeof v === 'string' && /^\d{1,2}\/\d{1,2}\/\d{4}/.test(v)) return parseVNDate(v.slice(0, 10));
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 /** Chuyển object trả về từ API (schema thật, xem CongViec.gs) sang đúng field mà UI đang dùng. */
 function mapCongViecFromApi_(it) {
+  const ngayNhan = parseNgayApi_(it.ngayNhanTask);
+  const hanDate = parseNgayApi_(it.hanHoanThanhSLA);
+  // "Thời gian triển khai" = ngày nhận task; dòng cũ không có ngày thì lấy số từ cột Tháng ("Tháng 3").
+  const mThang = String(it.thang || '').match(/(\d{1,2})/);
   return {
     ma: it.maViec,
     mang: it.mang,
@@ -2155,13 +2274,18 @@ function mapCongViecFromApi_(it) {
     moTa: it.moTa || '',
     phanLoai: it.phanLoai || 'B',
     nguoi: it.nguoiPhuTrach || [],
-    han: it.hanHoanThanhSLA ? fmtDate(new Date(it.hanHoanThanhSLA)) : '',
+    han: hanDate ? fmtDate(hanDate) : '',
+    hanDate: hanDate,
+    ngayNhan: ngayNhan,
+    thangSo: ngayNhan ? ngayNhan.getMonth() + 1 : (mThang ? Number(mThang[1]) : null),
+    nam: ngayNhan ? ngayNhan.getFullYear() : null,
+    thangGoc: it.thang || '',
     link: it.link || '',
     linkThuMuc: it.linkLuuTru || '',
     trangThai: it.trangThai || 'Chưa triển khai',
-    chuongTrinh: it.thuocSuKien || '',
+    chuongTrinh: it.thuocSuKien || '',   // mã sự kiện (SK-...) — dòng cũ có thể là TÊN sự kiện
     xacNhan: !!it.xacNhanHT,
-    boPhan: '', // báo cáo thật không có trường "bộ phận yêu cầu" riêng — mô tả hiển thị thay thế
+    boPhan: '',
     ngayTao: it.ngayTao,
     nguoiTao: it.nguoiTao,
     nguoiCapNhat: it.nguoiCapNhat,
@@ -2169,13 +2293,352 @@ function mapCongViecFromApi_(it) {
   };
 }
 
+/* ---- Sự kiện mà 1 đầu việc thuộc về: khớp theo mã (chuẩn mới) hoặc theo tên (dữ liệu cũ) ---- */
+function normText_(s) { return String(s || '').toLowerCase().normalize('NFC').replace(/\s+/g, ' ').trim(); }
+function eventOfWork_(w) {
+  if (!w.chuongTrinh) return null;
+  const key = normText_(w.chuongTrinh);
+  return programs.find(p => p.maSuKien === w.chuongTrinh) || programs.find(p => normText_(p.ten) === key) || null;
+}
+function tenSuKienCuaViec_(w) {
+  const p = eventOfWork_(w);
+  return p ? p.ten : (w.chuongTrinh || '');
+}
+
+function workIsLate_(w) {
+  if (!w.hanDate || w.trangThai === 'Hoàn thành') return false;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  return w.hanDate < today;
+}
+function workDueSoon_(w) {
+  if (!w.hanDate || w.trangThai === 'Hoàn thành') return false;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const diff = (w.hanDate - today) / 86400000;
+  return diff >= 0 && diff <= 3;
+}
+
+function populateWorkProgramSelect() {
+  const sel = document.getElementById('w-chuongtrinh');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Không thuộc sự kiện nào —</option>' +
+    programs.map(p => `<option value="${esc(p.maSuKien)}">${esc(p.ten)}</option>`).join('');
+  if (prev) sel.value = prev;
+}
+
+/** Nạp lựa chọn cho các dropdown lọc lấy từ dữ liệu thật (giữ nguyên lựa chọn đang chọn). */
+function fillSelectKeep_(id, values, allLabel) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = `<option value="">${esc(allLabel || 'Tất cả')}</option>` + values.map(v =>
+    typeof v === 'object' ? `<option value="${esc(v.value)}">${esc(v.label)}</option>` : `<option>${esc(v)}</option>`).join('');
+  if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+}
+function populateWorkFilterOptions_() {
+  const mangs = [...new Set([...MANG_LIST, ...workItems.map(w => w.mang).filter(Boolean)])];
+  fillSelectKeep_('wf-mang', mangs);
+  const nguois = [...new Set([...staffNames(), ...workItems.flatMap(w => w.nguoi)])].filter(Boolean).sort((a, b) => a.localeCompare(b, 'vi'));
+  fillSelectKeep_('wf-nguoi', nguois);
+  const thangs = [...new Set(workItems.map(w => w.thangSo).filter(Boolean))].sort((a, b) => a - b);
+  fillSelectKeep_('wf-thang', thangs.map(t => ({ value: String(t), label: 'Tháng ' + t })), 'Tất cả tháng');
+  const nams = [...new Set(workItems.map(w => w.nam).filter(Boolean))].sort((a, b) => b - a);
+  fillSelectKeep_('wf-nam', nams.map(n => ({ value: String(n), label: String(n) })), 'Tất cả năm');
+}
+
+function workFilterValues_() {
+  const v = id => (document.getElementById(id)?.value || '').trim();
+  return {
+    q: v('work-search').toLowerCase(), ma: v('wf-ma').toLowerCase(), mang: v('wf-mang'), ten: v('wf-ten').toLowerCase(),
+    phanLoai: v('wf-phanloai'), nguoi: v('wf-nguoi'), han: v('wf-han'), link: v('wf-link'),
+    trangThai: v('wf-trangthai'), xacNhan: v('wf-xacnhan'),
+    thang: v('wf-thang'), nam: v('wf-nam'), tu: v('wf-tu'), den: v('wf-den'),
+  };
+}
+function workMatches_(w, f) {
+  if (f.q && ![w.ma, w.mang, w.ten, w.phanLoai, w.nguoi.join(' '), tenSuKienCuaViec_(w), w.trangThai, w.moTa].join(' ').toLowerCase().includes(f.q)) return false;
+  if (f.ma && !String(w.ma || '').toLowerCase().includes(f.ma)) return false;
+  if (f.mang && w.mang !== f.mang) return false;
+  if (f.ten && !(String(w.ten) + ' ' + w.moTa).toLowerCase().includes(f.ten)) return false;
+  if (f.phanLoai && w.phanLoai !== f.phanLoai) return false;
+  if (f.nguoi && !w.nguoi.includes(f.nguoi)) return false;
+  if (f.han === 'quahan' && !workIsLate_(w)) return false;
+  if (f.han === 'sap' && !workDueSoon_(w)) return false;
+  if (f.han === 'co' && !w.hanDate) return false;
+  if (f.han === 'chua' && w.hanDate) return false;
+  const coLink = !!(w.linkThuMuc || w.link);
+  if (f.link === 'co' && !coLink) return false;
+  if (f.link === 'chua' && coLink) return false;
+  if (f.trangThai && w.trangThai !== f.trangThai) return false;
+  if (f.xacNhan === 'da' && !w.xacNhan) return false;
+  if (f.xacNhan === 'cho' && !(w.trangThai === 'Hoàn thành' && !w.xacNhan)) return false;
+  if (f.xacNhan === 'chuaht' && w.trangThai === 'Hoàn thành') return false;
+  if (f.thang && String(w.thangSo) !== f.thang) return false;
+  if (f.nam && String(w.nam) !== f.nam) return false;
+  if (f.tu) { const d = new Date(f.tu + 'T00:00:00'); if (!w.ngayNhan || w.ngayNhan < d) return false; }
+  if (f.den) { const d = new Date(f.den + 'T23:59:59'); if (!w.ngayNhan || w.ngayNhan > d) return false; }
+  return true;
+}
+function workFilterActive_(f) {
+  return Object.keys(f).some(k => f[k]);
+}
+function clearWorkFilters() {
+  ['work-search', 'wf-ma', 'wf-mang', 'wf-ten', 'wf-phanloai', 'wf-nguoi', 'wf-han', 'wf-link', 'wf-trangthai', 'wf-xacnhan', 'wf-thang', 'wf-nam', 'wf-tu', 'wf-den']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  renderWork();
+}
+
+function sortWork(key) {
+  if (workSort.key === key) workSort.dir = workSort.dir === 'asc' ? 'desc' : 'asc';
+  else workSort = { key, dir: key === 'ngayNhan' || key === 'han' ? 'desc' : 'asc' };
+  renderWork();
+}
+function workSortValue_(w, key) {
+  switch (key) {
+    case 'ngayNhan': return w.ngayNhan ? w.ngayNhan.getTime() : (w.thangSo ? w.thangSo * 1e3 : -1);
+    case 'han': return w.hanDate ? w.hanDate.getTime() : -1;
+    case 'nguoi': return w.nguoi.join(', ');
+    case 'xacNhan': return w.xacNhan ? 2 : (w.trangThai === 'Hoàn thành' ? 1 : 0);
+    case 'trangThai': return ['Chưa triển khai', 'Đang thực hiện', 'Hoàn thành'].indexOf(w.trangThai);
+    default: return String(w[key] || '');
+  }
+}
+function sortWorkRows_(rows) {
+  const { key, dir } = workSort;
+  const k = dir === 'asc' ? 1 : -1;
+  return rows.slice().sort((a, b) => {
+    const va = workSortValue_(a.w, key), vb = workSortValue_(b.w, key);
+    const c = typeof va === 'number' && typeof vb === 'number' ? va - vb : String(va).localeCompare(String(vb), 'vi', { numeric: true });
+    return c !== 0 ? c * k : String(b.w.ma).localeCompare(String(a.w.ma), 'vi', { numeric: true });
+  });
+}
+
+/** Recap số liệu trên đầu trang — tính trên tập đang lọc (tab Theo đầu công việc) hoặc toàn bộ (tab khác). */
+function renderWorkRecap_(list, filtered) {
+  const f = workFilterValues_();
+  const total = list.length;
+  const cnt = s => list.filter(w => w.trangThai === s).length;
+  const done = cnt('Hoàn thành');
+  const choXN = list.filter(w => w.trangThai === 'Hoàn thành' && !w.xacNhan).length;
+  const late = list.filter(workIsLate_).length;
+  const coSK = list.filter(w => eventOfWork_(w)).length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const tile = (cls, lbl, val, delta, onclick, active) =>
+    `<div class="stat-tile ${cls}${active ? ' active' : ''}" onclick="${onclick}"><div class="lbl">${lbl}</div><div class="val">${val}</div><div class="delta">${delta}</div></div>`;
+  document.getElementById('work-recap').innerHTML =
+    tile('', 'Tổng đầu việc', total, pct + '% đã hoàn thành', "quickWorkFilter('')", false) +
+    tile('t-pending', 'Chưa triển khai', cnt('Chưa triển khai'), 'Bấm để lọc', "quickWorkFilter('Chưa triển khai')", f.trangThai === 'Chưa triển khai') +
+    tile('t-doing', 'Đang thực hiện', cnt('Đang thực hiện'), 'Bấm để lọc', "quickWorkFilter('Đang thực hiện')", f.trangThai === 'Đang thực hiện') +
+    tile('t-done', 'Hoàn thành', done, choXN + ' chờ xác nhận', "quickWorkFilter('Hoàn thành')", f.trangThai === 'Hoàn thành') +
+    tile('t-late', 'Quá hạn SLA', late, 'Chưa xong, đã qua hạn', "quickWorkFilter('__late')", f.han === 'quahan') +
+    tile('t-event', 'Thuộc sự kiện', coSK, 'Xem theo đầu sự kiện', "setWorkView('event')", false) +
+    `<div class="work-recap-note">${filtered ? '🔎 Số liệu đang tính theo bộ lọc hiện tại — bấm "✕ Xoá bộ lọc" để xem toàn bộ.' : ''}</div>`;
+}
+function quickWorkFilter(val) {
+  workViewMode = 'task';
+  document.getElementById('wf-trangthai').value = (val && val !== '__late') ? val : '';
+  document.getElementById('wf-han').value = val === '__late' ? 'quahan' : '';
+  renderWork();
+}
+
 function renderWork() {
   document.querySelectorAll('#work-view-filter .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.v === workViewMode));
-  document.getElementById('work-view-task').style.display = workViewMode === 'task' ? 'block' : 'none';
-  document.getElementById('work-view-staff').style.display = workViewMode === 'staff' ? 'block' : 'none';
+  ['task', 'event', 'staff'].forEach(m => document.getElementById('work-view-' + m).style.display = workViewMode === m ? 'block' : 'none');
   if (!congViecLoaded) { refreshCongViec(); return; } // lần đầu vào tab: tải từ API rồi tự render lại
   if (workViewMode === 'task') renderWorkTaskView();
-  else renderStaffTasks();
+  else {
+    renderWorkRecap_(workItems, false);
+    if (workViewMode === 'event') renderWorkEventView();
+    else renderStaffTasks();
+  }
+}
+
+function renderWorkTaskView() {
+  populateWorkProgramSelect();
+  populateWorkFilterOptions_();
+  const f = workFilterValues_();
+  // Tô viền ô lọc đang dùng để dễ nhận biết
+  document.querySelectorAll('.work-table tr.filter-head input, .work-table tr.filter-head select, .work-toolbar select, .work-toolbar input')
+    .forEach(el => el.classList.toggle('is-active', !!el.value));
+  document.querySelectorAll('.work-table th.sortable').forEach(th => {
+    th.classList.toggle('asc', th.dataset.k === workSort.key && workSort.dir === 'asc');
+    th.classList.toggle('desc', th.dataset.k === workSort.key && workSort.dir === 'desc');
+  });
+
+  const all = workItems.map((w, i) => ({ w, i }));
+  const rows = sortWorkRows_(all.filter(({ w }) => workMatches_(w, f)));
+  const filtered = workFilterActive_(f);
+  renderWorkRecap_(rows.map(r => r.w), filtered);
+  document.getElementById('work-count-lbl').textContent = filtered
+    ? `Đang hiển thị ${rows.length}/${workItems.length} đầu việc theo bộ lọc`
+    : `${workItems.length} đầu việc — bấm tiêu đề cột để sắp xếp, dùng hàng lọc ngay dưới tiêu đề để lọc theo từng cột`;
+
+  document.getElementById('work-body').innerHTML = rows.length ? rows.map(({ w, i }) => {
+    const late = workIsLate_(w);
+    const tenSK = tenSuKienCuaViec_(w);
+    return `
+    <tr class="${late ? 'is-late' : ''}">
+      <td style="font-weight:700; white-space:nowrap;">${esc(w.ma)}</td>
+      <td>${esc(w.mang)}</td>
+      <td class="ten-cell" onclick="openWorkDetail(${i})">${esc(w.ten)}
+        ${w.moTa ? `<div class="subtext">${esc(truncateText_(w.moTa, 80))}</div>` : ''}
+        ${tenSK ? `<div class="subtext tag-prog">🎪 ${esc(tenSK)}</div>` : ''}
+      </td>
+      <td style="text-align:center;">${esc(w.phanLoai)}</td>
+      <td>${esc(w.nguoi.join(', '))}</td>
+      <td style="white-space:nowrap;">${w.ngayNhan ? esc(fmtDate(w.ngayNhan)) : `<span class="subtext">${esc(w.thangGoc || '—')}</span>`}</td>
+      <td style="white-space:nowrap;">${esc(w.han || '—')}${late ? '<div class="late-tag">⚠️ Quá hạn</div>' : workDueSoon_(w) ? '<div class="subtext" style="color:#b45309;font-weight:700;">Sắp đến hạn</div>' : ''}${overdueWarnHTML(w)}</td>
+      <td style="white-space:nowrap;">${workLinkCellHTML_(w, i)}</td>
+      <td>
+        <select class="inline ${statusSelectClass_(w.trangThai)}" id="wt-${i}" onchange="updateWorkStatus(${i})">
+          <option ${w.trangThai==='Chưa triển khai'?'selected':''}>Chưa triển khai</option>
+          <option ${w.trangThai==='Đang thực hiện'?'selected':''}>Đang thực hiện</option>
+          <option ${w.trangThai==='Hoàn thành'?'selected':''}>Hoàn thành</option>
+        </select>
+      </td>
+      <td>${xacNhanCellHTML(w, i)}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy đầu việc phù hợp với bộ lọc</td></tr>';
+}
+
+/* ---- Xem theo đầu sự kiện ---- */
+function renderWorkEventView() {
+  const q = normText_(document.getElementById('we-search').value);
+  const onlyHas = document.getElementById('we-only-has').checked;
+  const sortMode = document.getElementById('we-sort').value;
+
+  const byEvent = {};
+  const chuaGan = [];
+  workItems.forEach((w, i) => {
+    const p = eventOfWork_(w);
+    if (p) (byEvent[p.maSuKien] = byEvent[p.maSuKien] || []).push({ w, i });
+    else chuaGan.push({ w, i });
+  });
+
+  // Gợi ý: việc CHƯA gắn sự kiện nhưng tên việc chứa tên sự kiện (hoặc ngược lại) — bấm "Gắn" để xác nhận.
+  const goiY = {};
+  programs.forEach(p => {
+    const tenSK = normText_(p.ten);
+    if (tenSK.length < 6) return;
+    goiY[p.maSuKien] = chuaGan.filter(({ w }) => {
+      const t = normText_(w.ten);
+      return t.includes(tenSK) || (t.length >= 10 && tenSK.includes(t));
+    });
+  });
+
+  let groups = programs.map(p => {
+    const items = byEvent[p.maSuKien] || [];
+    const done = items.filter(x => x.w.trangThai === 'Hoàn thành').length;
+    return { p, items, done, pct: items.length ? Math.round(done / items.length * 100) : 0 };
+  });
+  if (onlyHas) groups = groups.filter(g => g.items.length || (goiY[g.p.maSuKien] || []).length);
+  if (q) groups = groups.filter(g => normText_(g.p.ten).includes(q) || g.items.some(x => normText_(x.w.ten + ' ' + x.w.ma).includes(q)));
+  groups.sort((a, b) => {
+    if (sortMode === 'soviec') return b.items.length - a.items.length;
+    if (sortMode === 'tiendo') return (a.items.length ? a.pct : 101) - (b.items.length ? b.pct : 101);
+    const d = (a.p.thang || 0) - (b.p.thang || 0);
+    return sortMode === 'thang-asc' ? d : -d;
+  });
+
+  const soViecCoSK = workItems.length - chuaGan.length;
+  document.getElementById('we-summary').textContent =
+    `${programs.length} sự kiện · ${soViecCoSK} đầu việc đã gắn sự kiện · ${chuaGan.length} đầu việc chưa gắn. Gắn/đổi sự kiện trong Chi tiết công việc.`;
+
+  const taskRows = items => items.length ? `
+    <div class="table-wrap"><table style="margin-top:10px;">
+      <thead><tr><th>Mã việc</th><th>Tên công việc</th><th>Người phụ trách</th><th>Ngày nhận</th><th>Hạn HT</th><th>Trạng thái</th></tr></thead>
+      <tbody>${sortWorkRows_(items).map(({ w, i }) => `
+        <tr class="${workIsLate_(w) ? 'is-late' : ''}" style="cursor:pointer;" onclick="openWorkDetail(${i})">
+          <td style="font-weight:700; white-space:nowrap;">${esc(w.ma)}</td>
+          <td>${esc(w.ten)}${w.moTa ? `<div class="subtext">${esc(truncateText_(w.moTa, 70))}</div>` : ''}</td>
+          <td>${esc(w.nguoi.join(', '))}</td>
+          <td style="white-space:nowrap;">${w.ngayNhan ? esc(fmtDate(w.ngayNhan)) : esc(w.thangGoc || '—')}</td>
+          <td style="white-space:nowrap;">${esc(w.han || '—')}${workIsLate_(w) ? '<div class="late-tag">⚠️ Quá hạn</div>' : ''}</td>
+          <td>${statusPillHTML_(w.trangThai)}${w.xacNhan ? ' <span class="status-pill done">✓ XN</span>' : ''}</td>
+        </tr>`).join('')}</tbody></table></div>`
+    : '<p class="sub" style="margin:12px 0 0;">Chưa có đầu việc nào gắn với sự kiện này.</p>';
+
+  const html = groups.map(({ p, items, done, pct }) => {
+    const key = p.maSuKien;
+    const cnt = s => items.filter(x => x.w.trangThai === s).length;
+    const late = items.filter(x => workIsLate_(x.w)).length;
+    const sug = goiY[key] || [];
+    return `
+    <div class="we-card ${workEventOpen[key] ? 'open' : ''}" id="we-${esc(key)}">
+      <div class="we-head" onclick="toggleWorkEvent(${jsArg(key)})">
+        ${p.anh ? `<img class="we-thumb" src="${safeUrl(p.anh)}" loading="lazy" alt="">` : `<div class="we-thumb">🎪</div>`}
+        <div class="we-main">
+          <div class="we-title">${esc(p.ten)}</div>
+          <div class="we-meta">${esc(key)} · ${esc(p.thoiGianGoc || thangLabel_(p.thang))} · ${esc(p.trangThai)}</div>
+          <div class="we-progress">
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+            <span class="subtext" style="margin:0;">${items.length ? `${done}/${items.length} việc xong (${pct}%)` : 'Chưa có việc'}</span>
+          </div>
+        </div>
+        <div class="we-counts">
+          ${cnt('Chưa triển khai') ? `<span class="status-pill pending">${cnt('Chưa triển khai')} chưa làm</span>` : ''}
+          ${cnt('Đang thực hiện') ? `<span class="status-pill doing">${cnt('Đang thực hiện')} đang làm</span>` : ''}
+          ${done ? `<span class="status-pill done">${done} xong</span>` : ''}
+          ${late ? `<span class="status-pill" style="background:#fef2f2;color:#b91c1c;">${late} quá hạn</span>` : ''}
+          ${sug.length ? `<span class="status-pill" style="background:#fffbeb;color:#92400e;">${sug.length} gợi ý</span>` : ''}
+        </div>
+        <span class="we-caret">▶</span>
+      </div>
+      <div class="we-body">
+        ${taskRows(items)}
+        ${sug.length ? `<div class="we-suggest"><b>💡 Có thể thuộc sự kiện này</b> (tên việc chứa tên sự kiện — kiểm tra rồi bấm Gắn):
+          ${sug.map(({ w }) => `<div class="we-suggest-row"><span><b>${esc(w.ma)}</b> — ${esc(w.ten)}</span>
+            <button class="btn secondary sm" onclick="event.stopPropagation(); ganViecVaoSuKien(${jsArg(w.ma)}, ${jsArg(key)})">Gắn</button></div>`).join('')}
+        </div>` : ''}
+        <div style="margin-top:12px;"><button class="btn ghost sm" onclick="themViecChoSuKien(${jsArg(key)})">+ Thêm đầu việc cho sự kiện này</button></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const chuaGanFiltered = q ? chuaGan.filter(x => normText_(x.w.ten + ' ' + x.w.ma).includes(q)) : chuaGan;
+  const noneCard = chuaGanFiltered.length ? `
+    <div class="we-card ${workEventOpen.__none ? 'open' : ''}">
+      <div class="we-head" onclick="toggleWorkEvent('__none')">
+        <div class="we-thumb" style="background:#e2e8f0;color:#475569;">📂</div>
+        <div class="we-main">
+          <div class="we-title">Chưa gắn sự kiện</div>
+          <div class="we-meta">Việc thường xuyên / không thuộc sự kiện nào — mở Chi tiết công việc để gắn sự kiện nếu cần</div>
+        </div>
+        <div class="we-counts"><span class="status-pill pending">${chuaGanFiltered.length} việc</span></div>
+        <span class="we-caret">▶</span>
+      </div>
+      <div class="we-body">${taskRows(chuaGanFiltered)}</div>
+    </div>` : '';
+
+  document.getElementById('we-list').innerHTML = (html || (programs.length
+    ? '<div class="card"><p class="sub" style="margin:0;text-align:center;">Không có sự kiện nào khớp — thử bỏ tick "Chỉ hiện sự kiện đã có công việc".</p></div>'
+    : '<div class="card"><p class="sub" style="margin:0;text-align:center;">Chưa có sự kiện nào — tạo ở tab Sự kiện.</p></div>')) + noneCard;
+}
+function toggleWorkEvent(key) {
+  workEventOpen[key] = !workEventOpen[key];
+  renderWorkEventView();
+}
+function themViecChoSuKien(maSuKien) {
+  setWorkView('task');
+  document.getElementById('work-form').style.display = 'block';
+  populateWorkProgramSelect();
+  document.getElementById('w-chuongtrinh').value = maSuKien;
+  document.getElementById('w-ten').focus();
+  document.getElementById('work-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+async function ganViecVaoSuKien(maViec, maSuKien) {
+  const r = await callPtvhApi('updateCongViecThuocSuKien', { maViec, maSuKien });
+  if (!r.ok) { if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không gắn được sự kiện'); return false; }
+  const w = workItems.find(x => x.ma === maViec);
+  if (w) w.chuongTrinh = maSuKien;
+  showToast(maSuKien ? 'Đã gắn ' + maViec + ' vào sự kiện' : 'Đã bỏ gắn sự kiện cho ' + maViec);
+  renderWork();
+  return true;
+}
+async function saveWorkSuKien(i) {
+  const w = workItems[i];
+  if (!w) return;
+  const ma = document.getElementById('wd-sukien').value;
+  if (await ganViecVaoSuKien(w.ma, ma)) openWorkDetail(i);
 }
 
 /* ================= SỰ KIỆN (Module 3 — API thật) ================= */
@@ -2256,34 +2719,6 @@ function workLinkCellHTML_(w, i) {
     : (w.linkThuMuc ? `<button class="btn ghost sm" onclick="showToast('Nội dung đã lưu (không phải link bấm được): ' + ${jsArg(w.linkThuMuc)})" title="Xem nội dung đã lưu">📄</button>` : '');
   return `${openBtn}<button class="btn ghost sm" onclick="promptWorkLink(${i})" title="Sửa link lưu trữ">✏️</button>`;
 }
-function renderWorkTaskView() {
-  populateWorkProgramSelect();
-  const term = (document.getElementById('work-search')?.value || '').toLowerCase().trim();
-  const rows = workItems
-    .map((w, i) => ({w, i}))
-    .filter(({w}) => !term || [w.ma, w.mang, w.ten, w.phanLoai, w.nguoi.join(' '), w.chuongTrinh, w.trangThai, w.moTa].join(' ').toLowerCase().includes(term));
-  document.getElementById('work-body').innerHTML = rows.length ? rows.map(({w, i}) => `
-    <tr>
-      <td style="font-weight:700;">${esc(w.ma)}</td>
-      <td>${esc(w.mang)}</td>
-      <td style="cursor:pointer;" onclick="openWorkDetail(${i})">${esc(w.ten)}
-        ${w.moTa ? `<div class="subtext">${esc(truncateText_(w.moTa, 70))}</div>` : ''}
-        ${w.chuongTrinh ? `<div class="subtext tag-prog">🎪 ${esc(w.chuongTrinh)}</div>` : ''}
-      </td>
-      <td>${esc(w.phanLoai)}</td>
-      <td>${esc(w.nguoi.join(', '))}</td>
-      <td>${esc(w.han || '—')}${overdueWarnHTML(w)}</td>
-      <td style="white-space:nowrap;">${workLinkCellHTML_(w, i)}</td>
-      <td>
-        <select class="inline ${statusSelectClass_(w.trangThai)}" id="wt-${i}" onchange="updateWorkStatus(${i})">
-          <option ${w.trangThai==='Chưa triển khai'?'selected':''}>Chưa triển khai</option>
-          <option ${w.trangThai==='Đang thực hiện'?'selected':''}>Đang thực hiện</option>
-          <option ${w.trangThai==='Hoàn thành'?'selected':''}>Hoàn thành</option>
-        </select>
-      </td>
-      <td>${xacNhanCellHTML(w, i)}</td>
-    </tr>`).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">Không tìm thấy đầu việc phù hợp</td></tr>';
-}
 async function promptWorkLink(i) {
   const w = workItems[i];
   const val = prompt('Dán link thư mục lưu trữ cho "' + w.ten + '":', w.linkThuMuc || '');
@@ -2300,11 +2735,21 @@ function openWorkDetail(i) {
   const isUrlGoc = /^https?:\/\//i.test(w.link || '');
   document.getElementById('work-detail-body').innerHTML = `
     <div class="stat-row-3" style="margin:14px 0;">
-      <div class="stat-tile flat"><div class="lbl">Người phụ trách</div><div class="val" style="font-size:15px;">${esc(w.nguoi.join(', ') || '—')}</div></div>
-      <div class="stat-tile flat"><div class="lbl">Hạn hoàn thành</div><div class="val" style="font-size:15px;">${esc(w.han || '—')}</div></div>
-      <div class="stat-tile flat"><div class="lbl">Trạng thái</div><div class="val" style="font-size:15px;">${statusPillHTML_(w.trangThai)} ${w.xacNhan ? '<span class="status-pill done">Đã xác nhận</span>' : ''}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Người phụ trách</div><div class="val" style="font-size:16px;">${esc(w.nguoi.join(', ') || '—')}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Hạn hoàn thành</div><div class="val" style="font-size:16px;">${esc(w.han || '—')}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Trạng thái</div><div class="val" style="font-size:16px;">${statusPillHTML_(w.trangThai)} ${w.xacNhan ? '<span class="status-pill done">Đã xác nhận</span>' : ''}</div></div>
     </div>
-    ${w.chuongTrinh ? `<p class="sub" style="margin-bottom:4px;"><b>Thuộc sự kiện</b></p><p style="margin-top:0;">🎪 ${esc(w.chuongTrinh)}</p>` : ''}
+    <p class="sub" style="margin-bottom:4px;"><b>Thuộc sự kiện</b></p>
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+      <select id="wd-sukien" style="max-width:420px;">
+        <option value="">— Không thuộc sự kiện nào —</option>
+        ${programs.map(p => `<option value="${esc(p.maSuKien)}" ${eventOfWork_(w) === p ? 'selected' : ''}>${esc(p.ten)}</option>`).join('')}
+      </select>
+      <button class="btn secondary sm" onclick="saveWorkSuKien(${workItems.indexOf(w)})">Lưu</button>
+      ${w.chuongTrinh && !eventOfWork_(w) ? `<span class="subtext">Đang ghi: "${esc(w.chuongTrinh)}" (không khớp sự kiện nào)</span>` : ''}
+    </div>
+    <p class="sub" style="margin-bottom:4px;"><b>Thời gian triển khai</b></p>
+    <p style="margin-top:0;">Nhận việc: ${esc(w.ngayNhan ? fmtDate(w.ngayNhan) : (w.thangGoc || '—'))}${w.han ? ' · Hạn SLA: ' + esc(w.han) : ''}</p>
     <p class="sub" style="margin-bottom:4px;"><b>Mô tả / kế hoạch hành động</b></p>
     <p style="margin-top:0; white-space:pre-line;">${esc(w.moTa || '—')}</p>
     <p class="sub" style="margin-bottom:4px;"><b>Link (từ báo cáo gốc, chỉ xem)</b></p>
@@ -2341,7 +2786,7 @@ async function addWork() {
 
   const selPill = document.querySelector('#w-phanloai .pill[data-selected="1"]');
   const phanLoai = selPill ? selPill.dataset.v : 'B';
-  const hanRaw = document.getElementById('w-han').value; // chỉ dùng làm gợi ý client-side, backend tự tính lại theo SLA
+  // Hạn hoàn thành trên form chỉ là gợi ý client-side — backend tự tính lại theo SLA A/B/C.
 
   const btn = document.querySelector('#work-form button[onclick="addWork()"]');
   if (btn) { btn.disabled = true; btn.textContent = 'Đang lưu...'; }
@@ -2354,7 +2799,6 @@ async function addWork() {
       phanLoai,
       nguoiPhuTrach: owners,
       thuocSuKien: document.getElementById('w-chuongtrinh').value || '',
-      ngayNhanTask: hanRaw || undefined,
     },
   });
 
@@ -2656,9 +3100,9 @@ function openProgramDetail(maSuKien) {
   document.getElementById('program-detail-body').innerHTML = `
     <span class="status-pill ${p.trangThai==='Hoàn thành'?'done':'plan'}" style="margin-bottom:14px;">${esc(p.trangThai)}</span>
     <div class="stat-row-3" style="margin:14px 0;">
-      <div class="stat-tile flat"><div class="lbl">NS Công đoàn (dự kiến / thực chi)</div><div class="val" style="font-size:15px;">${moneyFmt(p.nsCongDoanDuKien)} / ${p.trangThai==='Hoàn thành'?moneyFmt(p.nsCongDoanThucChi):'—'}</div></div>
-      <div class="stat-tile flat"><div class="lbl">NS Công ty (dự kiến / thực chi)</div><div class="val" style="font-size:15px;">${moneyFmt(p.nsCongTyDuKien)} / ${p.trangThai==='Hoàn thành'?moneyFmt(p.nsCongTyThucChi):'—'}</div></div>
-      <div class="stat-tile flat"><div class="lbl">Đánh giá hài lòng</div><div class="val" style="font-size:20px;">${p.danhGiaHaiLong ? esc(p.danhGiaHaiLong) + '%' : '—'}</div></div>
+      <div class="stat-tile flat"><div class="lbl">NS Công đoàn (dự kiến / thực chi)</div><div class="val" style="font-size:16px;">${moneyFmt(p.nsCongDoanDuKien)} / ${p.trangThai==='Hoàn thành'?moneyFmt(p.nsCongDoanThucChi):'—'}</div></div>
+      <div class="stat-tile flat"><div class="lbl">NS Công ty (dự kiến / thực chi)</div><div class="val" style="font-size:16px;">${moneyFmt(p.nsCongTyDuKien)} / ${p.trangThai==='Hoàn thành'?moneyFmt(p.nsCongTyThucChi):'—'}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Đánh giá hài lòng</div><div class="val" style="font-size:21px;">${p.danhGiaHaiLong ? esc(p.danhGiaHaiLong) + '%' : '—'}</div></div>
     </div>
     <p class="sub" style="margin-bottom:4px;"><b>Đối tượng</b></p><p style="margin-top:0;">${esc(p.doiTuong || '—')}</p>
     <p class="sub" style="margin-bottom:4px;"><b>Địa điểm</b></p><p style="margin-top:0;">${esc(p.diaDiem || '—')}</p>
@@ -2931,9 +3375,9 @@ function openCompetitionDetail(maCT) {
   document.getElementById('competition-detail-body').innerHTML = `
     <span class="webapp-type-tag" style="margin-bottom:14px;">${esc(c.tinhTrang || 'Chưa có tình trạng')}</span>
     <div class="stat-row-3" style="margin:14px 0;">
-      <div class="stat-tile flat"><div class="lbl">Loại</div><div class="val" style="font-size:15px;">${esc(c.loai)}</div></div>
-      <div class="stat-tile flat"><div class="lbl">Phạm vi</div><div class="val" style="font-size:15px;">${esc(c.phamVi || '—')}</div></div>
-      <div class="stat-tile flat"><div class="lbl">Tiền chi thưởng</div><div class="val" style="font-size:15px;">${c.soTienChiThuong ? c.soTienChiThuong.toLocaleString('vi-VN') + ' đ' : '—'}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Loại</div><div class="val" style="font-size:16px;">${esc(c.loai)}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Phạm vi</div><div class="val" style="font-size:16px;">${esc(c.phamVi || '—')}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Tiền chi thưởng</div><div class="val" style="font-size:16px;">${c.soTienChiThuong ? c.soTienChiThuong.toLocaleString('vi-VN') + ' đ' : '—'}</div></div>
     </div>
     <p class="sub" style="margin-bottom:4px;"><b>Đầu mối order</b></p><p style="margin-top:0;">${esc(c.dauMoiOrder || '—')}</p>
     <p class="sub" style="margin-bottom:4px;"><b>Truyền thông</b></p><p style="margin-top:0;">${esc(c.truyenThong || '—')}</p>
@@ -3135,9 +3579,9 @@ function openNganSachDetail(maKhoan) {
   const suKien = programs.find(p => p.maSuKien === it.suKienLienQuan);
   document.getElementById('ns-detail-body').innerHTML = `
     <div class="stat-row-3" style="margin:14px 0;">
-      <div class="stat-tile flat"><div class="lbl">Tổng KH</div><div class="val" style="font-size:16px;">${moneyFmt(tongKH_(it))}</div></div>
-      <div class="stat-tile flat"><div class="lbl">Tổng TT</div><div class="val" style="font-size:16px;">${moneyFmt(tongTT_(it))}</div></div>
-      <div class="stat-tile flat"><div class="lbl">% đã dùng</div><div class="val" style="font-size:16px;">${pctFmt(tongTT_(it), tongKH_(it))}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Tổng KH</div><div class="val" style="font-size:17px;">${moneyFmt(tongKH_(it))}</div></div>
+      <div class="stat-tile flat"><div class="lbl">Tổng TT</div><div class="val" style="font-size:17px;">${moneyFmt(tongTT_(it))}</div></div>
+      <div class="stat-tile flat"><div class="lbl">% đã dùng</div><div class="val" style="font-size:17px;">${pctFmt(tongTT_(it), tongKH_(it))}</div></div>
     </div>
     <p class="sub" style="margin-bottom:4px;"><b>Nội dung chi</b></p><p style="margin-top:0;">${esc(it.noiDungChi || '—')}</p>
     <p class="sub" style="margin-bottom:4px;"><b>Kế hoạch (KH)</b></p>
@@ -3303,7 +3747,7 @@ function tenTheoMaLienQuan_(ma) {
 }
 function quaTangThumb_(q) {
   if (q.anh) return `<img src="${safeUrl(q.anh)}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--gridline);" loading="lazy">`;
-  return `<div style="width:40px;height:40px;border-radius:6px;background:#fdeceb;display:flex;align-items:center;justify-content:center;font-size:16px;">🎁</div>`;
+  return `<div style="width:40px;height:40px;border-radius:6px;background:#fdeceb;display:flex;align-items:center;justify-content:center;font-size:17px;">🎁</div>`;
 }
 function tonHTML_(q) {
   const low = q.ton <= quaTangNguongTonThap;
@@ -3599,46 +4043,8 @@ async function addVoucherDotUI() {
   await refreshVoucherDot();
 }
 
-/* ---------------- KPI ---------------- */
-const KPI_ITEMS = [
-  {ten:'Tỷ lệ chương trình phát hành đúng lịch thứ Ba', trongso:0.25, target:100, unit:'%', chieu:'cao'},
-  {ten:'Tỷ lệ trả thưởng đúng hạn cam kết (≤30 ngày)', trongso:0.25, target:100, unit:'%', chieu:'cao'},
-  {ten:'Tỷ lệ cửa hàng tham gia trên tổng số CH', trongso:0.20, target:75, unit:'%', chieu:'cao'},
-  {ten:'Tỷ lệ chương trình đạt mục tiêu doanh số', trongso:0.15, target:70, unit:'%', chieu:'cao'},
-  {ten:'Số chương trình xử lý ngoài lịch (BP gửi muộn)', trongso:0.10, target:2, unit:'ct', chieu:'thap'},
-  {ten:'Tỷ lệ hồ sơ thi đua lưu trữ đầy đủ', trongso:0.05, target:100, unit:'%', chieu:'cao'},
-];
-
-function renderKpi() {
-  document.getElementById('kpi-body').innerHTML = KPI_ITEMS.map((k, i) => `
-    <tr>
-      <td>${esc(k.ten)}</td>
-      <td class="num">${Math.round(k.trongso*100)}%</td>
-      <td class="num">${esc(k.target)}${k.unit==='%'?'%':''}</td>
-      <td class="num"><input type="number" class="inline" style="width:70px;text-align:right" id="kv-${i}" oninput="calcKpi()"></td>
-      <td class="num" id="kp-${i}">—</td>
-    </tr>`).join('');
-  calcKpi();
-}
-
-function calcKpi() {
-  let total = 0, weightSum = 0;
-  KPI_ITEMS.forEach((k, i) => {
-    const raw = document.getElementById('kv-' + i).value;
-    const cell = document.getElementById('kp-' + i);
-    if (raw === '') { cell.textContent = '—'; return; }
-    const actual = parseFloat(raw);
-    let pct;
-    if (k.chieu === 'cao') pct = Math.min(actual / k.target, 1.2);
-    else pct = actual <= k.target ? 1.2 : Math.max(k.target / actual, 0);
-    cell.textContent = Math.round(pct * 1000) / 10 + '%';
-    total += pct * k.trongso;
-    weightSum += k.trongso;
-  });
-  document.getElementById('kpi-total-val').textContent = weightSum > 0 ? (Math.round(total/weightSum*1000)/10) + '%' : '—';
-}
-
-function saveKpi() { showToast('Đã lưu KPI (demo — bản thật sẽ ghi vào sheet KPI_ThiDua)'); }
+/* ---------------- KPI — ĐANG XÂY DỰNG (chưa áp dụng; bản demo nhập tay cũ đã gỡ) ---------------- */
+function renderKpi() { /* panel tĩnh "đang xây dựng" — không có gì để render */ }
 
 /* ---------------- TAI LIEU / LINKS ---------------- */
 function populateDocFolderDatalist() {
