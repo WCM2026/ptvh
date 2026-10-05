@@ -712,6 +712,7 @@
   .tl-cv { color:var(--primary-dark); font-weight:700; cursor:pointer; text-decoration:underline; }
   .tl-pen { flex:none; border:none; background:transparent; cursor:pointer; font-size:15px; padding:4px 6px; border-radius:8px; }
   .tl-pen:hover { background:var(--page); }
+  .tl-pen.khoa { opacity:.45; }
   .tl-foot { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
   .tl-form { border:1.5px dashed var(--primary); background:var(--surface-1); border-radius:14px; padding:16px; margin-top:16px; }
   .tl-form h3 { margin:0 0 12px; font-size:16px; }
@@ -773,6 +774,11 @@
   .dash-more { font-size:12.5px; font-weight:700; color:var(--primary-dark); cursor:pointer; }
   .dash-none { font-size:13px; color:var(--text-muted); padding:8px 0; }
   .dash-section { margin:26px 0 12px; font-size:16px; color:var(--text-secondary); }
+
+  /* Chi tiết công việc: tên việc là tiêu đề; mã hệ thống chỉ là chip nhỏ */
+  .wd-title { font-size:18px; line-height:1.3; margin:0 0 4px; word-break:break-word; }
+  .wd-ma { display:inline-block; font-size:11px; font-weight:700; letter-spacing:.03em; color:var(--text-muted); background:var(--page); border:1px solid var(--gridline); border-radius:6px; padding:0 6px; margin-right:7px; line-height:18px; vertical-align:1px; font-variant-numeric:tabular-nums; }
+  .wde-note { font-size:12.5px; color:var(--text-muted); margin:4px 0 0; }
 </style>
 </head>
 <body class="viz-root">
@@ -947,11 +953,14 @@
       <!-- Card chi tiết dùng chung cho cả 3 cách xem -->
       <div class="card edit-card" id="work-detail-card" style="display:none;">
         <div class="card-head-row">
-          <div>
-            <h2 id="work-detail-title">Chi tiết công việc</h2>
+          <div style="min-width:0;">
+            <h2 id="work-detail-title" class="wd-title">Chi tiết công việc</h2>
             <p class="sub" id="work-detail-sub" style="margin-bottom:0;"></p>
           </div>
-          <button class="btn ghost sm" onclick="closeWorkDetail()">✕ Đóng</button>
+          <div style="display:flex; gap:8px; flex:none;">
+            <button class="btn secondary sm" id="work-detail-edit-btn" onclick="startWorkEdit()">✏️ Sửa thông tin</button>
+            <button class="btn ghost sm" onclick="closeWorkDetail()">✕ Đóng</button>
+          </div>
         </div>
         <div id="work-detail-body"></div>
       </div>
@@ -3155,8 +3164,13 @@ function openWorkDetail(i) {
   const w = workItems[i];
   if (!w) return;
   document.getElementById('work-detail-card').style.display = 'block';
-  document.getElementById('work-detail-title').textContent = w.ma + ' — ' + w.ten;
-  document.getElementById('work-detail-sub').textContent = (w.mang || '—') + ' · Phân loại ' + w.phanLoai;
+  workDetailMa = w.ma;
+  document.getElementById('work-detail-title').textContent = w.ten;
+  document.getElementById('work-detail-sub').innerHTML = `<span class="wd-ma" title="Mã do hệ thống cấp, không sửa được">${esc(w.ma)}</span>${esc(w.mang || '—')} · Phân loại ${esc(w.phanLoai)}`;
+  const duocSua = coTheSuaViec_(w), nutSua = document.getElementById('work-detail-edit-btn');
+  nutSua.style.display = ''; nutSua.disabled = !duocSua;
+  nutSua.textContent = duocSua ? '✏️ Sửa thông tin' : '🔒 Sửa thông tin';
+  nutSua.title = duocSua ? '' : MSG_KHONG_QUYEN_SUA;
   const isUrlLuuTru = /^https?:\/\//i.test(w.linkThuMuc || '');
   const isUrlGoc = /^https?:\/\//i.test(w.link || '');
   document.getElementById('work-detail-body').innerHTML = `
@@ -3190,6 +3204,7 @@ function openWorkDetail(i) {
       <button class="btn ghost sm" style="color:var(--danger); border-color:var(--danger);" onclick="deleteWorkItem(${jsArg(w.ma)})">🗑️ Xoá đầu việc này</button>
     </div>
   `;
+  if (!duocSua) document.getElementById('work-detail-body').insertAdjacentHTML('afterbegin', `<p class="wde-note" id="work-detail-lock-note" style="margin:8px 0 0;">🔒 ${esc(MSG_KHONG_QUYEN_SUA)}</p>`);
   document.getElementById('work-detail-card').scrollIntoView({behavior:'smooth', block:'center'});
 }
 async function deleteWorkItem(maViec) {
@@ -3202,8 +3217,105 @@ async function deleteWorkItem(maViec) {
   closeWorkDetail();
   await refreshCongViec();
 }
+const MSG_KHONG_QUYEN_SUA = 'Chỉ người phụ trách hoặc Trưởng nhóm/Trưởng phòng được sửa đầu việc này.';
+/** Khớp tên ghi ở cột Người phụ trách (họ tên đầy đủ hoặc tên ngắn duy nhất như "Đạt") → họ tên đầy đủ, hoặc null. Giống taoBoKhopTenNhanSu_ ở backend. */
+function khopTenNhanSu_(ten) {
+  const k = normText_(ten); let full = null; const ngan = [];
+  STAFF.forEach(s => {
+    const n = normText_(s.name), tu = n.split(' ');
+    if (n === k) full = s.name;
+    if (tu[tu.length - 1] === k) ngan.push(s.name);
+  });
+  return full || (ngan.length === 1 ? ngan[0] : null);
+}
+/** Ai được sửa thông tin 1 đầu việc: Trưởng phòng/Trưởng nhóm, hoặc người đang phụ trách (việc "All team" thì mọi người). Backend vẫn kiểm tra lại. */
+function coTheSuaViec_(w) {
+  if (!currentUser || !w) return false;
+  if (isAdminRole(currentUser.role)) return true;
+  const ds = w.nguoi || [];
+  if (ds.some(n => /^all\s*team$/i.test(String(n).trim()))) return true;
+  return ds.some(n => khopTenNhanSu_(n) === currentUser.name);
+}
+let workDetailMa = null; // mã việc đang mở ở card Chi tiết (mở lại đúng việc sau khi lưu / tải lại)
+function workDetailIndex_() { return workItems.findIndex(x => x.ma === workDetailMa); }
+function wdeVal_(id) { const e = document.getElementById(id); return e ? e.value : ''; }
+
+function wdeOwnerRow_(sel) {
+  const ds = staffNames().concat(['All team']);
+  if (sel && !ds.includes(sel)) ds.push(sel); // tên đang có sẵn trên việc (VD người đã nghỉ) vẫn giữ được
+  return `<div class="wde-row" style="display:flex; gap:6px; margin-bottom:6px;">
+    <select class="wde-owner" style="flex:1;">${ds.map(n => `<option value="${esc(n)}" ${n === sel ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>
+    <button type="button" class="btn secondary sm" onclick="wdeRemoveOwner(this)" title="Bỏ người này">×</button>
+  </div>`;
+}
+function wdeAddOwner() { document.getElementById('wde-owners').insertAdjacentHTML('beforeend', wdeOwnerRow_(staffNames()[0] || '')); }
+function wdeRemoveOwner(btn) {
+  if (document.querySelectorAll('#wde-owners .wde-row').length <= 1) { showToast('Cần ít nhất một người phụ trách'); return; }
+  btn.closest('.wde-row').remove();
+}
+
+/** Mở form sửa ngay trong card Chi tiết: tên, mảng, phân loại, hạn, người phụ trách (nhiều người), mô tả. Mã việc không sửa được. */
+function startWorkEdit() {
+  const w = workItems[workDetailIndex_()];
+  if (!w) return;
+  if (!coTheSuaViec_(w)) { showToast(MSG_KHONG_QUYEN_SUA); return; }
+  const ev = eventOfWork_(w);
+  const mangs = MANG_LIST.slice();
+  if (w.mang && !mangs.includes(w.mang)) mangs.unshift(w.mang);
+  const hanIso = w.hanDate ? tlISO_(tlNgayVN_(w.hanDate)) : '';
+  const ds = w.nguoi.length ? w.nguoi : [staffNames()[0] || ''];
+  document.getElementById('work-detail-edit-btn').style.display = 'none';
+  document.getElementById('work-detail-body').innerHTML = `
+    <div class="field" style="margin-top:16px;"><label>Tên việc</label><input type="text" id="wde-ten" maxlength="300" value="${esc(w.ten)}"></div>
+    <div class="grid3">
+      <div class="field"><label>Mảng</label><select id="wde-mang">${mangs.map(m => `<option value="${esc(m)}" ${m === w.mang ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select></div>
+      <div class="field"><label>Phân loại</label><select id="wde-phanloai">${['A', 'B', 'C'].map(p => `<option value="${p}" ${p === w.phanLoai ? 'selected' : ''}>${p} — SLA ${SLA[p]} ngày làm việc</option>`).join('')}</select></div>
+      <div class="field"><label>Hạn hoàn thành</label><input type="date" id="wde-han" value="${esc(hanIso)}"></div>
+    </div>
+    <p class="wde-note" style="margin:-6px 0 12px;">Hạn sửa trực tiếp (đổi Phân loại không tự tính lại hạn); bỏ trống nếu chưa có hạn.${ev ? ' Việc thuộc sự kiện <b>' + esc(ev.ten) + '</b>: đổi hạn sẽ tự tính lại Mốc trong checklist.' : ''}</p>
+    <div class="field"><label>Người phụ trách</label>
+      <div id="wde-owners">${ds.map(n => wdeOwnerRow_(n)).join('')}</div>
+      <button type="button" class="btn secondary sm" onclick="wdeAddOwner()">+ Thêm người</button>
+      <p class="wde-note">Người mới được thêm sẽ nhận thông báo giao việc theo kênh đã chọn ở tab Cài đặt.</p>
+    </div>
+    <div class="field"><label>Mô tả / kế hoạch hành động</label><textarea id="wde-mota" rows="4">${esc(w.moTa || '')}</textarea></div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn" id="wde-save" onclick="saveWorkEdit()">Lưu thay đổi</button>
+      <button class="btn ghost" id="wde-cancel" onclick="cancelWorkEdit()">Huỷ</button>
+    </div>
+    <p class="wde-note">Không sửa ở đây: Mã việc (do hệ thống cấp), Tình trạng/Xác nhận hoàn thành, Link — dùng các nút tương ứng ở danh sách và phần Chi tiết.</p>`;
+  const f = document.getElementById('wde-ten'); if (f) f.focus();
+}
+function cancelWorkEdit() { const i = workDetailIndex_(); if (i >= 0) openWorkDetail(i); }
+
+async function saveWorkEdit() {
+  const w = workItems[workDetailIndex_()];
+  if (!w) return;
+  const ten = wdeVal_('wde-ten').trim();
+  if (!ten) { showToast('Vui lòng nhập Tên công việc'); return; }
+  const nguoi = [...new Set([...document.querySelectorAll('#wde-owners .wde-owner')].map(s => s.value).filter(Boolean))];
+  if (!nguoi.length) { showToast('Cần ít nhất một người phụ trách'); return; }
+  const btn = document.getElementById('wde-save'), huy = document.getElementById('wde-cancel');
+  btn.disabled = true; huy.disabled = true; btn.textContent = 'Đang lưu...';
+  const r = await callPtvhApi('updateCongViec', { maViec: w.ma, payload: {
+    ten, moTa: wdeVal_('wde-mota').trim(), mang: wdeVal_('wde-mang'), phanLoai: wdeVal_('wde-phanloai'),
+    nguoiPhuTrach: nguoi, han: wdeVal_('wde-han'), ngayCapNhatCu: w.ngayCapNhat,
+  } });
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không lưu được thay đổi');
+    if (r.error === 'XUNG_DOT') { await refreshCongViec(); const j = workDetailIndex_(); if (j >= 0) openWorkDetail(j); return; } // có người vừa sửa: tải lại bản mới nhất
+    btn.disabled = false; huy.disabled = false; btn.textContent = 'Lưu thay đổi';
+    return;
+  }
+  showToast(r.khongDoi ? 'Không có thay đổi nào để lưu' : 'Đã lưu thay đổi ' + w.ma + (r.thayDoi && r.thayDoi.includes('nguoiPhuTrach') ? ' — đã báo người mới được giao' : ''));
+  await refreshCongViec();
+  const j = workDetailIndex_();
+  if (j >= 0) openWorkDetail(j);
+}
+
 function closeWorkDetail() {
   document.getElementById('work-detail-card').style.display = 'none';
+  workDetailMa = null;
 }
 async function addWork() {
   const ten = document.getElementById('w-ten').value.trim();
@@ -3928,7 +4040,7 @@ function tlNhomHTML_(p) {
         <button class="tl-tick ${v.done ? 'on' : ''}" ${tlDangTick[v.ma] ? 'disabled' : ''} onclick="tlTick(${jsArg(v.ma)})" title="${v.done ? 'Bỏ tick' : 'Đánh dấu xong'}">✓</button>
         <div class="tl-it-body"><div class="tl-it-ten ${v.done ? 'done' : ''}">${esc(v.ten)}</div>
           <div class="tl-it-sub"><span>${esc(v.nhan || 'Hạn cố định')}</span><span>· hạn ${v.han ? esc(tlDM_(v.han)) : '—'}</span><span>· <span class="tl-dot" style="background:${bg};"></span>${esc(ngLabel)}</span><span>· <a class="tl-cv" onclick="tlMoCongViec(${jsArg(v.ma)})" title="Mở trong module Công việc">${esc(v.ma)}</a></span></div></div>
-        ${badge}<button class="tl-pen" onclick="tlMoForm('edit', ${jsArg(v.ma)})" title="Sửa việc">✏️</button></div>`;
+        ${badge}<button class="tl-pen ${coTheSuaViec_(v.w) ? '' : 'khoa'}" onclick="tlMoForm('edit', ${jsArg(v.ma)})" title="${coTheSuaViec_(v.w) ? 'Sửa việc' : esc(MSG_KHONG_QUYEN_SUA)}">${coTheSuaViec_(v.w) ? '✏️' : '🔒'}</button></div>`;
     }).join('')}</div>` : '<div class="tl-empty">Chưa có việc nào</div>';
     return `<div class="tl-grp"><div class="tl-grp-h">${esc(ten)}<span>${ds.filter(v => v.done).length}/${ds.length}</span></div>${body}</div>`;
   }).join('');
@@ -4026,7 +4138,9 @@ function tlTuDongNgayDen_(prefix) {
 }
 
 /* ---- Form thêm / sửa / gắn việc (hiện tại chỗ, không cửa sổ phụ) ---- */
-function tlMoForm(mode, ma) { tlForm = { mode, ma: ma || null }; tlVeForm_(); tlEl_('tl-d-form').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+function tlMoForm(mode, ma) {
+  if (mode === 'edit') { const w = workItems.find(x => x.ma === ma); if (w && !coTheSuaViec_(w)) { showToast(MSG_KHONG_QUYEN_SUA); return; } }
+  tlForm = { mode, ma: ma || null }; tlVeForm_(); tlEl_('tl-d-form').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
 function tlDongForm() { tlForm = null; tlEl_('tl-d-form').innerHTML = ''; }
 function tlLuaChonNguoi_(chon) {
   const ds = staffNames().concat(['All team']);
