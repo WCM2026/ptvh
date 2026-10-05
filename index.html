@@ -331,6 +331,10 @@
     padding: 20px; box-shadow: var(--shadow-card); transition: transform .12s, border-color .12s;
   }
   .webapp-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+  .webapp-card.editing { border-color: var(--primary); box-shadow: 0 0 0 3px #fdeceb; }
+  .webapp-card-link { display: flex; flex-direction: column; gap: 8px; text-decoration: none; width: 100%; flex: 1; }
+  .webapp-card-url { font-size: 12px; color: var(--text-muted); word-break: break-all; opacity: .8; }
+  .webapp-card-actions { display: flex; gap: 6px; width: 100%; padding-top: 10px; border-top: 1px dashed var(--gridline); }
   .webapp-card-icon { width: 44px; height: 44px; border-radius: 12px; background: #fdeceb; display:flex; align-items:center; justify-content:center; font-size: 22px; }
   .webapp-card-title { font-size: 15.5px; font-weight: 800; color: var(--text-primary); }
   .webapp-card-sub { font-size: 13.5px; color: var(--text-muted); }
@@ -587,6 +591,31 @@
   .kpi-construct h2 { font-size: 22px !important; margin: 12px 0 6px !important; }
   .kpi-construct p { color: var(--text-muted); max-width: 520px; margin: 0 auto 6px; }
   .nav-soon { margin-left: auto; font-size: 10.5px; font-weight: 700; background: #fff7ed; color: #9a3412; border-radius: 999px; padding: 1px 7px; }
+
+  /* Nút "+ Thêm ..." đỏ ở góc panel; form thêm mới là card ẩn (.add-card) */
+  .panel-top { display: flex; gap: 14px; align-items: stretch; margin-bottom: 16px; }
+  .panel-top .flow-note { flex: 1; margin: 0; }
+  .panel-top .add-btn { align-self: center; flex: none; }
+  .add-btn { white-space: nowrap; box-shadow: 0 4px 12px rgba(226,35,26,.25); }
+  .add-card { border: 1.5px solid var(--primary); animation: addCardIn .18s ease; }
+  @keyframes addCardIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+  .add-card > .collapsible-form { margin-top: 14px; }
+  #work-view-filter { align-items: center; }
+  @media (max-width: 640px) { .panel-top { flex-direction: column; } .panel-top .add-btn { align-self: flex-end; } }
+
+  /* ---- Công việc: chọn nhân sự bằng thẻ avatar ---- */
+  .staff-chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin-top: 14px; }
+  .staff-chip { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1.5px solid var(--gridline); border-radius: 14px; background: #fff; cursor: pointer; text-align: left; position: relative; transition: border-color .12s, box-shadow .12s, transform .12s; }
+  .staff-chip:hover { transform: translateY(-1px); border-color: #f3c6c2; }
+  .staff-chip.active { border-color: var(--primary); background: #fff8f7; box-shadow: 0 0 0 3px #fdeceb; }
+  .staff-avatar { width: 42px; height: 42px; border-radius: 50%; color: #fff; font-weight: 800; font-size: 15px; display: flex; align-items: center; justify-content: center; flex: none; letter-spacing: .02em; }
+  .staff-chip-txt { display: flex; flex-direction: column; min-width: 0; flex: 1; line-height: 1.3; }
+  .staff-chip-txt b { font-size: 15px; color: var(--text-primary); }
+  .staff-chip-txt span { font-size: 12.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .staff-chip-txt .staff-chip-role { font-size: 11.5px; }
+  .staff-chip-count { flex: none; min-width: 30px; height: 30px; border-radius: 999px; background: var(--page); font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0 8px; color: var(--text-primary); }
+  .staff-chip-late { position: absolute; top: -7px; right: -7px; background: var(--danger); color: #fff; font-size: 11px; font-weight: 800; border-radius: 999px; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
+  .staff-chip-txt em { font-style: normal; color: #c2410c; font-weight: 700; }
 </style>
 </head>
 <body class="viz-root">
@@ -740,6 +769,8 @@
         <button class="filter-btn" data-v="task" onclick="setWorkView('task')">📋 Theo đầu công việc</button>
         <button class="filter-btn" data-v="event" onclick="setWorkView('event')">🎪 Theo đầu sự kiện</button>
         <button class="filter-btn" data-v="staff" onclick="setWorkView('staff')">👤 Theo đầu nhân sự</button>
+        <span style="flex:1;"></span>
+        <button class="btn sm add-btn" onclick="openForm('work-form')">+ Thêm đầu việc</button>
       </div>
 
       <!-- Card chi tiết dùng chung cho cả 3 cách xem -->
@@ -754,16 +785,15 @@
         <div id="work-detail-body"></div>
       </div>
 
-      <div id="work-view-task">
-        <div class="card">
+        <div class="card add-card" id="work-form-card" style="display:none;">
           <div class="card-head-row">
             <div>
               <h2>Thêm đầu việc mới</h2>
               <p class="sub" style="margin-bottom:0;">Nhập liệu nội bộ — chỉ nhân viên Phòng dùng form này</p>
             </div>
-            <button class="btn secondary sm" onclick="toggleForm('work-form')">+ Thêm đầu việc</button>
+            <button class="btn ghost sm" onclick="closeForm('work-form')">✕ Đóng</button>
           </div>
-          <div id="work-form" class="collapsible-form" style="display:none;">
+          <div id="work-form" class="collapsible-form" style="display:block;">
             <div class="grid2">
               <div class="field"><label>Tên công việc</label><input type="text" id="w-ten" placeholder="VD: Thiết kế ấn phẩm Trung thu"></div>
               <div class="field"><label>Mảng</label>
@@ -795,10 +825,47 @@
             <button class="btn" onclick="addWork()">Thêm vào bảng theo dõi</button>
           </div>
         </div>
+      <div id="work-view-event" style="display:none;">
         <div class="card">
           <div class="card-head-row">
             <div>
-              <h2>Toàn bộ đầu việc đang theo dõi</h2>
+              <h2>Công việc theo sự kiện</h2>
+              <p class="sub" id="we-summary" style="margin-bottom:0;"></p>
+            </div>
+          </div>
+          <div class="work-toolbar" style="margin-top:12px;">
+            <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="we-search" placeholder="Tìm sự kiện hoặc công việc..." oninput="renderWorkEventView()"></div>
+            <div class="field"><label>Sắp xếp</label>
+              <select id="we-sort" onchange="renderWorkEventView()">
+                <option value="thang-desc">Tháng mới nhất trước</option>
+                <option value="thang-asc">Tháng cũ nhất trước</option>
+                <option value="soviec">Nhiều công việc nhất</option>
+                <option value="tiendo">Tiến độ thấp nhất</option>
+              </select></div>
+            <label class="inline-check"><input type="checkbox" id="we-only-has" onchange="renderWorkEventView()" checked> Chỉ hiện sự kiện đã có công việc</label>
+          </div>
+        </div>
+        <div id="we-list"></div>
+      </div>
+
+      <div id="work-view-staff" style="display:none;">
+        <div class="card">
+          <div class="card-head-row">
+            <div>
+              <h2>Chọn nhân sự</h2>
+              <p class="sub" style="margin-bottom:0;">Bấm vào 1 người để xem, lọc và cập nhật công việc của người đó</p>
+            </div>
+            <label class="inline-check" style="margin:0;"><input type="checkbox" id="st-include-all" onchange="renderWork()"> Tính cả việc giao "All team"</label>
+          </div>
+          <div class="staff-chips" id="staff-chips"></div>
+          <div class="staff-progress" id="staff-progress"></div>
+        </div>
+      </div>
+
+        <div class="card" id="work-list-card">
+          <div class="card-head-row">
+            <div>
+              <h2 id="work-list-title">Toàn bộ đầu việc đang theo dõi</h2>
               <p class="sub" id="work-count-lbl" style="margin-bottom:0;"></p>
             </div>
             <button class="btn ghost sm" onclick="clearWorkFilters()">✕ Xoá bộ lọc</button>
@@ -832,7 +899,7 @@
                 <th><select id="wf-mang" onchange="renderWork()"><option value="">Tất cả</option></select></th>
                 <th><input type="text" id="wf-ten" placeholder="Lọc tên / mô tả" oninput="renderWork()"></th>
                 <th><select id="wf-phanloai" onchange="renderWork()"><option value="">Tất cả</option><option>A</option><option>B</option><option>C</option></select></th>
-                <th><select id="wf-nguoi" onchange="renderWork()"><option value="">Tất cả</option></select></th>
+                <th><select id="wf-nguoi" onchange="renderWork()"><option value="">Tất cả</option></select><div class="subtext" id="wf-nguoi-lock" style="display:none;">Theo nhân sự đã chọn</div></th>
                 <th></th>
                 <th><select id="wf-han" onchange="renderWork()"><option value="">Tất cả</option><option value="quahan">Quá hạn</option><option value="sap">Đến hạn ≤ 3 ngày</option><option value="co">Có hạn</option><option value="chua">Chưa có hạn</option></select></th>
                 <th><select id="wf-link" onchange="renderWork()"><option value="">Tất cả</option><option value="co">Có link</option><option value="chua">Chưa có</option></select></th>
@@ -844,70 +911,25 @@
           </table>
           </div>
         </div>
-      </div>
-
-      <div id="work-view-event" style="display:none;">
-        <div class="card">
-          <div class="card-head-row">
-            <div>
-              <h2>Công việc theo sự kiện</h2>
-              <p class="sub" id="we-summary" style="margin-bottom:0;"></p>
-            </div>
-          </div>
-          <div class="work-toolbar" style="margin-top:12px;">
-            <div class="search-bar"><span class="search-ic">🔍</span><input type="text" id="we-search" placeholder="Tìm sự kiện hoặc công việc..." oninput="renderWorkEventView()"></div>
-            <div class="field"><label>Sắp xếp</label>
-              <select id="we-sort" onchange="renderWorkEventView()">
-                <option value="thang-desc">Tháng mới nhất trước</option>
-                <option value="thang-asc">Tháng cũ nhất trước</option>
-                <option value="soviec">Nhiều công việc nhất</option>
-                <option value="tiendo">Tiến độ thấp nhất</option>
-              </select></div>
-            <label class="inline-check"><input type="checkbox" id="we-only-has" onchange="renderWorkEventView()" checked> Chỉ hiện sự kiện đã có công việc</label>
-          </div>
-        </div>
-        <div id="we-list"></div>
-      </div>
-
-      <div id="work-view-staff" style="display:none;">
-        <div class="card">
-          <div class="card-head-row">
-            <div>
-              <h2>Chọn nhân sự</h2>
-            </div>
-            <select id="st-task-select" style="max-width:280px;" onchange="renderStaffTasks()"></select>
-          </div>
-          <div style="margin-top:10px;">
-            <div class="subtext" id="st-task-progress-lbl" style="font-size:14.5px; margin-bottom:6px;"></div>
-            <div class="bar-track" style="height:12px;"><div class="bar-fill" id="st-task-progress-bar" style="width:0%"></div></div>
-          </div>
-        </div>
-        <div class="card">
-          <h2>Danh sách công việc</h2>
-          <div class="table-wrap">
-          <table>
-            <thead><tr><th>Mã việc</th><th>Tên công việc</th><th>Mảng</th><th>Hạn HT</th><th>Trạng thái</th></tr></thead>
-            <tbody id="st-task-body"></tbody>
-          </table>
-          </div>
-        </div>
-      </div>
     </section>
 
     <!-- ============ PANEL: SU KIEN ============ -->
     <section class="panel" id="panel-programs">
-      <div class="flow-note">
+      <div class="panel-top">
+        <div class="flow-note">
         <b>Sự kiện:</b> Tạo sự kiện mới khi bắt đầu lên kế hoạch (chưa có số liệu thực tế). Khi sự kiện kết thúc, bấm "✏️ Sửa" để nhập báo cáo — số liệu này nuôi thẳng vào KPI mảng liên quan. Bấm vào tên sự kiện trong danh sách để xem chi tiết.
       </div>
-      <div class="card">
+        <button class="btn sm add-btn" onclick="openForm('programs-form')">+ Tạo sự kiện</button>
+      </div>
+      <div class="card add-card" id="programs-form-card" style="display:none;">
         <div class="card-head-row">
           <div>
             <h2>Tạo sự kiện mới</h2>
             <p class="sub" style="margin-bottom:0;">Dùng khi sự kiện bắt đầu được lên kế hoạch</p>
           </div>
-          <button class="btn secondary sm" onclick="toggleForm('programs-form')">+ Tạo sự kiện</button>
+          <button class="btn ghost sm" onclick="closeForm('programs-form')">✕ Đóng</button>
         </div>
-        <div id="programs-form" class="collapsible-form" style="display:none;">
+        <div id="programs-form" class="collapsible-form" style="display:block;">
           <div class="field"><label>Tên sự kiện</label><input type="text" id="p-ten" placeholder="VD: Trung thu 2026"></div>
           <div class="grid2">
             <div class="field">
@@ -1040,17 +1062,20 @@
 
     <!-- ============ PANEL: TONG HOP THI DUA ============ -->
     <section class="panel" id="panel-competitions">
-      <div class="flow-note">
+      <div class="panel-top">
+        <div class="flow-note">
         <b>Thi đua:</b> mỗi chương trình 1 dòng — <b>Thi đua lan tỏa</b> (nhập tay) và <b>Thi đua doanh số</b> (phần lớn đồng bộ từ hệ thống Thi đua độc lập của Phòng, xem nút Đồng bộ bên dưới). Bấm vào tên để xem/sửa đầy đủ.
       </div>
-      <div class="card">
+        <button class="btn sm add-btn" onclick="openForm('competitions-form')">+ Thêm chương trình</button>
+      </div>
+      <div class="card add-card" id="competitions-form-card" style="display:none;">
         <div class="card-head-row">
           <div>
             <h2>Thêm chương trình thi đua</h2>
           </div>
-          <button class="btn secondary sm" onclick="toggleForm('competitions-form')">+ Thêm chương trình</button>
+          <button class="btn ghost sm" onclick="closeForm('competitions-form')">✕ Đóng</button>
         </div>
-        <div id="competitions-form" class="collapsible-form" style="display:none;">
+        <div id="competitions-form" class="collapsible-form" style="display:block;">
           <div class="grid2">
             <div class="field"><label>Tên chương trình</label><input type="text" id="c-ten" placeholder="VD: Thi đua bán hàng sản phẩm ABC"></div>
             <div class="field"><label>Loại thi đua</label>
@@ -1224,7 +1249,7 @@
             <h2>Chi tiết ngân sách</h2>
             <p class="sub" style="margin-bottom:0;">Từng khoản chi cụ thể trong năm — bấm tên để xem/sửa đầy đủ.</p>
           </div>
-          <button class="btn secondary sm" onclick="toggleForm('ns-add-form')">+ Thêm khoản chi</button>
+          <button class="btn sm add-btn" onclick="toggleForm('ns-add-form')">+ Thêm khoản chi</button>
         </div>
         <div id="ns-add-form" class="collapsible-form" style="display:none;">
           <div class="grid2">
@@ -1270,18 +1295,21 @@
 
     <!-- ============ PANEL: QUA TANG (Module 6 — API thật, sheet 07/07b) ============ -->
     <section class="panel" id="panel-gifts">
-      <div class="flow-note">
+      <div class="panel-top">
+        <div class="flow-note">
         <b>Quà tặng:</b> theo dõi nhập – xuất – tồn theo từng loại quà hiện vật, gắn với sự kiện/chương trình thi đua để đối soát khi có khiếu nại. Mọi thay đổi số lượng ngoài lần nhập/xuất ban đầu (kiểm kê, hỏng, phát bổ sung) ghi vào <b>Lịch sử điều chỉnh</b> — chỉ thêm, không sửa/xoá từng dòng.
+      </div>
+        <button class="btn sm add-btn" onclick="openForm('gifts-form')">+ Thêm loại quà</button>
       </div>
 
       <div class="stat-row" id="gifts-stats"></div>
 
-      <div class="card">
+      <div class="card add-card" id="gifts-form-card" style="display:none;">
         <div class="card-head-row">
           <div><h2>Thêm loại quà</h2></div>
-          <button class="btn secondary sm" onclick="toggleForm('gifts-form')">+ Thêm loại quà</button>
+          <button class="btn ghost sm" onclick="closeForm('gifts-form')">✕ Đóng</button>
         </div>
-        <div id="gifts-form" class="collapsible-form" style="display:none;">
+        <div id="gifts-form" class="collapsible-form" style="display:block;">
           <div class="grid2">
             <div class="field"><label>Loại quà tặng *</label><input type="text" id="g-loai" placeholder="VD: Linh vật + bằng khen"></div>
             <div class="field"><label>Gắn với sự kiện / thi đua</label><select id="g-lienquan"></select></div>
@@ -1373,17 +1401,20 @@
 
     <!-- ============ PANEL: VOUCHER ============ -->
     <section class="panel" id="panel-vouchers">
-      <div class="flow-note">
+      <div class="panel-top">
+        <div class="flow-note">
         <b>Voucher:</b> mỗi sự kiện có thể có nhiều đợt order voucher (VD: Lucky Draw, Minigame, Hậu cần...), mỗi đợt gắn 1 loại ngân sách + mệnh giá + số lượng riêng. Cập nhật "Tồn" khi voucher được phát ra — ngân sách tồn tự tính lại theo mệnh giá.
       </div>
-      <div class="card">
+        <button class="btn sm add-btn" onclick="openForm('vouchers-form')">+ Ghi nhận đợt voucher</button>
+      </div>
+      <div class="card add-card" id="vouchers-form-card" style="display:none;">
         <div class="card-head-row">
           <div>
             <h2>Ghi nhận đợt order voucher</h2>
           </div>
-          <button class="btn secondary sm" onclick="toggleForm('vouchers-form')">+ Ghi nhận đợt</button>
+          <button class="btn ghost sm" onclick="closeForm('vouchers-form')">✕ Đóng</button>
         </div>
-        <div id="vouchers-form" class="collapsible-form" style="display:none;">
+        <div id="vouchers-form" class="collapsible-form" style="display:block;">
           <div class="grid2">
             <div class="field"><label>Gắn với sự kiện</label><select id="v-sukien"></select></div>
             <div class="field"><label>Tên đợt order voucher</label><input type="text" id="v-tendot" placeholder="VD: Lucky Draw"></div>
@@ -1413,23 +1444,27 @@
 
     <!-- ============ PANEL: WEB APP ============ -->
     <section class="panel" id="panel-webapps">
-      <div class="flow-note">
+      <div class="panel-top">
+        <div class="flow-note">
         <b>Web App:</b> tổng hợp các web app nội bộ Phòng đang sử dụng — mỗi web app hiển thị thành một card lớn để bấm vào truy cập nhanh.
       </div>
-      <div class="card">
+        <button class="btn sm add-btn" onclick="openAddWebApp()">+ Thêm Web App</button>
+      </div>
+      <div class="card add-card" id="webapp-form-card" style="display:none;">
         <div class="card-head-row">
           <div>
-            <h2>Thêm Web App</h2>
+            <h2 id="webapp-form-title">Thêm Web App</h2>
           </div>
-          <button class="btn secondary sm" onclick="toggleForm('webapp-form')">+ Thêm Web App</button>
+          <button class="btn ghost sm" onclick="cancelWebAppEdit()">✕ Đóng</button>
         </div>
-        <div id="webapp-form" class="collapsible-form" style="display:none;">
+        <div id="webapp-form" class="collapsible-form" style="display:block;">
           <div class="grid2">
             <div class="field"><label>Tên web app</label><input type="text" id="wa-ten" placeholder="VD: Cổng quản lý công việc PTVH"></div>
             <div class="field"><label>Link</label><input type="url" id="wa-link" placeholder="https://..."></div>
           </div>
           <div class="field"><label>Ghi chú (tùy chọn)</label><textarea id="wa-ghichu" placeholder="Mô tả ngắn về web app..."></textarea></div>
-          <button class="btn" onclick="addWebApp()">Lưu Web App</button>
+          <button class="btn" id="webapp-save-btn" onclick="addWebApp()">Lưu Web App</button>
+          <button class="btn ghost" onclick="cancelWebAppEdit()">Hủy</button>
         </div>
       </div>
       <div class="card">
@@ -1450,17 +1485,20 @@
 
     <!-- ============ PANEL: TAI LIEU / LINKS ============ -->
     <section class="panel" id="panel-docs">
-      <div class="flow-note">
+      <div class="panel-top">
+        <div class="flow-note">
         <b>Tài liệu/Links:</b> tổng hợp thủ công các tài liệu, web app, biểu mẫu... mà Phòng PTVH đang sử dụng — có thể chia theo thư mục để dễ phân loại, cập nhật bằng tay khi có tài liệu mới.
       </div>
-      <div class="card">
+        <button class="btn sm add-btn" onclick="openForm('docs-form')">+ Thêm tài liệu</button>
+      </div>
+      <div class="card add-card" id="docs-form-card" style="display:none;">
         <div class="card-head-row">
           <div>
             <h2>Thêm tài liệu / link mới</h2>
           </div>
-          <button class="btn secondary sm" onclick="toggleForm('docs-form')">+ Thêm tài liệu</button>
+          <button class="btn ghost sm" onclick="closeForm('docs-form')">✕ Đóng</button>
         </div>
-        <div id="docs-form" class="collapsible-form" style="display:none;">
+        <div id="docs-form" class="collapsible-form" style="display:block;">
           <div class="grid2">
             <div class="field"><label>Tên tài liệu</label><input type="text" id="doc-ten" placeholder="VD: Hệ thống quản lý công việc PTVH"></div>
             <div class="field"><label>Loại</label>
@@ -1517,14 +1555,14 @@
         <div class="subtext" id="notify-channel-status" style="margin-top:10px;"></div>
       </div>
 
-      <div class="card">
+      <div class="card add-card" id="staff-form-card" style="display:none;">
         <div class="card-head-row">
           <div>
             <h2>Thêm nhân sự</h2>
           </div>
-          <button class="btn secondary sm" onclick="toggleForm('staff-form')">+ Thêm nhân sự</button>
+          <button class="btn ghost sm" onclick="closeForm('staff-form')">✕ Đóng</button>
         </div>
-        <div id="staff-form" class="collapsible-form" style="display:none;">
+        <div id="staff-form" class="collapsible-form" style="display:block;">
           <div class="grid2">
             <div class="field"><label>Họ tên</label><input type="text" id="st-name" placeholder="VD: Nguyễn Văn A — Chuyên viên"></div>
             <div class="field"><label>Email</label><input type="email" id="st-email" placeholder="ten@wincommerce.vn"></div>
@@ -1533,7 +1571,7 @@
         </div>
       </div>
       <div class="card">
-        <h2>Danh sách nhân sự Phòng</h2>
+        <div class="card-head-row"><h2>Danh sách nhân sự Phòng</h2><button class="btn sm add-btn" onclick="openForm('staff-form')">+ Thêm nhân sự</button></div>
         <div class="table-wrap">
         <table>
           <thead><tr><th>Họ tên</th><th>Email</th><th></th></tr></thead>
@@ -1636,6 +1674,7 @@ async function loadBootstrapData() {
   if (Array.isArray(r.data.nganSachThang)) { nganSachThang = r.data.nganSachThang; nganSachThangLoaded = true; }
   if (Array.isArray(r.data.nganSachChiTiet)) { nganSachChiTiet = r.data.nganSachChiTiet; nganSachChiTietLoaded = true; }
   if (Array.isArray(r.data.quaTang)) { quaTang = r.data.quaTang; quaTangLoaded = true; }
+  if (Array.isArray(r.data.taiLieu)) { docItems = r.data.taiLieu.map(mapTaiLieuFromApi_); docItemsLoaded = true; }
   return true;
 }
 async function refreshStaffList() {
@@ -1703,23 +1742,44 @@ let voucherEditMaDot = null;
 
 let currentPeriod = 'MTD';
 
-let docCounter = 2;
-let docItems = [
-  {id:1, ten:'Tổng hợp danh mục Web App PTVH', loai:'Trình chiếu (Slides)', thuMuc:'Tổng hợp chung', link:'https://docs.google.com/presentation/d/1NLoXW6c4hlqlv--ldOGXfwVrnDgDoTfX/edit?usp=drive_link&ouid=101046524420887053281&rtpof=true&sd=true', ghichu:'Danh sách tổng hợp ban đầu do người dùng cung cấp — cập nhật thủ công các tài liệu tiếp theo tại đây.', nguoiCapNhat:'Nguyễn Thái Dương — Trưởng nhóm', ngayCapNhat:'01/08/2026'},
-  {id:2, ten:'Cổng quản lý công việc PTVH', loai:'Web app', thuMuc:'Web app nội bộ', link:'https://ptvh-wincommerce.github.io/', ghichu:'Hệ thống quản lý công việc, sự kiện, thi đua của Phòng.', nguoiCapNhat:'Nguyễn Thái Dương — Trưởng nhóm', ngayCapNhat:'20/08/2026'},
-];
+// Tài liệu/Links + Web App nạp từ sheet "08.Tài liệu" (TaiLieu.gs) — không còn dữ liệu demo trong bộ nhớ.
+let docItems = [];
+let docItemsLoaded = false;
 let docEditId = null;
 
 /* ---------------- FORM THU GỌN / MỞ RỘNG ---------------- */
+/**
+ * Form "Thêm ..." giờ nằm trong 1 card ẩn (.add-card) — mở bằng nút đỏ ở góc panel, đóng bằng ✕.
+ * Form còn nằm lồng trong card danh sách (VD Ngân sách) thì vẫn thu gọn/xổ ra như cũ.
+ */
+function formCard_(id) {
+  const el = document.getElementById(id);
+  return el ? (el.closest('.add-card') || null) : null;
+}
+function openForm(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const card = formCard_(id);
+  if (card) {
+    card.style.display = 'block';
+    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const first = card.querySelector('input:not([type=file]):not([type=checkbox]), textarea, select');
+    if (first) setTimeout(() => first.focus(), 250);
+  } else {
+    el.style.display = 'block';
+  }
+}
 function toggleForm(id) {
   const el = document.getElementById(id);
   if (!el) return;
-  const isOpen = el.style.display === 'block';
-  el.style.display = isOpen ? 'none' : 'block';
+  const box = formCard_(id) || el;
+  if (box.style.display === 'block') closeForm(id); else openForm(id);
 }
 function closeForm(id) {
   const el = document.getElementById(id);
-  if (el) el.style.display = 'none';
+  if (!el) return;
+  const card = formCard_(id);
+  if (card) card.style.display = 'none'; else el.style.display = 'none';
 }
 
 function addWorkdays(date, days) {
@@ -2442,14 +2502,63 @@ function quickWorkFilter(val) {
 
 function renderWork() {
   document.querySelectorAll('#work-view-filter .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.v === workViewMode));
-  ['task', 'event', 'staff'].forEach(m => document.getElementById('work-view-' + m).style.display = workViewMode === m ? 'block' : 'none');
+  ['task', 'event', 'staff'].forEach(m => { const el = document.getElementById('work-view-' + m); if (el) el.style.display = workViewMode === m ? 'block' : 'none'; });
+  document.getElementById('work-list-card').style.display = workViewMode === 'event' ? 'none' : 'block';
   if (!congViecLoaded) { refreshCongViec(); return; } // lần đầu vào tab: tải từ API rồi tự render lại
-  if (workViewMode === 'task') renderWorkTaskView();
-  else {
+  if (workViewMode === 'event') {
     renderWorkRecap_(workItems, false);
-    if (workViewMode === 'event') renderWorkEventView();
-    else renderStaffTasks();
+    renderWorkEventView();
+  } else {
+    if (workViewMode === 'staff') renderStaffChips_();
+    renderWorkTaskView();
   }
+}
+
+/* ---- Xem theo đầu nhân sự: chọn người bằng thẻ avatar, danh sách dùng chung bảng + bộ lọc của tab Theo đầu công việc ---- */
+let workStaffSelected = '';
+function initials_(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  return (parts.length > 1 ? parts[parts.length - 2][0] : '') + parts[parts.length - 1][0];
+}
+function avatarColor_(name) {
+  const palette = ['#E2231A', '#0e9f6e', '#2563eb', '#9333ea', '#d97706', '#0891b2', '#db2777', '#4f46e5'];
+  let h = 0; for (const ch of String(name)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return palette[h % palette.length];
+}
+function staffWorkList_(name) {
+  const includeAll = document.getElementById('st-include-all')?.checked;
+  return workItems.filter(w => w.nguoi.includes(name) || (includeAll && w.nguoi.some(n => /^all\s*team$/i.test(n))));
+}
+function renderStaffChips_() {
+  const names = staffNames();
+  if (!names.length) { document.getElementById('staff-chips').innerHTML = '<p class="sub">Chưa tải được danh sách nhân sự.</p>'; return; }
+  if (!names.includes(workStaffSelected)) {
+    workStaffSelected = currentUser && names.includes(currentUser.name) ? currentUser.name : names[0];
+  }
+  document.getElementById('staff-chips').innerHTML = names.map(n => {
+    const list = staffWorkList_(n);
+    const dang = list.filter(w => w.trangThai !== 'Hoàn thành').length;
+    const late = list.filter(workIsLate_).length;
+    const st = STAFF.find(x => x.name === n) || {};
+    const ten = n.trim().split(/\s+/).pop();
+    return `<button class="staff-chip ${n === workStaffSelected ? 'active' : ''}" onclick="selectWorkStaff(${jsArg(n)})" title="${esc(n)}">
+      <span class="staff-avatar" style="background:${avatarColor_(n)}">${esc(initials_(n).toUpperCase())}</span>
+      <span class="staff-chip-txt"><b>${esc(ten)}</b><span>${esc(n)}</span><span class="staff-chip-role">${esc(st.vaiTro || '')}${dang ? ` · <em>${dang} chưa xong</em>` : ''}</span></span>
+      <span class="staff-chip-count" title="Tổng việc">${list.length}</span>
+      ${late ? `<span class="staff-chip-late" title="Quá hạn">${late}</span>` : ''}
+    </button>`;
+  }).join('');
+  const mine = staffWorkList_(workStaffSelected);
+  const done = mine.filter(w => w.trangThai === 'Hoàn thành').length;
+  const pct = mine.length ? Math.round(done / mine.length * 100) : 0;
+  document.getElementById('staff-progress').innerHTML = `
+    <div class="subtext" style="font-size:14.5px; margin:14px 0 6px;"><b style="color:var(--text-primary)">${esc(workStaffSelected)}</b> — ${mine.length ? `${done}/${mine.length} đầu việc đã hoàn thành (${pct}%)` : 'Chưa có đầu việc nào'}</div>
+    <div class="bar-track" style="height:10px;"><div class="bar-fill" style="width:${pct}%"></div></div>`;
+}
+function selectWorkStaff(name) {
+  workStaffSelected = name;
+  renderWork();
 }
 
 function renderWorkTaskView() {
@@ -2464,13 +2573,21 @@ function renderWorkTaskView() {
     th.classList.toggle('desc', th.dataset.k === workSort.key && workSort.dir === 'desc');
   });
 
-  const all = workItems.map((w, i) => ({ w, i }));
+  const staffMode = workViewMode === 'staff' && workStaffSelected;
+  const nguoiSel = document.getElementById('wf-nguoi');
+  nguoiSel.style.display = staffMode ? 'none' : '';
+  document.getElementById('wf-nguoi-lock').style.display = staffMode ? 'block' : 'none';
+  if (staffMode) f.nguoi = '';
+  const base = staffMode ? new Set(staffWorkList_(workStaffSelected)) : null;
+  document.getElementById('work-list-title').textContent = staffMode ? 'Công việc của ' + workStaffSelected : 'Toàn bộ đầu việc đang theo dõi';
+
+  const all = workItems.map((w, i) => ({ w, i })).filter(({ w }) => !base || base.has(w));
   const rows = sortWorkRows_(all.filter(({ w }) => workMatches_(w, f)));
   const filtered = workFilterActive_(f);
-  renderWorkRecap_(rows.map(r => r.w), filtered);
+  renderWorkRecap_(rows.map(r => r.w), filtered || !!staffMode);
   document.getElementById('work-count-lbl').textContent = filtered
-    ? `Đang hiển thị ${rows.length}/${workItems.length} đầu việc theo bộ lọc`
-    : `${workItems.length} đầu việc — bấm tiêu đề cột để sắp xếp, dùng hàng lọc ngay dưới tiêu đề để lọc theo từng cột`;
+    ? `Đang hiển thị ${rows.length}/${all.length} đầu việc theo bộ lọc`
+    : `${all.length} đầu việc — bấm tiêu đề cột để sắp xếp, dùng hàng lọc ngay dưới tiêu đề để lọc theo từng cột`;
 
   document.getElementById('work-body').innerHTML = rows.length ? rows.map(({ w, i }) => {
     const late = workIsLate_(w);
@@ -2619,11 +2736,9 @@ function toggleWorkEvent(key) {
 }
 function themViecChoSuKien(maSuKien) {
   setWorkView('task');
-  document.getElementById('work-form').style.display = 'block';
+  openForm('work-form');
   populateWorkProgramSelect();
   document.getElementById('w-chuongtrinh').value = maSuKien;
-  document.getElementById('w-ten').focus();
-  document.getElementById('work-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 async function ganViecVaoSuKien(maViec, maSuKien) {
   const r = await callPtvhApi('updateCongViecThuocSuKien', { maViec, maSuKien });
@@ -4046,7 +4161,48 @@ async function addVoucherDotUI() {
 /* ---------------- KPI — ĐANG XÂY DỰNG (chưa áp dụng; bản demo nhập tay cũ đã gỡ) ---------------- */
 function renderKpi() { /* panel tĩnh "đang xây dựng" — không có gì để render */ }
 
-/* ---------------- TAI LIEU / LINKS ---------------- */
+/* ---------------- TAI LIEU / LINKS + WEB APP (API thật — sheet 08.Tài liệu, xem TaiLieu.gs) ---------------- */
+async function refreshTaiLieu(showLoadingToast) {
+  if (showLoadingToast) showToast('Đang tải tài liệu/links...');
+  const r = await callPtvhApi('getTaiLieuList', {});
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không tải được tài liệu/links');
+    return;
+  }
+  docItems = (r.data || []).map(mapTaiLieuFromApi_);
+  docItemsLoaded = true;
+  renderDocs();
+  renderWebApps();
+}
+function mapTaiLieuFromApi_(it) {
+  return { id: it.ma, ten: it.ten, loai: it.loai, thuMuc: it.thuMuc, link: it.link, ghichu: it.ghiChu,
+           nguoiTao: it.nguoiTao, ngayTao: it.ngayTao, nguoiCapNhat: it.nguoiCapNhat, ngayCapNhat: it.ngayCapNhat };
+}
+function apiErr_(r, fallback) {
+  if (!r.ok && r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || fallback);
+  return !r.ok;
+}
+/** Gọi API thêm/sửa tài liệu — dùng chung cho tab Tài liệu và tab Web App. */
+async function saveTaiLieu_(ma, payload) {
+  if (!payload.ten) { showToast('Vui lòng nhập Tên'); return false; }
+  if (!/^https?:\/\/\S+$/i.test(payload.link || '')) { showToast('Link phải bắt đầu bằng http:// hoặc https://'); return false; }
+  const r = ma ? await callPtvhApi('updateTaiLieu', { ma, payload }) : await callPtvhApi('addTaiLieu', { payload });
+  if (apiErr_(r, 'Không lưu được')) return false;
+  await refreshTaiLieu();
+  return true;
+}
+async function deleteTaiLieuUI(ma) {
+  const d = docItems.find(x => x.id === ma);
+  if (!d) return;
+  if (!confirm('Xoá "' + d.ten + '" khỏi danh mục? Thao tác này KHÔNG thể hoàn tác.')) return;
+  const r = await callPtvhApi('deleteTaiLieu', { ma });
+  if (apiErr_(r, 'Không xoá được')) return;
+  if (docEditId === ma) docEditId = null;
+  if (webAppEditMa === ma) cancelWebAppEdit();
+  showToast('Đã xoá "' + d.ten + '"');
+  await refreshTaiLieu();
+}
+
 function populateDocFolderDatalist() {
   const dl = document.getElementById('doc-folder-list');
   if (!dl) return;
@@ -4054,26 +4210,28 @@ function populateDocFolderDatalist() {
   dl.innerHTML = folders.map(f => `<option value="${esc(f)}"></option>`).join('');
 }
 const DOC_TYPES = ['Web app', 'Google Sheet', 'Trình chiếu (Slides)', 'Tài liệu (Docs)', 'Biểu mẫu', 'Khác'];
+function docEditKey_(id) { return String(id).replace(/[^A-Za-z0-9_-]/g, '_'); }
 function docRowHTML(d, showFolderCol) {
+  const k = docEditKey_(d.id);
   if (d.id === docEditId) {
     return `
       <tr>
         <td colspan="${showFolderCol ? 4 : 3}">
           <div class="grid2" style="margin-top:6px;">
-            <div class="field"><label>Tên tài liệu</label><input type="text" class="inline" style="width:100%" id="de-ten-${esc(d.id)}" value="${esc(d.ten)}"></div>
+            <div class="field"><label>Tên tài liệu</label><input type="text" style="width:100%" id="de-ten-${k}" value="${esc(d.ten)}"></div>
             <div class="field"><label>Loại</label>
-              <select class="inline" id="de-loai-${esc(d.id)}">
+              <select id="de-loai-${k}">
                 ${DOC_TYPES.map(t => `<option ${d.loai===t?'selected':''}>${esc(t)}</option>`).join('')}
               </select>
             </div>
           </div>
           <div class="grid2">
-            <div class="field"><label>Thư mục</label><input type="text" class="inline" style="width:100%" id="de-thumuc-${esc(d.id)}" value="${esc(d.thuMuc || '')}" list="doc-folder-list"></div>
-            <div class="field"><label>Link</label><input type="url" class="inline" style="width:100%" id="de-link-${esc(d.id)}" value="${esc(d.link)}"></div>
+            <div class="field"><label>Thư mục</label><input type="text" style="width:100%" id="de-thumuc-${k}" value="${esc(d.thuMuc || '')}" list="doc-folder-list"></div>
+            <div class="field"><label>Link</label><input type="url" style="width:100%" id="de-link-${k}" value="${esc(d.link)}"></div>
           </div>
-          <div class="field"><label>Ghi chú</label><textarea class="inline" style="width:100%" id="de-ghichu-${esc(d.id)}">${esc(d.ghichu || '')}</textarea></div>
+          <div class="field"><label>Ghi chú</label><textarea style="width:100%" id="de-ghichu-${k}">${esc(d.ghichu || '')}</textarea></div>
           <div style="display:flex; gap:8px; margin:8px 0 4px;">
-            <button class="btn secondary sm" onclick="saveDocEdit(${esc(d.id)})">Lưu</button>
+            <button class="btn sm" onclick="saveDocEdit(${jsArg(d.id)})">Lưu</button>
             <button class="btn ghost sm" onclick="cancelDocEdit()">Hủy</button>
           </div>
         </td>
@@ -4086,7 +4244,8 @@ function docRowHTML(d, showFolderCol) {
         ${showFolderCol ? `<td>${esc(d.thuMuc || 'Chưa phân loại')}</td>` : ''}
         <td style="white-space:nowrap;">
           <a class="btn secondary sm" href="${safeUrl(d.link)}" target="_blank" rel="noopener">Mở liên kết ↗</a>
-          <button class="btn ghost sm" onclick="startDocEdit(${esc(d.id)})">✏️ Sửa</button>
+          <button class="btn ghost sm" onclick="startDocEdit(${jsArg(d.id)})" title="Sửa">✏️</button>
+          <button class="btn ghost sm" onclick="deleteTaiLieuUI(${jsArg(d.id)})" title="Xoá">🗑️</button>
         </td>
       </tr>`;
 }
@@ -4097,8 +4256,9 @@ function docsTableHTML(items, showFolderCol) {
     </tbody></table></div>`;
 }
 function renderDocs() {
-  populateDocFolderDatalist();
   const container = document.getElementById('docs-list-container');
+  if (!docItemsLoaded) { container.innerHTML = '<p class="sub" style="text-align:center;padding:20px 0;">Đang tải...</p>'; refreshTaiLieu(); return; }
+  populateDocFolderDatalist();
   const term = (document.getElementById('docs-search')?.value || '').toLowerCase().trim();
   const filtered = docItems.filter(d => !term || [d.ten, d.loai, d.thuMuc, d.ghichu].join(' ').toLowerCase().includes(term));
   if (!filtered.length) {
@@ -4120,39 +4280,31 @@ function renderDocs() {
       ${docsTableHTML(folders[f], false)}
     </div>`).join('');
 }
-function addDoc() {
-  const ten = document.getElementById('doc-ten').value.trim();
-  const link = document.getElementById('doc-link').value.trim();
-  if (!ten) { showToast('Vui lòng nhập Tên tài liệu'); return; }
-  if (!link) { showToast('Vui lòng nhập Link'); return; }
-  docCounter++;
-  docItems.unshift({
-    id: docCounter,
-    ten,
+async function addDoc() {
+  const ok = await saveTaiLieu_(null, {
+    ten: document.getElementById('doc-ten').value.trim(),
     loai: document.getElementById('doc-loai').value,
-    thuMuc: document.getElementById('doc-thumuc').value.trim() || 'Chưa phân loại',
-    link,
-    ghichu: document.getElementById('doc-ghichu').value.trim(),
+    thuMuc: document.getElementById('doc-thumuc').value.trim(),
+    link: document.getElementById('doc-link').value.trim(),
+    ghiChu: document.getElementById('doc-ghichu').value.trim(),
   });
+  if (!ok) return;
   ['doc-ten','doc-link','doc-thumuc','doc-ghichu'].forEach(id => document.getElementById(id).value = '');
   showToast('Đã thêm vào Tài liệu/Links');
   closeForm('docs-form');
-  renderDocs();
 }
 function startDocEdit(id) { docEditId = id; renderDocs(); }
 function cancelDocEdit() { docEditId = null; renderDocs(); }
-function saveDocEdit(id) {
-  const d = docItems.find(x => x.id === id);
-  if (!d) return;
-  const ten = document.getElementById('de-ten-' + id).value.trim();
-  const link = document.getElementById('de-link-' + id).value.trim();
-  if (!ten) { showToast('Vui lòng nhập Tên tài liệu'); return; }
-  if (!link) { showToast('Vui lòng nhập Link'); return; }
-  d.ten = ten;
-  d.loai = document.getElementById('de-loai-' + id).value;
-  d.thuMuc = document.getElementById('de-thumuc-' + id).value.trim() || 'Chưa phân loại';
-  d.link = link;
-  d.ghichu = document.getElementById('de-ghichu-' + id).value.trim();
+async function saveDocEdit(id) {
+  const k = docEditKey_(id);
+  const ok = await saveTaiLieu_(id, {
+    ten: document.getElementById('de-ten-' + k).value.trim(),
+    loai: document.getElementById('de-loai-' + k).value,
+    thuMuc: document.getElementById('de-thumuc-' + k).value.trim(),
+    link: document.getElementById('de-link-' + k).value.trim(),
+    ghiChu: document.getElementById('de-ghichu-' + k).value.trim(),
+  });
+  if (!ok) return;
   docEditId = null;
   showToast('Đã lưu thay đổi tài liệu');
   renderDocs();
@@ -4255,57 +4407,68 @@ function addStaffMember() {
   renderStaffSettings();
 }
 
-/* ---------------- THEO DOI CONG VIEC THEO NHAN SU ---------------- */
-function populateStaffTaskSelect() {
-  const sel = document.getElementById('st-task-select');
-  if (!sel) return;
-  const prev = sel.value;
-  sel.innerHTML = staffNames().map(n => `<option>${esc(n)}</option>`).join('');
-  if (prev && staffNames().includes(prev)) sel.value = prev;
-}
-function renderStaffTasks() {
-  populateStaffTaskSelect();
-  const sel = document.getElementById('st-task-select');
-  const name = sel ? sel.value : (staffNames()[0] || '');
-  const mine = workItems.map((w,i)=>({w,i})).filter(({w}) => w.nguoi.includes(name));
-  const done = mine.filter(({w}) => w.trangThai === 'Hoàn thành' || w.xacNhan).length;
-  const pct = mine.length ? Math.round(done / mine.length * 100) : 0;
-  document.getElementById('st-task-progress-lbl').textContent = mine.length ? `${done}/${mine.length} đầu việc đã hoàn thành (${pct}%)` : 'Chưa có đầu việc nào';
-  document.getElementById('st-task-progress-bar').style.width = pct + '%';
-  document.getElementById('st-task-body').innerHTML = mine.length ? mine.map(({w,i}) => `
-    <tr>
-      <td style="font-weight:700;">${esc(w.ma)}</td>
-      <td>${esc(w.ten)}</td>
-      <td>${esc(w.mang)}</td>
-      <td>${w.han ? esc(w.han) : '<span class="badge"><span class="dot warning"></span>Chưa có hạn</span>'}</td>
-      <td>${statusBadgeWork(w.trangThai)}</td>
-    </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;">Không có đầu việc</td></tr>';
-}
-
-/* ---------------- WEB APP (TAB RIENG) ---------------- */
+/* ---------------- WEB APP (TAB RIENG — dữ liệu chung sheet 08.Tài liệu, Loại = "Web app") ---------------- */
+let webAppEditMa = null; // mã đang sửa (null = đang thêm mới)
 function renderWebApps() {
-  const apps = docItems.filter(d => d.loai === 'Web app');
   const el = document.getElementById('webapp-grid');
-  if (!apps.length) { el.innerHTML = '<p class="sub" style="text-align:center;padding:20px 0;">Chưa có Web App nào — thêm mới ở form bên trên.</p>'; return; }
+  if (!docItemsLoaded) { el.innerHTML = '<p class="sub" style="text-align:center;padding:20px 0;">Đang tải...</p>'; refreshTaiLieu(); return; }
+  const apps = docItems.filter(d => d.loai === 'Web app');
+  if (!apps.length) { el.innerHTML = '<p class="sub" style="text-align:center;padding:20px 0;">Chưa có Web App nào — bấm "+ Thêm Web App".</p>'; return; }
   el.innerHTML = apps.map(d => `
-    <a class="webapp-card" href="${safeUrl(d.link)}" target="_blank" rel="noopener">
-      <div class="webapp-card-icon">🧩</div>
-      <div class="webapp-card-title">${esc(d.ten)}</div>
-      <div class="webapp-card-sub">${esc(d.ghichu || 'Mở web app ↗')}</div>
-    </a>`).join('');
+    <div class="webapp-card ${webAppEditMa === d.id ? 'editing' : ''}">
+      <a class="webapp-card-link" href="${safeUrl(d.link)}" target="_blank" rel="noopener">
+        <div class="webapp-card-icon">🧩</div>
+        <div class="webapp-card-title">${esc(d.ten)}</div>
+        <div class="webapp-card-sub">${esc(d.ghichu || 'Mở web app ↗')}</div>
+        <div class="webapp-card-url">${esc(d.link)}</div>
+      </a>
+      <div class="webapp-card-actions">
+        <button class="btn ghost sm" onclick="startWebAppEdit(${jsArg(d.id)})">✏️ Sửa</button>
+        <button class="btn ghost sm" onclick="deleteTaiLieuUI(${jsArg(d.id)})">🗑️ Xoá</button>
+      </div>
+    </div>`).join('');
 }
-function addWebApp() {
-  const ten = document.getElementById('wa-ten').value.trim();
-  const link = document.getElementById('wa-link').value.trim();
-  if (!ten) { showToast('Vui lòng nhập Tên web app'); return; }
-  if (!link) { showToast('Vui lòng nhập Link'); return; }
-  docCounter++;
-  docItems.unshift({id:docCounter, ten, loai:'Web app', thuMuc:'Web app nội bộ', link, ghichu:document.getElementById('wa-ghichu').value.trim()});
-  stampMeta(docItems[0]);
+function setWebAppFormMode_(editing) {
+  document.getElementById('webapp-form-title').textContent = editing ? 'Sửa Web App' : 'Thêm Web App';
+  document.getElementById('webapp-save-btn').textContent = editing ? 'Lưu thay đổi' : 'Lưu Web App';
+}
+function openAddWebApp() {
+  webAppEditMa = null;
   ['wa-ten','wa-link','wa-ghichu'].forEach(id => document.getElementById(id).value = '');
-  showToast('Đã thêm Web App mới');
+  setWebAppFormMode_(false);
+  openForm('webapp-form');
+  renderWebApps();
+}
+function startWebAppEdit(ma) {
+  const d = docItems.find(x => x.id === ma);
+  if (!d) return;
+  webAppEditMa = ma;
+  document.getElementById('wa-ten').value = d.ten;
+  document.getElementById('wa-link').value = d.link;
+  document.getElementById('wa-ghichu').value = d.ghichu || '';
+  setWebAppFormMode_(true);
+  openForm('webapp-form');
+  renderWebApps();
+}
+function cancelWebAppEdit() {
+  webAppEditMa = null;
+  setWebAppFormMode_(false);
   closeForm('webapp-form');
   renderWebApps();
+}
+async function addWebApp() {
+  const cu = webAppEditMa ? docItems.find(x => x.id === webAppEditMa) : null;
+  const ok = await saveTaiLieu_(webAppEditMa, {
+    ten: document.getElementById('wa-ten').value.trim(),
+    loai: 'Web app',
+    thuMuc: cu ? cu.thuMuc : 'Web app nội bộ',
+    link: document.getElementById('wa-link').value.trim(),
+    ghiChu: document.getElementById('wa-ghichu').value.trim(),
+  });
+  if (!ok) return;
+  showToast(webAppEditMa ? 'Đã lưu thay đổi Web App' : 'Đã thêm Web App mới');
+  ['wa-ten','wa-link','wa-ghichu'].forEach(id => document.getElementById(id).value = '');
+  cancelWebAppEdit();
 }
 
 /* ---------------- TOAST ---------------- */
