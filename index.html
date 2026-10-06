@@ -805,6 +805,27 @@
   .wd-title { font-size:18px; line-height:1.3; margin:0 0 4px; word-break:break-word; }
   .wd-ma { display:inline-block; font-size:11px; font-weight:700; letter-spacing:.03em; color:var(--text-muted); background:var(--page); border:1px solid var(--gridline); border-radius:6px; padding:0 6px; margin-right:7px; line-height:18px; vertical-align:1px; font-variant-numeric:tabular-nums; }
   .wde-note { font-size:12.5px; color:var(--text-muted); margin:4px 0 0; }
+
+  /* Danh sách theo tháng + bộ lọc */
+  .tl-filter { display:flex; flex-wrap:wrap; gap:10px 12px; align-items:flex-end; margin:4px 0 6px; padding:12px; background:var(--page); border-radius:12px; }
+  .tl-filter .f { display:flex; flex-direction:column; gap:3px; min-width:130px; flex:1 1 130px; max-width:210px; }
+  .tl-filter label { font-size:11.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.03em; }
+  .tl-filter select { padding:8px 10px; border:1.5px solid var(--border); border-radius:10px; background:var(--surface-1); font:inherit; font-size:13.5px; color:var(--text-primary); }
+  .tl-filter select.co-loc { border-color:var(--primary); background:rgba(226,35,26,.05); font-weight:700; }
+  .tl-filter .dem { margin-left:auto; font-size:13px; color:var(--text-muted); font-weight:600; align-self:center; }
+  .tl-mon-h { display:flex; align-items:center; gap:10px; margin:24px 0 10px; flex-wrap:wrap; }
+  .tl-mon-h .nhan { background:var(--text-secondary); color:#fff; font-weight:800; font-size:13.5px; padding:4px 14px; border-radius:100px; }
+  .tl-mon-h .nhan.nay { background:var(--primary); }
+  .tl-mon-h .tomtat { font-size:13px; color:var(--text-muted); font-weight:600; }
+  .tl-mon-h::after { content:''; flex:1; height:2px; background:var(--gridline); min-width:30px; }
+  .tl-cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 430px), 1fr)); gap:12px; }
+  .tl-cards .tl-card { margin-bottom:0; }
+  .tl-card-row { display:flex; gap:14px; align-items:flex-start; }
+  .tl-card-main { flex:1; min-width:0; }
+  .tl-card-sub { display:flex; flex-wrap:wrap; gap:4px 8px; align-items:center; }
+  .tl-thumb { flex:none; position:relative; width:56px; height:56px; border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:26px; background:var(--page); }
+  .tl-thumb img { width:100%; height:100%; object-fit:cover; }
+  .tl-thumb i { position:absolute; right:4px; bottom:4px; width:11px; height:11px; border-radius:50%; border:2px solid #fff; }
 </style>
 </head>
 <body class="viz-root">
@@ -1251,13 +1272,8 @@
         <div class="sk-control-bar" id="sk-control-bar">
           <div class="sk-tabs-bar" style="flex-wrap:wrap;border-radius:20px;">
             <button class="sk-tab-btn active" id="sk-tab-btn-gantt" onclick="switchProgramView('gantt')">📊 Sơ đồ tiến độ</button>
-            <button class="sk-tab-btn" id="sk-tab-btn-list" onclick="switchProgramView('list')">📋 Danh sách</button>
-            <button class="sk-tab-btn" id="sk-tab-btn-timeline" onclick="switchProgramView('timeline')">📅 Dòng thời gian</button>
+            <button class="sk-tab-btn" id="sk-tab-btn-list" onclick="switchProgramView('list')">📋 Danh sách theo tháng</button>
             <button class="sk-tab-btn" id="sk-tab-btn-roadmap" onclick="switchProgramView('roadmap')">🗺️ Lộ trình năm</button>
-          </div>
-          <div class="sk-sort-bar" id="sk-sort-bar" style="display:none;">
-            <button class="sk-sort-btn active" id="sk-sort-btn-asc" onclick="setProgramSortOrder('asc')">Cũ nhất trước</button>
-            <button class="sk-sort-btn" id="sk-sort-btn-desc" onclick="setProgramSortOrder('desc')">Mới nhất trước</button>
           </div>
         </div>
         <div class="search-bar" id="sk-search-bar"><span class="search-ic">🔍</span><input type="text" id="programs-search" placeholder="Tìm theo tên, trạng thái..." oninput="renderPrograms()"></div>
@@ -1265,7 +1281,6 @@
         <div id="sk-view-gantt"></div>
         <div id="sk-view-list" style="display:none;"></div>
         <div id="sk-view-detail" style="display:none;"></div>
-        <div id="sk-view-timeline" style="display:none;"></div>
         <div id="sk-view-roadmap" style="display:none;">
           <div class="sk-roadmap-scroll">
             <div class="sk-roadmap-quarters" id="sk-roadmap-quarters"></div>
@@ -3446,19 +3461,18 @@ function readProgramLinks(containerId) {
   })).filter(l => l.ten || l.url);
 }
 
-let programViewMode = 'gantt';    // 'gantt' | 'list' | 'timeline' | 'roadmap' (màn chi tiết checklist = tlDetailMa, xem khối PROJECT TIMELINE bên dưới)
-let programSortOrder = 'asc';     // 'asc' = tháng cũ trước (mặc định), 'desc' = tháng mới trước
+let programViewMode = 'gantt';    // 'gantt' (Sơ đồ tiến độ) | 'list' (Danh sách theo tháng, đã gộp Dòng thời gian cũ) | 'roadmap' (Lộ trình năm); màn chi tiết checklist = tlDetailMa, xem khối PROJECT TIMELINE bên dưới
 const THANG_ICON_MAC_DINH = '🎪'; // icon dùng khi sự kiện chưa có ảnh thumbnail
 
 function thangLabel_(thang) { return thang ? 'Tháng ' + thang : 'Chưa rõ tháng'; }
 
 function renderPrograms() {
   if (!programsLoaded) { refreshSuKien(); return; } // lần đầu vào tab: tải từ API rồi tự render lại
+  if (programViewMode === 'timeline') programViewMode = 'list'; // tab Dòng thời gian cũ đã gộp vào Danh sách theo tháng
   tlHienKhung_();
   const term = (document.getElementById('programs-search')?.value || '').toLowerCase().trim();
   const filtered = programs.filter(p => !term || [p.ten, p.maSuKien, p.trangThai].join(' ').toLowerCase().includes(term));
   if (tlDetailMa || programViewMode === 'gantt' || programViewMode === 'list') tlRenderTongQuan_(filtered);
-  else if (programViewMode === 'timeline') renderProgramsTimeline_(filtered);
   else renderProgramsRoadmap_(filtered);
 }
 
@@ -3467,47 +3481,6 @@ function switchProgramView(view) {
   tlDetailMa = null; tlForm = null;
   renderPrograms(); // renderPrograms tự bật/tắt các vùng nội dung (tlHienKhung_)
 }
-function setProgramSortOrder(order) {
-  programSortOrder = order;
-  document.getElementById('sk-sort-btn-asc').classList.toggle('active', order === 'asc');
-  document.getElementById('sk-sort-btn-desc').classList.toggle('active', order === 'desc');
-  renderPrograms();
-}
-
-/* ---- Tab "Dòng thời gian": nhóm theo tháng thật (p.thang), timeline dọc liên tục ---- */
-function renderProgramsTimeline_(list) {
-  const monthsPresent = [...new Set(list.map(p => p.thang || 0))].sort((a,b) => programSortOrder === 'asc' ? a-b : b-a);
-  const el = document.getElementById('sk-view-timeline');
-  if (!list.length) { el.innerHTML = '<p class="sub" style="text-align:center;padding:24px;">Không tìm thấy sự kiện phù hợp</p>'; return; }
-  el.innerHTML = monthsPresent.map(thang => {
-    const items = list.filter(p => (p.thang || 0) === thang);
-    return `
-    <div class="sk-month-group">
-      <div class="sk-month-head"><span class="sk-dot"></span><span class="sk-badge">${thangLabel_(thang)}</span></div>
-      <div class="sk-card-row">${items.map(p => programCardHTML_(p)).join('')}</div>
-    </div>`;
-  }).join('');
-}
-function programCardHTML_(p) {
-  const dkTotal = (p.nsCongDoanDuKien||0) + (p.nsCongTyDuKien||0);
-  const tcTotal = p.trangThai === 'Hoàn thành' ? (p.nsCongDoanThucChi||0) + (p.nsCongTyThucChi||0) : null;
-  return `
-  <div class="sk-event-card" onclick="openEventChecklist(${jsArg(p.maSuKien)})">
-    <div class="sk-thumb ${!p.anh ? 'no-image' : ''}">
-      ${p.anh ? `<img src="${safeUrl(p.anh)}" alt="${esc(p.ten)}" loading="lazy">` : THANG_ICON_MAC_DINH}
-      <span class="sk-status-dot ${p.trangThai==='Đang lên kế hoạch'?'plan':''}"></span>
-    </div>
-    <div class="sk-body">
-      <div class="sk-ten">${esc(p.ten)}</div>
-      <div class="sk-highlight">${esc(p.thoiGianGoc || p.ngay || '—')}</div>
-      <div class="sk-foot">
-        <span class="sk-ns">${moneyFmt(tcTotal !== null ? tcTotal : dkTotal)}</span>
-        <span class="status-pill ${p.trangThai==='Hoàn thành'?'done':'plan'}">${p.trangThai==='Hoàn thành'?'Hoàn thành':'Kế hoạch'}</span>
-      </div>
-    </div>
-  </div>`;
-}
-
 /* ---- Tab "Lộ trình năm": Gantt theo 12 tháng, không chia làn (chỉ 1 loại sự kiện) ---- */
 function renderProgramsRoadmap_(list) {
   const thangHienTai = new Date().getMonth() + 1;
@@ -3862,10 +3835,10 @@ function tlHienKhung_() {
   const v = programViewMode, ct = !!tlDetailMa;
   const show = (id, on, disp) => { const e = tlEl_(id); if (e) e.style.display = on ? (disp || 'block') : 'none'; };
   show('sk-control-bar', !ct, 'flex'); show('sk-search-bar', !ct);
-  show('sk-view-timeline', !ct && v === 'timeline'); show('sk-view-roadmap', !ct && v === 'roadmap');
+  show('sk-view-roadmap', !ct && v === 'roadmap');
   show('sk-view-gantt', !ct && v === 'gantt'); show('sk-view-list', !ct && v === 'list');
-  show('sk-view-detail', ct); show('sk-sort-bar', !ct && v === 'timeline', 'flex');
-  ['gantt', 'list', 'timeline', 'roadmap'].forEach(k => { const b = tlEl_('sk-tab-btn-' + k); if (b) b.classList.toggle('active', k === v); });
+  show('sk-view-detail', ct);
+  ['gantt', 'list', 'roadmap'].forEach(k => { const b = tlEl_('sk-tab-btn-' + k); if (b) b.classList.toggle('active', k === v); });
 }
 function openEventChecklist(maSuKien) {
   tlDetailMa = maSuKien; tlForm = null;
@@ -4026,35 +3999,97 @@ function tlRenderGantt_(list) {
     </div></div>
     <div class="tl-legend">${legend}</div>
     <p class="tl-note">Bấm nút <b>▾/▸</b> cạnh tên sự kiện để thu gọn hoặc mở rộng các việc · bấm <b>tên sự kiện</b> để mở checklist · bấm <b>một việc</b> để xem chi tiết và hoàn thành.</p>` : '<p class="sub" style="text-align:center;padding:24px;">Không có sự kiện nào trong khung 3 tháng này.</p>'}
-    ${(ngoai || khongNgay) ? `<p class="tl-note">${ngoai ? ngoai + ' sự kiện nằm ngoài khung này (dùng ◀ ▶ để xem). ' : ''}${khongNgay ? khongNgay + ' sự kiện chưa có ngày diễn ra — xem ở chế độ Danh sách.' : ''}</p>` : ''}`;
+    ${(ngoai || khongNgay) ? `<p class="tl-note">${ngoai ? ngoai + ' sự kiện nằm ngoài khung này (dùng ◀ ▶ để xem). ' : ''}${khongNgay ? khongNgay + ' sự kiện chưa có ngày diễn ra — xem ở tab Danh sách theo tháng.' : ''}</p>` : ''}`;
 }
 
 /* ================= DANH SÁCH ================= */
+/* ================= DANH SÁCH THEO THÁNG (gộp Danh sách + Dòng thời gian cũ) =================
+ * Nhóm theo NĂM + THÁNG, tháng mới nhất lên đầu; trong tháng, sự kiện mới nhất trước. Có bộ lọc (năm, tháng, thời điểm, trạng thái, checklist). */
+let skLoc = { nam: '', thang: '', thoiDiem: '', trangThai: '', checklist: '' };
+function skDatLoc_(khoa, gt) { skLoc[khoa] = gt; renderPrograms(); }
+function skXoaLoc_() { skLoc = { nam: '', thang: '', thoiDiem: '', trangThai: '', checklist: '' }; renderPrograms(); }
+
+/** Thời điểm của 1 sự kiện để nhóm/sắp xếp: ngày có cấu trúc → ngày hiển thị cũ → chỉ có số tháng (giả định năm hiện tại) → chưa rõ. */
+function skThoiDiem_(p, today) {
+  const ev = tlSuKienNgay_(p);
+  if (ev.s) return { y: ev.s.getFullYear(), m: ev.s.getMonth() + 1, s: ev.s, e: ev.e, coNgay: true };
+  const d = tlNgayVN_(p.ngay);
+  if (d) return { y: d.getFullYear(), m: d.getMonth() + 1, s: d, e: d, coNgay: false };
+  if (p.thang) return { y: today.getFullYear(), m: p.thang, s: null, e: null, coNgay: false };
+  return { y: 0, m: 0, s: null, e: null, coNgay: false };
+}
+function skChon_(id, nhan, khoa, ds) {
+  const cur = skLoc[khoa];
+  return `<div class="f"><label for="${id}">${nhan}</label><select id="${id}" class="${cur ? 'co-loc' : ''}" onchange="skDatLoc_('${khoa}', this.value)">${ds.map(x => `<option value="${esc(x[0])}" ${String(x[0]) === String(cur) ? 'selected' : ''}>${esc(x[1])}</option>`).join('')}</select></div>`;
+}
+function skTheHTML_(x, today) {
+  const p = x.p, td = x.td, tk = x.tk;
+  const ngay = td.s ? tlHieu_(td.s, today) : null;
+  let moc = '<span class="tl-chip none">Chưa có ngày chuẩn</span>';
+  if (td.coNgay) {
+    moc = (td.s <= today && today <= td.e) ? '<span class="tl-chip done">Đang diễn ra</span>'
+      : td.e < today ? '<span class="tl-chip none">Đã diễn ra</span>'
+      : ngay <= 7 ? `<span class="tl-chip soon">${ngay === 1 ? 'Ngày mai' : 'Còn ' + ngay + ' ngày'}</span>` : `<span class="tl-chip none">Còn ${ngay} ngày</span>`;
+  }
+  const khoang = td.coNgay ? (td.s.getTime() === td.e.getTime() ? fmtDate(td.s) : tlDM_(td.s) + ' – ' + fmtDate(td.e)) : (p.thoiGianGoc || p.ngay || '—');
+  const xong = p.trangThai === 'Hoàn thành';
+  const ns = xong ? (p.nsCongDoanThucChi || 0) + (p.nsCongTyThucChi || 0) : (p.nsCongDoanDuKien || 0) + (p.nsCongTyDuKien || 0);
+  return `<div class="tl-card tl-card-row" onclick="openEventChecklist(${jsArg(p.maSuKien)})">
+    <div class="tl-thumb">${p.anh ? `<img src="${safeUrl(p.anh)}" alt="" loading="lazy">` : '🎪'}<i style="background:${esc(x.mau)};"></i></div>
+    <div class="tl-card-main">
+      <div class="tl-card-top"><b>${esc(p.ten)}</b><span class="status-pill ${xong ? 'done' : 'plan'}">${xong ? 'Hoàn thành' : 'Kế hoạch'}</span></div>
+      <div class="tl-card-sub">${esc(p.maSuKien)} · ${esc(khoang)} ${moc}</div>
+      ${tk.tong ? `<div class="tl-prog" style="margin:6px 0 8px;"><div style="width:${tk.pct}%;"></div></div>` : ''}
+      <div class="tl-card-foot">${tk.tong ? `<span>${tk.xong}/${tk.tong} việc (${tk.pct}%)</span>` : '<span class="tl-chip none">Chưa có checklist</span>'}${tk.tong && tk.xong === tk.tong ? '<span class="tl-chip done">Xong hết</span>' : ''}${tk.quaHan ? `<span class="tl-chip late">${tk.quaHan} quá hạn</span>` : ''}${tk.sap ? `<span class="tl-chip soon">${tk.sap} sắp đến hạn</span>` : ''}${ns > 0 ? `<span title="${xong ? 'Thực chi' : 'Ngân sách dự kiến'}">💰 ${moneyFmt(ns)}</span>` : ''}</div>
+    </div></div>`;
+}
 function tlRenderDanhSach_(list) {
-  const box = tlEl_('sk-view-list');
-  const today = tlHomNay_();
-  const mh = tlMoHinhSuKien_(list);
-  const khong = list.filter(p => !tlSuKienNgay_(p).s);
-  if (!mh.length && !khong.length) { box.innerHTML = '<p class="sub" style="text-align:center;padding:24px;">Không tìm thấy sự kiện phù hợp</p>'; return; }
-  const the = mh.map(m => {
-    const lo = m.lo, hi = m.hi > m.lo ? m.hi : tlCong_(m.lo, 1), tong = Math.max(1, tlHieu_(hi, lo));
-    const pc = d => Math.max(0, Math.min(100, tlHieu_(d, lo) / tong * 100));
-    const rng = m.barLo ? `<div class="rng" style="left:${pc(m.barLo).toFixed(1)}%;width:${Math.max(1.5, pc(m.barHi) - pc(m.barLo)).toFixed(1)}%;background:${m.mau};"></div>` : '';
-    const now = (today >= lo && today <= hi) ? `<div class="now" style="left:${pc(today).toFixed(1)}%;"></div>` : '';
-    const ngay = m.ev.s.getTime() === m.ev.e.getTime() ? 'diễn ra ' + tlDM_(m.ev.s) : tlDM_(m.ev.s) + ' – ' + tlDM_(m.ev.e);
-    return `<div class="tl-card" onclick="openEventChecklist(${jsArg(m.p.maSuKien)})">
-      <div class="tl-card-top"><b>${esc(m.p.ten)}</b>${m.tk.tong && m.tk.xong === m.tk.tong ? '<span class="tl-chip done">Xong hết</span>' : ''}</div>
-      <div class="tl-card-sub">${esc(m.p.maSuKien)} · ${esc(ngay)}</div>
-      <div class="tl-mini">${rng}<div class="dot" style="left:${pc(m.ev.s).toFixed(1)}%;background:${m.mau};"></div>${now}</div>
-      <div class="tl-card-foot"><span>${m.tk.xong}/${m.tk.tong} việc (${m.tk.pct}%)</span>${m.tk.quaHan ? `<span class="tl-chip late">${m.tk.quaHan} quá hạn</span>` : ''}${m.tk.sap ? `<span class="tl-chip soon">${m.tk.sap} sắp đến hạn</span>` : ''}</div></div>`;
+  const box = tlEl_('sk-view-list'), today = tlHomNay_();
+  const tatCa = list.map(p => {
+    const ev = tlSuKienNgay_(p);
+    return { p, td: skThoiDiem_(p, today), tk: tlTongHop_(tlViecCuaSuKien_(p).map(w => tlViec_(w, ev))), mau: tlMauSuKien_(p, programs.indexOf(p)) };
   });
-  const the2 = khong.map(p => {
-    const tk = tlTongHop_(tlViecCuaSuKien_(p).map(w => tlViec_(w, { s: null, e: null })));
-    return `<div class="tl-card" onclick="openEventChecklist(${jsArg(p.maSuKien)})"><div class="tl-card-top"><b>${esc(p.ten)}</b><span class="tl-chip none">Chưa có ngày</span></div>
-      <div class="tl-card-sub">${esc(p.maSuKien)}${p.thoiGianGoc ? ' · ' + esc(p.thoiGianGoc) : ''}</div>
-      <div class="tl-card-foot"><span>${tk.xong}/${tk.tong} việc (${tk.pct}%)</span></div></div>`;
+  const loc = tatCa.filter(x => {
+    if (skLoc.nam && String(x.td.y) !== skLoc.nam) return false;
+    if (skLoc.thang && String(x.td.m) !== skLoc.thang) return false;
+    if (skLoc.thoiDiem === 'saptoi' && !(x.td.e && x.td.e >= today)) return false;
+    if (skLoc.thoiDiem === 'daqua' && !(x.td.e && x.td.e < today)) return false;
+    if (skLoc.trangThai && x.p.trangThai !== skLoc.trangThai) return false;
+    const k = x.tk, c = skLoc.checklist;
+    if (c === 'quahan' && !k.quaHan) return false;
+    if (c === 'saphan' && !k.sap) return false;
+    if (c === 'conviec' && !(k.tong > k.xong)) return false;
+    if (c === 'xonghet' && !(k.tong > 0 && k.xong === k.tong)) return false;
+    if (c === 'chuacoviec' && k.tong) return false;
+    return true;
   });
-  box.innerHTML = the.concat(the2).join('');
+  const nam = [...new Set(tatCa.map(x => x.td.y).filter(y => y > 0).concat(skLoc.nam ? [Number(skLoc.nam)] : []))].sort((a, b) => b - a);
+  const trangThai = [...new Set(tatCa.map(x => x.p.trangThai).filter(Boolean))];
+  const coLoc = Object.values(skLoc).some(Boolean);
+  const thanh = `<div class="tl-filter">
+    ${skChon_('skf-nam', 'Năm', 'nam', [['', 'Tất cả']].concat(nam.map(y => [String(y), String(y)])))}
+    ${skChon_('skf-thang', 'Tháng', 'thang', [['', 'Tất cả']].concat(Array.from({ length: 12 }, (_, i) => [String(i + 1), 'Tháng ' + (i + 1)])))}
+    ${skChon_('skf-thoidiem', 'Thời điểm', 'thoiDiem', [['', 'Tất cả'], ['saptoi', 'Đang diễn ra & sắp tới'], ['daqua', 'Đã diễn ra']])}
+    ${skChon_('skf-trangthai', 'Trạng thái', 'trangThai', [['', 'Tất cả']].concat(trangThai.map(t => [t, t === 'Hoàn thành' ? 'Hoàn thành' : t])))}
+    ${skChon_('skf-checklist', 'Checklist', 'checklist', [['', 'Tất cả'], ['quahan', 'Có việc quá hạn'], ['saphan', 'Có việc sắp đến hạn'], ['conviec', 'Còn việc chưa xong'], ['xonghet', 'Xong hết việc'], ['chuacoviec', 'Chưa có checklist']])}
+    ${coLoc ? '<button class="btn ghost sm" onclick="skXoaLoc_()">✕ Xoá lọc</button>' : ''}
+    <span class="dem">Hiển thị ${loc.length}/${tatCa.length} sự kiện</span></div>`;
+  if (!loc.length) {
+    box.innerHTML = thanh + `<p class="sub" style="text-align:center;padding:24px;">${tatCa.length ? 'Không có sự kiện nào khớp bộ lọc.' : 'Không tìm thấy sự kiện phù hợp'}</p>`;
+    return;
+  }
+  // Nhóm theo năm+tháng, tháng MỚI trước; trong tháng: sự kiện MỚI trước, chưa rõ ngày đứng cuối.
+  const nhom = {};
+  loc.forEach(x => { const k = x.td.y * 100 + x.td.m; (nhom[k] = nhom[k] || []).push(x); });
+  const khoa = Object.keys(nhom).map(Number).sort((a, b) => (a === 0) - (b === 0) || b - a);
+  box.innerHTML = thanh + khoa.map(k => {
+    const ds = nhom[k].sort((a, b) => (b.td.s ? b.td.s.getTime() : -9e15) - (a.td.s ? a.td.s.getTime() : -9e15) || String(b.p.maSuKien).localeCompare(String(a.p.maSuKien)));
+    const y = Math.floor(k / 100), m = k % 100;
+    const viec = ds.reduce((s, x) => s + x.tk.tong, 0), xong = ds.reduce((s, x) => s + x.tk.xong, 0);
+    const nay = y === today.getFullYear() && m === today.getMonth() + 1;
+    return `<div class="tl-mon"><div class="tl-mon-h"><span class="nhan ${nay ? 'nay' : ''}">${k === 0 ? 'Chưa rõ thời gian' : 'Tháng ' + m + '/' + y}</span>${nay ? '<span class="tl-chip done">Tháng này</span>' : ''}<span class="tomtat">${ds.length} sự kiện${viec ? ' · ' + xong + '/' + viec + ' việc xong' : ''}</span></div>
+      <div class="tl-cards">${ds.map(x => skTheHTML_(x, today)).join('')}</div></div>`;
+  }).join('');
 }
 
 /* ================= CHI TIẾT SỰ KIỆN ================= */
