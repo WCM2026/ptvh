@@ -1856,6 +1856,32 @@ function esc(v) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 function jsArg(v) { return esc(JSON.stringify(v == null ? '' : v)); }
+/* ---- Ảnh sự kiện: không bao giờ để lộ biểu tượng ảnh hỏng ----
+ * Ảnh lưu trên Drive dạng drive.google.com/thumbnail?id=… hay bị Google chặn khi nhúng vào trang khác → thử dạng lh3.googleusercontent.com/d/ID=wN
+ * (nhẹ, thường nhúng được), lỗi thì thử lại link gốc, vẫn lỗi thì hiện biểu tượng 🎪. Giá trị không phải địa chỉ ảnh (VD chữ rác trong ô) → hiện biểu tượng ngay. */
+function anhSuKienHopLe_(u) {
+  const s = String(u == null ? '' : u).trim();
+  return /^https?:\/\//i.test(s) || /^data:image\/(png|jpe?g|gif|webp);/i.test(s);
+}
+function anhSuKienUrl_(u, kichCo) {
+  const s = String(u == null ? '' : u).trim();
+  const m = s.match(/drive\.google\.com\/thumbnail\?id=([\w-]+)/i) || s.match(/drive\.google\.com\/(?:file\/d\/|uc\?[^#]*?id=)([\w-]+)/i);
+  return m ? 'https://lh3.googleusercontent.com/d/' + m[1] + '=w' + kichCo : s;
+}
+/** lop: class cho khung ảnh khi cần phần tử riêng (VD 'we-thumb'); bỏ trống thì biểu tượng dự phòng là chữ trần. */
+function anhSuKienHTML_(u, kichCo, lop) {
+  const icon = lop ? `<div class="${lop}">🎪</div>` : '🎪';
+  if (!anhSuKienHopLe_(u)) return icon;
+  const goc = String(u).trim(), url = anhSuKienUrl_(goc, kichCo);
+  return `<img ${lop ? `class="${lop}" ` : ''}src="${safeUrl(url)}" data-alt="${url !== goc ? safeUrl(goc) : ''}" data-lop="${lop || ''}" referrerpolicy="no-referrer" loading="lazy" alt="" onerror="anhSuKienLoi_(this)">`;
+}
+function anhSuKienLoi_(img) {
+  if (img.dataset.alt && !img.dataset.thu) { img.dataset.thu = '1'; img.src = img.dataset.alt; return; } // thử lại bằng link gốc 1 lần
+  const b = img.closest('.sk-drawer-banner'); if (b) b.classList.add('no-image');
+  if (img.dataset.lop) { const d = document.createElement('div'); d.className = img.dataset.lop; d.textContent = '🎪'; img.replaceWith(d); }
+  else img.replaceWith(document.createTextNode('🎪'));
+}
+
 function safeUrl(u) {
   const s = String(u == null ? '' : u).trim();
   if (/^https?:\/\//i.test(s) || /^data:image\/(png|jpe?g|gif|webp);/i.test(s) || /^[./#?]/.test(s)) return esc(s);
@@ -3045,7 +3071,7 @@ function renderWorkEventView() {
     return `
     <div class="we-card ${workEventOpen[key] ? 'open' : ''}" id="we-${esc(key)}">
       <div class="we-head" onclick="toggleWorkEvent(${jsArg(key)})">
-        ${p.anh ? `<img class="we-thumb" src="${safeUrl(p.anh)}" loading="lazy" alt="">` : `<div class="we-thumb">🎪</div>`}
+        ${anhSuKienHTML_(p.anh, 160, 'we-thumb')}
         <div class="we-main">
           <div class="we-title">${esc(p.ten)}</div>
           <div class="we-meta">${esc(key)} · ${esc(p.thoiGianGoc || thangLabel_(p.thang))} · ${esc(p.trangThai)}</div>
@@ -3626,8 +3652,8 @@ function openProgramDetail(maSuKien) {
   const p = programs.find(x => x.maSuKien === maSuKien);
   if (!p) return;
   const bannerEl = document.getElementById('program-detail-banner');
-  bannerEl.className = 'sk-drawer-banner' + (p.anh ? '' : ' no-image');
-  bannerEl.innerHTML = p.anh ? `<img src="${safeUrl(p.anh)}" alt="${esc(p.ten)}">` : THANG_ICON_MAC_DINH;
+  bannerEl.className = 'sk-drawer-banner' + (anhSuKienHopLe_(p.anh) ? '' : ' no-image');
+  bannerEl.innerHTML = anhSuKienHopLe_(p.anh) ? anhSuKienHTML_(p.anh, 800) : THANG_ICON_MAC_DINH;
   document.getElementById('program-detail-title').textContent = p.ten;
   document.getElementById('program-detail-sub').textContent = p.thoiGianGoc || p.ngay || '—';
   const linksHTML = (p.links && p.links.length)
@@ -4035,7 +4061,7 @@ function skTheHTML_(x, today) {
   const xong = p.trangThai === 'Hoàn thành';
   const ns = xong ? (p.nsCongDoanThucChi || 0) + (p.nsCongTyThucChi || 0) : (p.nsCongDoanDuKien || 0) + (p.nsCongTyDuKien || 0);
   return `<div class="tl-card tl-card-row" onclick="openEventChecklist(${jsArg(p.maSuKien)})">
-    <div class="tl-thumb">${p.anh ? `<img src="${safeUrl(p.anh)}" alt="" loading="lazy">` : '🎪'}<i style="background:${esc(x.mau)};"></i></div>
+    <div class="tl-thumb">${anhSuKienHTML_(p.anh, 160)}<i style="background:${esc(x.mau)};"></i></div>
     <div class="tl-card-main">
       <div class="tl-card-top"><b>${esc(p.ten)}</b><span class="status-pill ${xong ? 'done' : 'plan'}">${xong ? 'Hoàn thành' : 'Kế hoạch'}</span></div>
       <div class="tl-card-sub">${esc(p.maSuKien)} · ${esc(khoang)} ${moc}</div>
