@@ -637,19 +637,45 @@
   .tl-g-head .tl-g-left { font-size:12px; font-weight:700; color:var(--text-muted); }
   .tl-g-head .tl-g-time { height:46px; }
   .tl-g-mon { position:absolute; top:0; bottom:0; display:flex; align-items:flex-end; padding:0 0 5px 6px; font-size:12px; font-weight:800; color:var(--text-secondary); white-space:nowrap; overflow:hidden; }
-  .tl-g-ev { background:var(--page); }
-  .tl-g-ev .tl-g-left { background:var(--page); min-height:60px; }
+  .tl-g-ev { background:var(--page); border-top:2px solid var(--border); }
+  .tl-g-ev:first-of-type { border-top:none; }
+  .tl-g-ev .tl-g-left { background:var(--page); min-height:60px; padding-left:8px; }
   .tl-g-ev .tl-g-time { height:60px; }
-  .tl-g-task .tl-g-left { padding-left:22px; min-height:40px; }
+  /* Việc con: thụt vào, có đường nối cây từ sự kiện, nền trắng, chữ nhạt hơn để không lẫn với dòng sự kiện */
+  .tl-g-task .tl-g-left { padding-left:46px; min-height:40px; background:var(--surface-1); }
+  .tl-g-task .tl-g-left::before { content:''; position:absolute; left:22px; top:0; bottom:0; border-left:2px solid #c9d0de; }
+  .tl-g-task.last .tl-g-left::before { bottom:50%; }
+  .tl-g-task .tl-g-left::after { content:''; position:absolute; left:22px; top:50%; width:13px; border-top:2px solid #c9d0de; }
   .tl-g-task .tl-g-time { height:40px; }
+  .tl-tk { display:flex; align-items:center; min-width:0; gap:6px; }
+  .tl-pdot { flex:none; width:9px; height:9px; border-radius:50%; }
+  @media (max-width: 760px) { .tl-g-task .tl-g-left { padding-left:30px; } .tl-g-task .tl-g-left::before, .tl-g-task .tl-g-left::after { left:13px; } .tl-g-task .tl-g-left::after { width:9px; } }
   .tl-g-task { cursor:pointer; }
   .tl-g-task:hover .tl-g-left, .tl-g-task:hover { background:var(--page); }
-  .tl-g-l1 { display:flex; align-items:flex-start; gap:4px; font-size:13px; font-weight:700; color:var(--text-primary); min-width:0; line-height:1.25; }
+  .tl-g-l1 { display:flex; align-items:flex-start; gap:6px; font-size:14px; font-weight:800; color:var(--text-primary); min-width:0; line-height:1.25; }
   .tl-g-l1 .tl-nm { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; word-break:break-word; min-width:0; cursor:pointer; }
   .tl-g-l2 { font-size:12px; color:var(--text-muted); margin-top:1px; }
-  .tl-g-task .tl-nm { font-size:12.5px; font-weight:600; line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; word-break:break-word; }
+  .tl-g-task .tl-nm { font-size:12.5px; font-weight:500; color:var(--text-secondary); line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; word-break:break-word; }
   .tl-g-task .tl-nm.done { text-decoration:line-through; color:var(--text-muted); }
-  .tl-arrow { flex:none; border:none; background:transparent; cursor:pointer; padding:0 2px; font-size:13px; color:var(--text-secondary); line-height:1; }
+  .tl-toggle { flex:none; width:24px; height:24px; border-radius:8px; border:2px solid #c3cbdb; background:var(--surface-1); color:var(--primary-dark); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; padding:0; transition:background .15s, border-color .15s; }
+  .tl-toggle:hover { background:rgba(226,35,26,.08); border-color:var(--primary); }
+  .tl-toggle svg { transition:transform .18s ease; }
+  .tl-toggle.dong svg { transform:rotate(-90deg); }
+  .tl-toggle.trong { opacity:.4; cursor:default; border-style:dashed; }
+  .tl-toggle.trong:hover { background:var(--surface-1); border-color:var(--border); }
+  .tl-it-ten.click { cursor:pointer; } .tl-it-ten.click:hover { text-decoration:underline; }
+  /* Cửa sổ chi tiết 1 việc (mở từ sơ đồ tiến độ / checklist) */
+  .tl-modal-bg { position:fixed; inset:0; background:rgba(15,23,42,.45); z-index:80; display:flex; align-items:center; justify-content:center; padding:16px; }
+  .tl-modal { background:var(--surface-1); border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.25); width:100%; max-width:540px; max-height:calc(100vh - 32px); overflow:auto; padding:20px 22px; }
+  .tl-modal h3 { margin:0 0 6px; font-size:18px; line-height:1.3; word-break:break-word; color:var(--text-primary); }
+  .tl-m-top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+  .tl-m-sub { font-size:13px; color:var(--text-muted); display:flex; flex-wrap:wrap; gap:4px 8px; align-items:center; }
+  .tl-m-facts { display:grid; grid-template-columns:1fr 1fr; gap:12px 16px; margin:14px 0 4px; }
+  .tl-m-facts .k { font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); }
+  .tl-m-facts .v { font-size:14px; font-weight:700; color:var(--text-primary); margin-top:2px; word-break:break-word; }
+  .tl-m-mota { margin:10px 0 0; font-size:13.5px; color:var(--text-secondary); white-space:pre-wrap; word-break:break-word; background:var(--page); border-radius:10px; padding:10px 12px; }
+  .tl-m-btns { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+  @media (max-width: 520px) { .tl-m-facts { grid-template-columns:1fr; } .tl-modal { padding:16px; } }
   .tl-vline { position:absolute; top:0; bottom:0; width:0; border-left:1px solid var(--border); z-index:1; pointer-events:none; }
   .tl-today { position:absolute; top:0; bottom:0; width:0; border-left:2px dashed var(--danger); z-index:4; pointer-events:none; }
   .tl-today-lbl { position:absolute; top:3px; transform:translateX(-50%); z-index:6; background:var(--danger); color:#fff; font-size:10.5px; font-weight:800; padding:1px 6px; border-radius:100px; pointer-events:none; white-space:nowrap; }
@@ -896,7 +922,7 @@
             <h2>Sự kiện sắp tới</h2>
             <p class="sub" style="margin-bottom:0;">Sự kiện đang diễn ra và sắp diễn ra, kèm tiến độ checklist</p>
           </div>
-          <button class="btn secondary sm" onclick="go('programs')">Mở Gantt sự kiện</button>
+          <button class="btn secondary sm" onclick="go('programs')">Mở sơ đồ tiến độ sự kiện</button>
         </div>
         <div id="dash-events" style="margin-top:8px;"></div>
       </div>
@@ -1122,7 +1148,7 @@
             <div class="field"><label>Địa điểm dự kiến</label><input type="text" id="p-diadiem" placeholder="VD: VP 17 Ngô Quyền"></div>
           </div>
           <div class="grid2">
-            <div class="field"><label>Diễn ra từ ngày (dùng cho Gantt &amp; checklist)</label><input type="date" id="p-ngay-tu" onchange="tlTuDongNgayDen_('p')"></div>
+            <div class="field"><label>Diễn ra từ ngày (dùng cho sơ đồ tiến độ &amp; checklist)</label><input type="date" id="p-ngay-tu" onchange="tlTuDongNgayDen_('p')"></div>
             <div class="field"><label>Đến ngày (bỏ trống nếu 1 ngày)</label><input type="date" id="p-ngay-den"></div>
           </div>
           <div class="grid2">
@@ -1159,7 +1185,7 @@
               <input type="text" id="pe-thoigian" placeholder="VD: 15/03/2026 hoặc 13 - 15/01/2026" style="flex:1;">
               <input type="date" id="pe-thoigian-pick" style="width:150px;" onchange="document.getElementById('pe-thoigian').value = fmtDate(new Date(this.value + 'T00:00:00'))" title="Chọn nhanh 1 ngày">
             </div>
-            <span class="subtext">Đây chỉ là chữ hiển thị. Ngày dùng cho Gantt/checklist đặt ở màn chi tiết sự kiện (ô “Diễn ra từ / đến”).</span>
+            <span class="subtext">Đây chỉ là chữ hiển thị. Ngày dùng cho sơ đồ tiến độ/checklist đặt ở màn chi tiết sự kiện (ô “Diễn ra từ / đến”).</span>
           </div>
           <div class="field"><label>Địa điểm</label><input type="text" id="pe-diadiem"></div>
         </div>
@@ -1224,7 +1250,7 @@
       <div class="card">
         <div class="sk-control-bar" id="sk-control-bar">
           <div class="sk-tabs-bar" style="flex-wrap:wrap;border-radius:20px;">
-            <button class="sk-tab-btn active" id="sk-tab-btn-gantt" onclick="switchProgramView('gantt')">📊 Gantt</button>
+            <button class="sk-tab-btn active" id="sk-tab-btn-gantt" onclick="switchProgramView('gantt')">📊 Sơ đồ tiến độ</button>
             <button class="sk-tab-btn" id="sk-tab-btn-list" onclick="switchProgramView('list')">📋 Danh sách</button>
             <button class="sk-tab-btn" id="sk-tab-btn-timeline" onclick="switchProgramView('timeline')">📅 Dòng thời gian</button>
             <button class="sk-tab-btn" id="sk-tab-btn-roadmap" onclick="switchProgramView('roadmap')">🗺️ Lộ trình năm</button>
@@ -3918,7 +3944,7 @@ function tlRenderGantt_(list) {
   const box = tlEl_('sk-view-gantt');
   const today = tlHomNay_();
   // Cột trái rộng hơn trên màn hình lớn để đọc được tên; vùng thời gian giãn ra lấp đầy khung (tối thiểu 480px, hẹp hơn thì cuộn ngang).
-  const TRAI = window.innerWidth >= 760 ? 220 : TL_GANTT_TRAI;
+  const TRAI = window.innerWidth >= 760 ? 260 : TL_GANTT_TRAI;
   const W = Math.max(TL_GANTT_RONG, Math.floor(box.clientWidth - TRAI - 2));
   tlLastW = box.clientWidth;
   if (!tlWinStart) tlWinStart = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -3959,8 +3985,13 @@ function tlRenderGantt_(list) {
       const cx = xs(d) + dayW / 2;
       if (cx >= 0 && cx <= W) t += `<div class="tl-dia" style="left:${(cx - 6).toFixed(1)}px;top:24px;border-color:${m.mau};"></div>`;
     });
-    let html = `<div class="tl-g-row tl-g-ev"><div class="tl-g-left"><div class="tl-g-l1"><button class="tl-arrow" onclick="tlThuGon(${jsArg(ma)})" title="${thuGon ? 'Mở rộng' : 'Thu gọn'}">${thuGon ? '▸' : '▾'}</button><span class="tl-nm" title="${esc(m.p.ten)}" onclick="openEventChecklist(${jsArg(ma)})">${esc(m.p.ten)}</span></div><div class="tl-g-l2">${m.tk.pct}% · ${m.tk.xong}/${m.tk.tong} việc</div></div><div class="tl-g-time" style="width:${W}px;">${t}</div></div>`;
-    if (!thuGon) html += m.viec.map(v => {
+    // Nút thu gọn/mở rộng: to, có viền, xoay chiều theo trạng thái; sự kiện chưa có việc thì mờ và không bấm được.
+    const chevron = '<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const nutThuGon = m.viec.length
+      ? `<button class="tl-toggle ${thuGon ? 'dong' : 'mo'}" aria-expanded="${thuGon ? 'false' : 'true'}" onclick="tlThuGon(${jsArg(ma)})" title="${thuGon ? 'Bấm để mở rộng — xem ' + m.viec.length + ' việc' : 'Bấm để thu gọn các việc'}">${chevron}</button>`
+      : `<span class="tl-toggle trong" title="Chưa có việc nào trong checklist">${chevron}</span>`;
+    let html = `<div class="tl-g-row tl-g-ev"><div class="tl-g-left" style="border-left:5px solid ${esc(m.mau)};"><div class="tl-g-l1">${nutThuGon}<span class="tl-nm" title="${esc(m.p.ten)} — bấm để mở checklist" onclick="openEventChecklist(${jsArg(ma)})">${esc(m.p.ten)}</span></div><div class="tl-g-l2">${m.tk.pct}% · ${m.tk.xong}/${m.tk.tong} việc</div></div><div class="tl-g-time" style="width:${W}px;">${t}</div></div>`;
+    if (!thuGon) html += m.viec.map((v, vi) => {
       const [bg, fg] = tlMauNguoi_(v.nguoi[0]);
       nguoiLegend.set(v.nguoi[0] || '—', [bg, fg]);
       const nhan = (v.nhan ? v.nhan + ' · ' : '') + (v.han ? tlDM_(v.han) : '');
@@ -3979,7 +4010,7 @@ function tlRenderGantt_(list) {
           c = `<div class="tl-bar tk ${v.tt === 'quahan' ? 'late' : ''}" style="left:${th.l.toFixed(1)}px;width:${th.w.toFixed(1)}px;background:${bg};color:${fg};">${v.done ? '<span style="padding-left:5px;font-weight:800;">✓</span>' : ''}${trong ? `<span class="tl-lb">${esc(nhan)}</span>` : ''}</div>` + (trong ? '' : tlNhanNgoai_(th.l, th.w, W, (v.done ? '✓ ' : '') + nhan, 10));
         }
       }
-      return `<div class="tl-g-row tl-g-task" onclick="tlTick(${jsArg(v.ma)})" title="Bấm để ${v.done ? 'bỏ tick' : 'đánh dấu xong'}"><div class="tl-g-left"><span class="tl-nm ${v.done ? 'done' : ''}" title="${esc(v.ten)}">${esc(v.ten)}</span></div><div class="tl-g-time" style="width:${W}px;">${c}</div></div>`;
+      return `<div class="tl-g-row tl-g-task ${vi === m.viec.length - 1 ? 'last' : ''}" onclick="tlMoChiTietViec(${jsArg(v.ma)})" title="Bấm để xem chi tiết và hoàn thành"><div class="tl-g-left"><div class="tl-tk"><span class="tl-pdot" style="background:${bg};"></span><span class="tl-nm ${v.done ? 'done' : ''}" title="${esc(v.ten)}">${esc(v.ten)}</span></div></div><div class="tl-g-time" style="width:${W}px;">${c}</div></div>`;
     }).join('');
     return html;
   }).join('');
@@ -3993,7 +4024,8 @@ function tlRenderGantt_(list) {
       ${rows}${vline.join('')}
       ${homNayTrongKhung ? `<div class="tl-today" style="left:${xHomNay.toFixed(1)}px;"></div><div class="tl-today-lbl" style="left:${xHomNay.toFixed(1)}px;">Hôm nay</div>` : ''}
     </div></div>
-    <div class="tl-legend">${legend}</div>` : '<p class="sub" style="text-align:center;padding:24px;">Không có sự kiện nào trong khung 3 tháng này.</p>'}
+    <div class="tl-legend">${legend}</div>
+    <p class="tl-note">Bấm nút <b>▾/▸</b> cạnh tên sự kiện để thu gọn hoặc mở rộng các việc · bấm <b>tên sự kiện</b> để mở checklist · bấm <b>một việc</b> để xem chi tiết và hoàn thành.</p>` : '<p class="sub" style="text-align:center;padding:24px;">Không có sự kiện nào trong khung 3 tháng này.</p>'}
     ${(ngoai || khongNgay) ? `<p class="tl-note">${ngoai ? ngoai + ' sự kiện nằm ngoài khung này (dùng ◀ ▶ để xem). ' : ''}${khongNgay ? khongNgay + ' sự kiện chưa có ngày diễn ra — xem ở chế độ Danh sách.' : ''}</p>` : ''}`;
 }
 
@@ -4041,7 +4073,7 @@ function tlNhomHTML_(p) {
       const badge = v.tt === 'quahan' ? '<span class="tl-chip late">Quá hạn</span>' : v.tt === 'sap' ? '<span class="tl-chip soon">Sắp đến hạn</span>' : '';
       return `<div class="tl-it ${v.tt === 'quahan' ? 'late' : v.tt === 'sap' ? 'soon' : ''}">
         <button class="tl-tick ${v.done ? 'on' : ''}" ${tlDangTick[v.ma] ? 'disabled' : ''} onclick="tlTick(${jsArg(v.ma)})" title="${v.done ? 'Bỏ tick' : 'Đánh dấu xong'}">✓</button>
-        <div class="tl-it-body"><div class="tl-it-ten ${v.done ? 'done' : ''}">${esc(v.ten)}</div>
+        <div class="tl-it-body"><div class="tl-it-ten click ${v.done ? 'done' : ''}" onclick="tlMoChiTietViec(${jsArg(v.ma)})" title="Bấm để xem chi tiết">${esc(v.ten)}</div>
           <div class="tl-it-sub"><span>${esc(v.nhan || 'Hạn cố định')}</span><span>· hạn ${v.han ? esc(tlDM_(v.han)) : '—'}</span><span>· <span class="tl-dot" style="background:${bg};"></span>${esc(ngLabel)}</span><span>· <a class="tl-cv" onclick="tlMoCongViec(${jsArg(v.ma)})" title="Mở trong module Công việc">${esc(v.ma)}</a></span></div></div>
         ${badge}<button class="tl-pen ${coTheSuaViec_(v.w) ? '' : 'khoa'}" onclick="tlMoForm('edit', ${jsArg(v.ma)})" title="${coTheSuaViec_(v.w) ? 'Sửa việc' : esc(MSG_KHONG_QUYEN_SUA)}">${coTheSuaViec_(v.w) ? '✏️' : '🔒'}</button></div>`;
     }).join('')}</div>` : '<div class="tl-empty">Chưa có việc nào</div>';
@@ -4133,6 +4165,76 @@ window.addEventListener('resize', () => {
     if (Math.abs(tlEl_('sk-view-gantt').clientWidth - tlLastW) >= 8) renderPrograms(); // chỉ khi bề rộng thật sự đổi (tránh vẽ lại khi thanh địa chỉ điện thoại co giãn)
   }, 150);
 });
+
+/* ---- Cửa sổ chi tiết 1 việc (mở khi bấm một việc trên sơ đồ tiến độ hoặc tên việc trong checklist) ---- */
+let tlModalMa = null;
+function tlDongModal() {
+  const bg = document.getElementById('tl-modal-bg');
+  if (bg) bg.remove();
+  tlModalMa = null;
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && tlModalMa) tlDongModal(); });
+function tlMoChiTietViec(maViec) {
+  const w = workItems.find(x => x.ma === maViec);
+  if (!w) return;
+  tlDongModal();
+  tlModalMa = maViec;
+  const x = tlExt.it[maViec] || {}, p = programs.find(pp => pp.maSuKien === x.maSuKien);
+  const ev = p ? tlSuKienNgay_(p) : { s: null, e: null };
+  const m = tlViec_(w, ev);
+  const duocSua = coTheSuaViec_(w);
+  const [bg] = tlMauNguoi_(w.nguoi[0]);
+  const gd = m.han && ev.s ? TL_GIAI_DOAN.find(g => g[0] === m.gd)[1] : '';
+  const chip = m.done ? '<span class="tl-chip done">Hoàn thành</span>' : m.tt === 'quahan' ? '<span class="tl-chip late">Quá hạn</span>' : m.tt === 'sap' ? '<span class="tl-chip soon">Sắp đến hạn</span>' : '';
+  const nguoi = w.nguoi.length ? w.nguoi.map(n => esc(n)).join(', ') : 'Chưa giao';
+  const batLam = (m.bat && m.han && m.bat < m.han) ? fmtDate(m.bat) : '';
+  const moc = m.nhan ? esc(m.nhan) + ' — tự dời theo ngày sự kiện' : 'Hạn cố định';
+  const trangThai = esc(w.trangThai) + (m.done ? (w.xacNhan ? ' · đã xác nhận' : ' · chờ xác nhận') : '');
+  const bgEl = document.createElement('div');
+  bgEl.id = 'tl-modal-bg'; bgEl.className = 'tl-modal-bg';
+  bgEl.addEventListener('click', e => { if (e.target === bgEl) tlDongModal(); });
+  bgEl.innerHTML = `<div class="tl-modal" role="dialog" aria-modal="true" aria-label="Chi tiết việc">
+    <div class="tl-m-top"><div style="min-width:0;"><h3>${esc(w.ten)}</h3>
+      <div class="tl-m-sub"><span class="wd-ma" title="Mã do hệ thống cấp">${esc(w.ma)}</span>${p ? '<span>🎪 ' + esc(p.ten) + '</span>' : ''}${gd ? '<span>· ' + esc(gd) + '</span>' : ''} ${chip}</div></div>
+      <button class="btn ghost sm" onclick="tlDongModal()" title="Đóng (Esc)">✕</button></div>
+    <div class="tl-m-facts">
+      <div><div class="k">Người phụ trách</div><div class="v"><span class="tl-pdot" style="background:${bg};display:inline-block;margin-right:6px;"></span>${nguoi}</div></div>
+      <div><div class="k">Hạn hoàn thành</div><div class="v">${m.han ? fmtDate(m.han) : 'Chưa có hạn'}</div></div>
+      <div><div class="k">Tình trạng</div><div class="v">${trangThai}</div></div>
+      ${batLam ? `<div><div class="k">Bắt đầu làm</div><div class="v">${batLam}</div></div>` : ''}
+      <div><div class="k">Mốc trong sự kiện</div><div class="v">${moc}</div></div>
+    </div>
+    ${w.moTa ? `<div class="tl-m-mota">${esc(w.moTa)}</div>` : ''}
+    <div class="tl-m-btns">
+      ${m.done
+        ? '<button class="btn secondary" id="tl-m-done" onclick="tlHoanThanhTuModal()">↩ Bỏ hoàn thành</button>'
+        : '<button class="btn" id="tl-m-done" onclick="tlHoanThanhTuModal()">✓ Đánh dấu hoàn thành</button>'}
+      <button class="btn secondary" id="tl-m-sua" ${duocSua && p ? '' : 'disabled'} onclick="tlSuaTuModal()" title="${duocSua ? 'Sửa tên, người phụ trách, ngày' : esc(MSG_KHONG_QUYEN_SUA)}">${duocSua ? '✏️ Sửa việc' : '🔒 Sửa việc'}</button>
+      <button class="btn ghost" onclick="tlDongModal(); tlMoCongViec(${jsArg(w.ma)})">📋 Mở trong Công việc</button>
+    </div></div>`;
+  document.body.appendChild(bgEl);
+  const nut = document.getElementById('tl-m-done'); if (nut) nut.focus();
+}
+/** Hoàn thành / bỏ hoàn thành từ cửa sổ chi tiết. Lỗi thì cửa sổ giữ nguyên để người dùng thử lại. */
+async function tlHoanThanhTuModal() {
+  const ma = tlModalMa, nut = document.getElementById('tl-m-done');
+  if (!ma || !nut) return;
+  const truoc = (workItems.find(x => x.ma === ma) || {}).trangThai;
+  const chu = nut.textContent;
+  nut.disabled = true; nut.textContent = 'Đang lưu…';
+  await tlTick(ma);
+  const sau = (workItems.find(x => x.ma === ma) || {}).trangThai;
+  if (sau !== truoc) tlDongModal();
+  else if (document.getElementById('tl-m-done')) { nut.disabled = false; nut.textContent = chu; }
+}
+/** Sửa việc: mở checklist của sự kiện chứa việc và bật sẵn form sửa. */
+function tlSuaTuModal() {
+  const ma = tlModalMa, x = tlExt.it[ma] || {};
+  if (!ma || !x.maSuKien) return;
+  tlDongModal();
+  openEventChecklist(x.maSuKien);
+  tlMoForm('edit', ma);
+}
 
 /** Form tạo sự kiện: chọn ngày bắt đầu thì tự điền ngày kết thúc (= bắt đầu) nếu còn trống hoặc nhỏ hơn. prefix: 'p'. */
 function tlTuDongNgayDen_(prefix) {
