@@ -2480,7 +2480,10 @@ function dashVeSuKien_(sk) {
   if (sk.dang) { box.innerHTML = '<div class="tl-skel"></div><div class="tl-skel"></div><div class="tl-skel"></div>'; return; }
   const today = tlHomNay_();
   const ds = sk.ds.slice(0, 5);
-  if (!ds.length) { box.innerHTML = '<p class="dash-none">Chưa có sự kiện nào sắp diễn ra. Nhập ngày diễn ra ở màn chi tiết sự kiện để sự kiện hiện ở đây.</p>'; return; }
+  // Sự kiện chưa có ngày diễn ra không lên được lịch/Gantt: nêu tên để biết vì sao chưa thấy và nhập ngày.
+  const chuaNgay = tlExt.loaded ? programs.filter(p => p.trangThai !== 'Hoàn thành' && !tlSuKienNgay_(p).s) : [];
+  const ghiChuChuaNgay = chuaNgay.length ? `<p class="dash-none">ℹ️ ${chuaNgay.length} sự kiện chưa có ngày diễn ra nên chưa hiện ở đây: <b>${esc(chuaNgay.slice(0, 5).map(p => p.ten).join(', '))}${chuaNgay.length > 5 ? ', …' : ''}</b>. Mở sự kiện, nhập “Diễn ra từ / đến” để đưa vào lịch.</p>` : '';
+  if (!ds.length) { box.innerHTML = '<p class="dash-none">Chưa có sự kiện nào sắp diễn ra. Nhập ngày diễn ra ở màn chi tiết sự kiện để sự kiện hiện ở đây.</p>' + ghiChuChuaNgay; return; }
   box.innerHTML = (tlExt.loi ? '<p class="dash-none">Chưa tải được tiến độ checklist — đang hiện theo ngày ghi trong tên/thời gian triển khai.</p>' : '') + ds.map(x => {
     const dangDienRa = x.s <= today && today <= x.e, ngay = tlHieu_(x.s, today);
     const badge = dangDienRa ? '<span class="tl-chip done">Đang diễn ra</span>' : ngay <= 7 ? `<span class="tl-chip soon">${ngay === 1 ? 'Ngày mai' : 'Còn ' + ngay + ' ngày'}</span>` : `<span class="tl-chip none">Còn ${ngay} ngày</span>`;
@@ -2492,7 +2495,7 @@ function dashVeSuKien_(sk) {
       <div class="dash-ev-date" style="background:${esc(x.mau)};"><b>${x.s.getDate()}</b><span>Th${x.s.getMonth() + 1}</span></div>
       <div class="dash-ev-body"><div class="dash-ev-ten">${esc(x.ten)}</div><div class="dash-ev-sub"><span>${esc(x.ma)} · ${esc(khoang)}</span>${badge}</div>${tien}</div>
     </div>`;
-  }).join('');
+  }).join('') + ghiChuChuaNgay;
 }
 
 function dashVeNguoi_(today) {
@@ -4159,27 +4162,25 @@ function tlVeForm_() {
     tlLocGan_(); return;
   }
   const sua = tlForm.mode === 'edit';
-  let v = { ten: '', nguoi: (currentUser && staffNames().includes(currentUser.name)) ? currentUser.name : (staffNames()[0] || 'All team'), tinhTu: 'S', moc: -7, doDai: 3 };
+  const ev0 = tlSuKienNgay_(p), homNay = tlHomNay_();
+  // Mặc định khi thêm: hạn = 7 ngày trước ngày bắt đầu sự kiện (không trước hôm nay); ngày bắt đầu làm để trống = làm trong ngày hạn.
+  const hanMacDinh = ev0.s ? (tlCong_(ev0.s, -7) < homNay ? homNay : tlCong_(ev0.s, -7)) : homNay;
+  let v = { ten: '', nguoi: (currentUser && staffNames().includes(currentUser.name)) ? currentUser.name : (staffNames()[0] || 'All team'), han: tlISO_(hanMacDinh), bat: '' };
   let nguoiGoc = null;
   if (sua) {
-    const w = workItems.find(x => x.ma === tlForm.ma), ev = tlSuKienNgay_(p);
+    const w = workItems.find(x => x.ma === tlForm.ma);
     if (!w) { tlForm = null; return; }
-    const m = tlViec_(w, ev);
+    const m = tlViec_(w, ev0);
     nguoiGoc = w.nguoi;
-    let moc = m.moc; const tinhTu = m.tinhTu;
-    if (moc == null && m.han) { const ref = tinhTu === 'E' ? ev.e : ev.s; moc = ref ? tlHieu_(m.han, ref) : 0; }
-    v = { ten: w.ten, nguoi: (w.nguoi && w.nguoi[0]) || 'All team', tinhTu, moc: moc == null ? 0 : moc, doDai: m.doDai != null ? m.doDai : (m.han && m.bat ? tlHieu_(m.han, m.bat) : 3) };
+    v = { ten: w.ten, nguoi: (w.nguoi && w.nguoi[0]) || 'All team', han: m.han ? tlISO_(m.han) : '', bat: (m.han && m.bat && m.bat < m.han && tlHieu_(m.han, m.bat) <= 365) ? tlISO_(m.bat) : '' };
   }
   box.innerHTML = `<div class="tl-form" id="tl-f"><h3>${sua ? 'Sửa việc ' + esc(tlForm.ma) : 'Thêm việc mới vào checklist'}</h3>
     <div id="tl-f-err"></div>
     <div class="field"><label>Tên việc</label><input type="text" id="tl-f-ten" maxlength="200" value="${esc(v.ten)}" oninput="tlXemTruoc_()"></div>
-    <div class="grid2">
+    <div class="grid3">
       <div class="field"><label>Người phụ trách</label><select id="tl-f-nguoi" onchange="tlXemTruoc_()">${tlLuaChonNguoi_(v.nguoi)}</select>${sua && nguoiGoc && nguoiGoc.length > 1 ? '<span class="subtext">Việc đang có nhiều người — không đổi ô này thì giữ nguyên danh sách.</span>' : ''}</div>
-      <div class="field"><label>Tính từ</label><select id="tl-f-tinhtu" onchange="tlXemTruoc_()"><option value="S" ${v.tinhTu === 'S' ? 'selected' : ''}>Tính từ ngày bắt đầu</option><option value="E" ${v.tinhTu === 'E' ? 'selected' : ''}>Tính từ ngày kết thúc</option></select></div>
-    </div>
-    <div class="grid2">
-      <div class="field"><label>Mốc (ngày; âm là trước, dương là sau)</label><input type="number" id="tl-f-moc" min="-365" max="365" step="1" value="${esc(v.moc)}" oninput="tlXemTruoc_()"></div>
-      <div class="field"><label>Kéo dài (ngày)</label><input type="number" id="tl-f-dodai" min="0" max="365" step="1" value="${esc(v.doDai)}" oninput="tlXemTruoc_()"></div>
+      <div class="field"><label>Ngày bắt đầu làm <span class="subtext">(không bắt buộc)</span></label><input type="date" id="tl-f-bat" value="${esc(v.bat)}" onchange="tlXemTruoc_()"></div>
+      <div class="field"><label>Hạn hoàn thành</label><input type="date" id="tl-f-han" value="${esc(v.han)}" onchange="tlXemTruoc_()"></div>
     </div>
     <p class="tl-prev" id="tl-f-prev"></p>
     <div class="tl-btns"><button class="btn sm" id="tl-f-save" onclick="tlLuuViec()">Lưu</button><button class="btn ghost sm" onclick="tlDongForm()">Huỷ</button>
@@ -4188,26 +4189,32 @@ function tlVeForm_() {
   tlXemTruoc_();
   setTimeout(() => { const f = tlEl_('tl-f-ten'); if (f) f.focus(); }, 200);
 }
+/** Đọc form: chọn NGÀY trên lịch (Mốc / Tính từ / Độ dài do hệ thống tự tính khi lưu). */
 function tlDocForm_() {
+  const p = programs.find(x => x.maSuKien === tlDetailMa), ev = p ? tlSuKienNgay_(p) : { s: null, e: null };
   const ten = tlEl_('tl-f-ten').value.trim(), nguoi = tlEl_('tl-f-nguoi').value;
-  const tinhTu = tlEl_('tl-f-tinhtu').value === 'E' ? 'E' : 'S';
-  const mocRaw = tlEl_('tl-f-moc').value.trim(), ddRaw = tlEl_('tl-f-dodai').value.trim();
-  const moc = Number(mocRaw), doDai = Number(ddRaw);
+  const han = tlEl_('tl-f-han').value, bat = tlEl_('tl-f-bat').value;
+  const dHan = tlNgayVN_(han), dBat = bat ? tlNgayVN_(bat) : dHan;
   let loi = '';
   if (!ten) loi = 'Vui lòng nhập Tên việc';
   else if (!nguoi) loi = 'Vui lòng chọn Người phụ trách';
-  else if (mocRaw === '' || !Number.isInteger(moc) || Math.abs(moc) > 365) loi = 'Mốc phải là số nguyên từ -365 đến 365';
-  else if (ddRaw === '' || !Number.isInteger(doDai) || doDai < 0 || doDai > 365) loi = 'Kéo dài phải là số nguyên từ 0 đến 365';
-  return { loi, ten, nguoi, tinhTu, moc, doDai };
+  else if (!dHan) loi = 'Vui lòng chọn Hạn hoàn thành';
+  else if (bat && !dBat) loi = 'Ngày bắt đầu không hợp lệ';
+  else if (dBat > dHan) loi = 'Ngày bắt đầu không được sau hạn hoàn thành';
+  else if (tlHieu_(dHan, dBat) > 365) loi = 'Từ ngày bắt đầu đến hạn tối đa 365 ngày';
+  else if (ev.s && Math.abs(tlHieu_(dHan, dHan > ev.e ? ev.e : ev.s)) > 365) loi = 'Hạn cách ngày sự kiện quá 365 ngày';
+  return { loi, ten, nguoi, han, batDau: bat, dHan, dBat };
 }
 function tlXemTruoc_() {
   const el = tlEl_('tl-f-prev'), p = programs.find(x => x.maSuKien === tlDetailMa);
-  if (!el || !p || !tlEl_('tl-f-moc')) return;
+  if (!el || !p || !tlEl_('tl-f-han')) return;
   const f = tlDocForm_(), ev = tlSuKienNgay_(p);
-  if (f.loi && /Mốc|Kéo dài/.test(f.loi)) { el.textContent = f.loi; return; }
-  const t = tlTinhHan_(ev.s, ev.e, f.tinhTu, f.moc, f.doDai);
-  const gd = t ? TL_GIAI_DOAN.find(g => g[0] === tlGiaiDoan_(t.han, ev))[1] : '';
-  el.textContent = t ? `Hạn: ${fmtDate(t.han)} · bắt đầu việc ${fmtDate(t.nhan)} · giai đoạn ${gd}` : '';
+  if (!f.dHan) { el.textContent = 'Chọn hạn hoàn thành trên lịch.'; return; }
+  if (f.loi && /Ngày bắt đầu|365/.test(f.loi)) { el.textContent = f.loi; return; }
+  // Cho người dùng thấy cách hệ thống sẽ "neo" việc vào ngày sự kiện (để việc tự dời khi đổi ngày sự kiện).
+  const tinhTu = f.dHan > ev.e ? 'E' : 'S', moc = tlHieu_(f.dHan, tinhTu === 'E' ? ev.e : ev.s), doDai = tlHieu_(f.dHan, f.dBat);
+  const gd = TL_GIAI_DOAN.find(g => g[0] === tlGiaiDoan_(f.dHan, ev))[1];
+  el.textContent = `Giai đoạn ${gd} · neo theo ngày sự kiện (${tlNhanMoc_(tinhTu, moc)}${doDai ? ', kéo dài ' + doDai + ' ngày' : ''}) — đổi ngày sự kiện thì việc tự dời theo.`;
 }
 function tlKhoaForm_(khoa, nhan) {
   tlDangLuu = khoa;
@@ -4233,11 +4240,11 @@ async function tlLuuViec() {
   tlKhoaForm_(true);
   let r;
   if (tlForm.mode === 'add') {
-    r = await callPtvhApi('addChecklistItem', { maSuKien: p.maSuKien, ten: f.ten, nguoiPhuTrach: [f.nguoi], tinhTu: f.tinhTu, moc: f.moc, doDai: f.doDai });
+    r = await callPtvhApi('addChecklistItem', { maSuKien: p.maSuKien, ten: f.ten, nguoiPhuTrach: [f.nguoi], han: f.han, batDau: f.batDau });
   } else {
     const w = workItems.find(x => x.ma === tlForm.ma);
     const nguoi = (w && w.nguoi && w.nguoi.length > 1 && w.nguoi[0] === f.nguoi) ? w.nguoi : [f.nguoi];
-    r = await callPtvhApi('updateChecklistItem', { maViec: tlForm.ma, ten: f.ten, nguoiPhuTrach: nguoi, tinhTu: f.tinhTu, moc: f.moc, doDai: f.doDai, ver: (tlExt.it[tlForm.ma] || {}).ver || '' });
+    r = await callPtvhApi('updateChecklistItem', { maViec: tlForm.ma, ten: f.ten, nguoiPhuTrach: nguoi, han: f.han, batDau: f.batDau, ver: (tlExt.it[tlForm.ma] || {}).ver || '' });
   }
   tlKhoaForm_(false);
   const them = tlForm.mode === 'add';
