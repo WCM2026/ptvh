@@ -826,6 +826,29 @@
   .tl-thumb { flex:none; position:relative; width:56px; height:56px; border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:26px; background:var(--page); }
   .tl-thumb img { width:100%; height:100%; object-fit:cover; }
   .tl-thumb i { position:absolute; right:4px; bottom:4px; width:11px; height:11px; border-radius:50%; border:2px solid #fff; }
+
+  /* Việc định kỳ */
+  .dk-box { margin:8px 0 14px; padding:12px 14px; border:1.5px dashed var(--border); border-radius:12px; background:var(--page); }
+  .dk-row { display:flex; flex-wrap:wrap; gap:6px 10px; align-items:center; margin:8px 0; font-size:14px; }
+  .dk-row input[type=number] { width:74px; padding:7px 9px; border:1.5px solid var(--border); border-radius:10px; font:inherit; }
+  .dk-row input[type=date], .dk-row select { width:auto; max-width:100%; display:inline-block; padding:7px 9px; border:1.5px solid var(--border); border-radius:10px; font:inherit; background:var(--surface-1); }
+  .dk-row > span { display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .dk-chk { display:inline-flex; gap:6px; align-items:center; font-size:13.5px; font-weight:500; color:var(--text-primary); text-transform:none; letter-spacing:0; margin:2px 0; cursor:pointer; }
+  .dk-chk input { width:auto; margin:0; }
+  .tl-prev.loi { color:var(--danger); }
+  .dk-list { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 430px), 1fr)); gap:12px; margin-top:14px; }
+  .dk-card { border:1.5px solid var(--border); border-radius:14px; padding:14px 16px; background:var(--surface-1); display:flex; flex-direction:column; gap:6px; transition:box-shadow .3s, border-color .3s; }
+  .dk-card.noi { border-color:var(--primary); box-shadow:0 0 0 4px rgba(226,35,26,.15); }
+  .dk-card-top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+  .dk-card-top b { font-size:15px; word-break:break-word; }
+  .dk-line { font-size:13.5px; color:var(--text-secondary); word-break:break-word; }
+  .dk-btns { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+  .dk-st { flex:none; font-size:12px; font-weight:800; padding:3px 10px; border-radius:100px; }
+  .dk-st.chay { background:#d9f3e6; color:#0b6b3a; } .dk-st.dung { background:#fdf0c9; color:#8a5a00; } .dk-st.xong { background:#e6e8ee; color:#4a5164; }
+  .dk-info { margin:8px 0 0; padding:8px 12px; border-radius:10px; background:#eaf1ff; color:#1d3d7a; font-size:13.5px; }
+  .dk-info a { cursor:pointer; font-weight:700; text-decoration:underline; }
+  .dk-modal { max-width:640px; }
+  .wde-err { color:var(--danger); font-weight:700; margin:6px 0; }
 </style>
 </head>
 <body class="viz-root">
@@ -993,6 +1016,7 @@
         <button class="filter-btn" data-v="task" onclick="setWorkView('task')">📋 Theo đầu công việc</button>
         <button class="filter-btn" data-v="event" onclick="setWorkView('event')">🎪 Theo đầu sự kiện</button>
         <button class="filter-btn" data-v="staff" onclick="setWorkView('staff')">👤 Theo đầu nhân sự</button>
+        <button class="filter-btn" data-v="dinhky" onclick="setWorkView('dinhky')">🔁 Việc định kỳ</button>
         <span style="flex:1;"></span>
         <button class="btn sm add-btn" onclick="openForm('work-form')">+ Thêm đầu việc</button>
       </div>
@@ -1006,6 +1030,7 @@
           </div>
           <div style="display:flex; gap:8px; flex:none;">
             <button class="btn secondary sm" id="work-detail-edit-btn" onclick="startWorkEdit()">✏️ Sửa thông tin</button>
+            <button class="btn secondary sm" id="work-detail-dk-btn" onclick="dkMoDatTuChiTiet_()" style="display:none;">🔁 Đặt lặp lại</button>
             <button class="btn ghost sm" onclick="closeWorkDetail()">✕ Đóng</button>
           </div>
         </div>
@@ -1041,7 +1066,7 @@
             </div>
             <div class="field">
               <label>Thuộc sự kiện (nếu có)</label>
-              <select id="w-chuongtrinh"></select>
+              <select id="w-chuongtrinh" onchange="dkKhoaTheoSuKien_()"></select>
             </div>
             <div class="field">
               <label>Người phụ trách</label>
@@ -1049,6 +1074,7 @@
               <button type="button" class="btn secondary sm" style="margin-top:2px;" onclick="addOwnerRow()">+ Thêm người cùng phụ trách</button>
             </div>
             <div class="field"><label>Mô tả (tùy chọn)</label><textarea id="w-mota" placeholder="Mô tả ngắn gọn nội dung công việc..."></textarea></div>
+            <div id="w-dk-box"></div>
             <button class="btn" onclick="addWork()">Thêm vào bảng theo dõi</button>
           </div>
         </div>
@@ -1075,6 +1101,7 @@
         <div id="we-list"></div>
       </div>
 
+      <div id="work-view-dinhky" style="display:none;"></div>
       <div id="work-view-staff" style="display:none;">
         <div class="card">
           <div class="card-head-row">
@@ -2668,6 +2695,7 @@ function removeOwnerRow(btn) {
 function initOwnerSelects() {
   document.getElementById('w-owners').innerHTML = '';
   addOwnerRow();
+  dkKhoiTaoForm_(); // đặt lại khối "🔁 Lặp lại" của form thêm việc
 }
 
 function xacNhanCellHTML(w, i) {
@@ -2680,7 +2708,7 @@ function xacNhanCellHTML(w, i) {
 }
 
 /* ================= CÔNG VIỆC — recap, lọc theo cột, thời gian triển khai, xem theo sự kiện ================= */
-let workViewMode = 'task';          // 'task' | 'event' | 'staff'
+let workViewMode = 'task';          // 'task' | 'event' | 'staff' | 'dinhky' (Việc định kỳ)
 let workSort = { key: 'ngayNhan', dir: 'desc' }; // mặc định: việc nhận gần nhất lên đầu
 let workEventOpen = {};             // maSuKien/'__none' -> true nếu đang mở (nhớ trong phiên)
 
@@ -2891,9 +2919,11 @@ function quickWorkFilter(val) {
 
 function renderWork() {
   document.querySelectorAll('#work-view-filter .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.v === workViewMode));
-  ['task', 'event', 'staff'].forEach(m => { const el = document.getElementById('work-view-' + m); if (el) el.style.display = workViewMode === m ? 'block' : 'none'; });
-  document.getElementById('work-list-card').style.display = workViewMode === 'event' ? 'none' : 'block';
+  ['task', 'event', 'staff', 'dinhky'].forEach(m => { const el = document.getElementById('work-view-' + m); if (el) el.style.display = workViewMode === m ? 'block' : 'none'; });
+  document.getElementById('work-list-card').style.display = (workViewMode === 'event' || workViewMode === 'dinhky') ? 'none' : 'block';
+  if (!dkDaTai && !dkDangTai) dkTai_(); // nạp quy tắc định kỳ ngầm để gắn nhãn 🔁 cho các việc được tạo tự động
   if (!congViecLoaded) { refreshCongViec(); return; } // lần đầu vào tab: tải từ API rồi tự render lại
+  if (workViewMode === 'dinhky') { dkRender_(); return; }
   if (workViewMode === 'event') {
     renderWorkRecap_(workItems, false);
     renderWorkEventView();
@@ -2988,6 +3018,7 @@ function renderWorkTaskView() {
       <td class="ten-cell" onclick="openWorkDetail(${i})">${esc(w.ten)}
         ${w.moTa ? `<div class="subtext">${esc(truncateText_(w.moTa, 80))}</div>` : ''}
         ${tenSK ? `<div class="subtext tag-prog">🎪 ${esc(tenSK)}</div>` : ''}
+        ${dkData.lichSu[w.ma] ? `<div class="subtext tag-prog dk-chip" title="Việc được tạo từ quy tắc định kỳ ${esc(dkData.lichSu[w.ma])}">🔁 Định kỳ ${esc(dkData.lichSu[w.ma])}</div>` : ''}
       </td>
       <td style="text-align:center;">${esc(w.phanLoai)}</td>
       <td>${esc(w.nguoi.join(', '))}</td>
@@ -3275,6 +3306,7 @@ function openWorkDetail(i) {
     </div>
   `;
   if (!duocSua) document.getElementById('work-detail-body').insertAdjacentHTML('afterbegin', `<p class="wde-note" id="work-detail-lock-note" style="margin:8px 0 0;">🔒 ${esc(MSG_KHONG_QUYEN_SUA)}</p>`);
+  dkCapNhatChiTiet_(w); // thông tin việc định kỳ + nút "Đặt lặp lại"
   document.getElementById('work-detail-card').scrollIntoView({behavior:'smooth', block:'center'});
 }
 async function deleteWorkItem(maViec) {
@@ -3335,6 +3367,7 @@ function startWorkEdit() {
   const hanIso = w.hanDate ? tlISO_(tlNgayVN_(w.hanDate)) : '';
   const ds = w.nguoi.length ? w.nguoi : [staffNames()[0] || ''];
   document.getElementById('work-detail-edit-btn').style.display = 'none';
+  document.getElementById('work-detail-dk-btn').style.display = 'none';
   document.getElementById('work-detail-body').innerHTML = `
     <div class="field" style="margin-top:16px;"><label>Tên việc</label><input type="text" id="wde-ten" maxlength="300" value="${esc(w.ten)}"></div>
     <div class="grid3">
@@ -3387,6 +3420,307 @@ function closeWorkDetail() {
   document.getElementById('work-detail-card').style.display = 'none';
   workDetailMa = null;
 }
+/* ================= VIỆC ĐỊNH KỲ: tự tạo việc mới theo ngày / tuần / tháng / quý / năm =================
+ * Quy tắc lưu ở backend (ViecDinhKy.gs, sheet 02c.ViecDinhKy); trigger hằng ngày tạo việc đến kỳ. Phần này: form đặt lặp lại,
+ * xem trước các kỳ (cùng thuật toán với backend), tab "Việc định kỳ" để tạm dừng / sửa / xoá / tạo ngay. */
+const DK_KIEU = [['NGAY', 'Hàng ngày', 'ngày'], ['TUAN', 'Hàng tuần', 'tuần'], ['THANG', 'Hàng tháng', 'tháng'], ['QUY', 'Hàng quý', 'quý'], ['NAM', 'Hàng năm', 'năm']];
+const DK_THU = ['', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy', 'Chủ nhật'];
+const DK_THU_NGAN = ['', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'];
+let dkData = { quyTac: [], lichSu: {} }, dkDaTai = false, dkDangTai = false;
+
+/* ---- lịch lặp (bản sao thuật toán backend) ---- */
+function dkThu_(d) { return ((d.getDay() + 6) % 7) + 1; }
+function dkDauTuan_(d) { return tlCong_(d, -(dkThu_(d) - 1)); }
+function dkSoThang_(a, b) { return (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth()); }
+function dkSoNgayThang_(d) { return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); }
+function dkKhopNgayThang_(d, nt) { return nt === 0 ? d.getDate() === dkSoNgayThang_(d) : d.getDate() === Math.min(nt, dkSoNgayThang_(d)); }
+function dkNamDau_(c) {
+  const y = c.batDau.getFullYear(), sn = new Date(y, c.thang, 0).getDate();
+  return new Date(y, c.thang - 1, c.ngayTrongThang === 0 ? sn : Math.min(c.ngayTrongThang, sn)) >= c.batDau ? y : y + 1;
+}
+function dkKhop_(c, d) {
+  if (d < c.batDau) return false;
+  if (c.kieu === 'NGAY') { const w = d.getDay(); return tlHieu_(d, c.batDau) % c.moiN === 0 && !(c.boCuoiTuan && (w === 0 || w === 6)); }
+  if (c.kieu === 'TUAN') return dkThu_(d) === c.thu && (tlHieu_(dkDauTuan_(d), dkDauTuan_(c.batDau)) / 7) % c.moiN === 0;
+  if (c.kieu === 'THANG') return dkSoThang_(c.batDau, d) % c.moiN === 0 && dkKhopNgayThang_(d, c.ngayTrongThang);
+  if (c.kieu === 'QUY') return dkSoThang_(c.batDau, d) % (3 * c.moiN) === 0 && dkKhopNgayThang_(d, c.ngayTrongThang);
+  if (c.kieu === 'NAM') { const dn = d.getFullYear() - dkNamDau_(c); return dn >= 0 && dn % c.moiN === 0 && d.getMonth() + 1 === c.thang && dkKhopNgayThang_(d, c.ngayTrongThang); }
+  return false;
+}
+function dkKyTiep_(c, sau) { for (let i = 1; i <= 4000; i++) { const d = tlCong_(sau, i); if (dkKhop_(c, d)) return d; } return null; }
+function dkTrongHan_(c, ngay, daTao) {
+  if (c.ketThuc.kieu === 'NGAY') return ngay <= c.ketThuc.ngay;
+  if (c.ketThuc.kieu === 'LAN') return daTao < c.ketThuc.lan;
+  return true;
+}
+function dkKeTiep_(c, sau, daTao) { const n = dkKyTiep_(c, sau); return (n && dkTrongHan_(c, n, daTao)) ? n : null; }
+function dkMoTa_(c) {
+  const moi = c.moiN > 1; let s;
+  if (c.kieu === 'NGAY') s = (moi ? 'Mỗi ' + c.moiN + ' ngày' : 'Hàng ngày') + (c.boCuoiTuan ? ' (bỏ Thứ 7, Chủ nhật)' : '');
+  else if (c.kieu === 'TUAN') s = (moi ? 'Mỗi ' + c.moiN + ' tuần' : 'Hàng tuần') + ' vào ' + DK_THU[c.thu];
+  else {
+    const dv = { THANG: 'tháng', QUY: 'quý', NAM: 'năm' }[c.kieu], ng = c.ngayTrongThang === 0 ? 'ngày cuối tháng' : 'ngày ' + c.ngayTrongThang;
+    s = (moi ? 'Mỗi ' + c.moiN + ' ' + dv : 'Hàng ' + dv) + ' vào ' + (c.kieu === 'NAM' ? ng + ' tháng ' + c.thang : ng);
+  }
+  if (c.ketThuc.kieu === 'NGAY') s += ', đến ' + fmtDate(c.ketThuc.ngay);
+  if (c.ketThuc.kieu === 'LAN') s += ', tổng ' + c.ketThuc.lan + ' lần';
+  return s;
+}
+
+/* ---- khối form "🔁 Lặp lại" dùng chung (thêm việc / sửa quy tắc / đặt lặp lại từ chi tiết việc) ---- */
+function dkFormHTML_(p, v, coKhong) {
+  const hom = tlHomNay_();
+  v = Object.assign({ kieu: coKhong ? '' : 'THANG', moiN: 1, thu: dkThu_(hom), ngay: hom.getDate(), thang: hom.getMonth() + 1, bct: false, ketKieu: 'KHONG', ketNgay: '', ketLan: 12, hanSau: '', themKy: true }, v || {});
+  const opt = (val, txt, cur) => `<option value="${val}" ${String(val) === String(cur) ? 'selected' : ''}>${esc(txt)}</option>`;
+  return `<div class="dk-box">
+    <div class="field" style="margin-bottom:8px;"><label>🔁 Lặp lại</label>
+      <select id="${p}-kieu" onchange="dkCapNhat_('${p}')">${coKhong ? opt('', 'Không lặp lại', v.kieu) : ''}${DK_KIEU.map(k => opt(k[0], k[1], v.kieu)).join('')}</select></div>
+    <div id="${p}-ct" class="dk-ct" style="display:none;">
+      <div class="dk-row"><span>Mỗi</span><input type="number" id="${p}-moin" min="1" max="99" value="${v.moiN}" oninput="dkCapNhat_('${p}')"><b id="${p}-dv">tháng</b>
+        <span id="${p}-thu-w">vào <select id="${p}-thu" onchange="dkCapNhat_('${p}')">${DK_THU.slice(1).map((t, i) => opt(i + 1, t, v.thu)).join('')}</select></span>
+        <span id="${p}-ngay-w">vào <select id="${p}-ngay" onchange="dkCapNhat_('${p}')">${opt(0, 'ngày cuối tháng', v.ngay)}${Array.from({ length: 31 }, (_, i) => opt(i + 1, 'ngày ' + (i + 1), v.ngay)).join('')}</select></span>
+        <span id="${p}-thang-w">của tháng <select id="${p}-thang" onchange="dkCapNhat_('${p}')">${Array.from({ length: 12 }, (_, i) => opt(i + 1, String(i + 1), v.thang)).join('')}</select></span>
+        <label id="${p}-bct-w" class="dk-chk"><input type="checkbox" id="${p}-bct" ${v.bct ? 'checked' : ''} onchange="dkCapNhat_('${p}')"> Bỏ qua Thứ 7, Chủ nhật</label></div>
+      <div class="dk-row"><span>Kết thúc</span><select id="${p}-ket" onchange="dkCapNhat_('${p}')">${opt('KHONG', 'không bao giờ', v.ketKieu)}${opt('NGAY', 'vào ngày', v.ketKieu)}${opt('LAN', 'sau số lần', v.ketKieu)}</select>
+        <input type="date" id="${p}-ketngay" value="${esc(v.ketNgay || '')}" onchange="dkCapNhat_('${p}')">
+        <span id="${p}-ketlan-w"><input type="number" id="${p}-ketlan" min="1" max="1000" value="${esc(v.ketLan || 12)}" oninput="dkCapNhat_('${p}')"> lần <span class="subtext">(tính cả việc đầu tiên)</span></span></div>
+      <div class="dk-row"><span>Hạn mỗi việc</span><input type="number" id="${p}-hansau" min="0" max="60" value="${v.hanSau === '' || v.hanSau == null ? '' : esc(v.hanSau)}" placeholder="SLA" oninput="dkCapNhat_('${p}')"><span class="subtext">ngày làm việc kể từ ngày tạo (bỏ trống = theo SLA của phân loại)</span></div>
+      <label class="dk-chk"><input type="checkbox" id="${p}-themky" ${v.themKy ? 'checked' : ''}> Thêm kỳ vào tên các việc tự tạo (VD: “… (tháng 11/2026)”)</label>
+      <p class="tl-prev" id="${p}-prev"></p>
+    </div></div>`;
+}
+/** Đọc khối lặp lại: { kieu:'' } nếu không lặp; { kieu, cau (payload gửi server), loi }. */
+function dkDocForm_(p) {
+  const g = id => document.getElementById(p + '-' + id);
+  if (!g('kieu') || !g('kieu').value) return { kieu: '' };
+  const kieu = g('kieu').value, so = id => { const t = g(id).value.trim(); return t === '' ? null : Number(t); };
+  const cau = { kieu, moiN: so('moin') === null ? 1 : so('moin'), themKy: g('themky').checked, ketThuc: { kieu: g('ket').value } };
+  let loi = '';
+  if (!Number.isInteger(cau.moiN) || cau.moiN < 1 || cau.moiN > 99) loi = '"Mỗi N" phải là số nguyên từ 1 đến 99';
+  if (kieu === 'TUAN') cau.thu = Number(g('thu').value);
+  if (kieu === 'THANG' || kieu === 'QUY' || kieu === 'NAM') cau.ngayTrongThang = Number(g('ngay').value);
+  if (kieu === 'NAM') cau.thang = Number(g('thang').value);
+  if (kieu === 'NGAY') cau.boCuoiTuan = g('bct').checked;
+  if (cau.ketThuc.kieu === 'NGAY') {
+    cau.ketThuc.ngay = g('ketngay').value;
+    const d = tlNgayVN_(cau.ketThuc.ngay);
+    if (!loi && (!d || d <= tlHomNay_())) loi = 'Ngày kết thúc lặp phải sau hôm nay';
+  }
+  if (cau.ketThuc.kieu === 'LAN') {
+    cau.ketThuc.lan = so('ketlan');
+    if (!loi && (!Number.isInteger(cau.ketThuc.lan) || cau.ketThuc.lan < 1 || cau.ketThuc.lan > 1000)) loi = 'Số lần lặp phải từ 1 đến 1000';
+  }
+  const hs = so('hansau');
+  if (hs !== null) { cau.hanSau = hs; if (!loi && (!Number.isInteger(hs) || hs < 0 || hs > 60)) loi = 'Hạn mỗi việc phải từ 0 đến 60 ngày làm việc'; }
+  return { kieu, cau, loi };
+}
+function dkCfgTuCau_(cau) {
+  return { kieu: cau.kieu, moiN: cau.moiN, thu: cau.thu || null, ngayTrongThang: cau.ngayTrongThang == null ? null : cau.ngayTrongThang, thang: cau.thang || null, boCuoiTuan: !!cau.boCuoiTuan, batDau: tlHomNay_(),
+    ketThuc: { kieu: cau.ketThuc.kieu, ngay: cau.ketThuc.kieu === 'NGAY' ? tlNgayVN_(cau.ketThuc.ngay) : null, lan: cau.ketThuc.lan || null } };
+}
+function dkCapNhat_(p) {
+  const g = id => document.getElementById(p + '-' + id);
+  if (!g('kieu')) return;
+  const k = g('kieu').value;
+  g('ct').style.display = k ? 'block' : 'none';
+  if (!k) return;
+  g('dv').textContent = DK_KIEU.find(x => x[0] === k)[2];
+  g('thu-w').style.display = k === 'TUAN' ? '' : 'none';
+  g('ngay-w').style.display = (k === 'THANG' || k === 'QUY' || k === 'NAM') ? '' : 'none';
+  g('thang-w').style.display = k === 'NAM' ? '' : 'none';
+  g('bct-w').style.display = k === 'NGAY' ? '' : 'none';
+  g('ketngay').style.display = g('ket').value === 'NGAY' ? '' : 'none';
+  g('ketlan-w').style.display = g('ket').value === 'LAN' ? '' : 'none';
+  const f = dkDocForm_(p), prev = g('prev');
+  prev.classList.toggle('loi', !!f.loi);
+  if (f.loi) { prev.textContent = f.loi; return; }
+  const cfg = dkCfgTuCau_(f.cau), ds = [];
+  let s = cfg.batDau, d = 1;
+  for (let i = 0; i < 3; i++) { const n = dkKeTiep_(cfg, s, d); if (!n) break; ds.push(n); s = n; d++; }
+  prev.textContent = dkMoTa_(cfg) + (ds.length ? ' — việc kế tiếp tự tạo: ' + ds.map(x => DK_THU_NGAN[dkThu_(x)] + ' ' + fmtDate(x)).join(' · ') : ' — không còn kỳ nào sau việc này.');
+}
+function dkKhoiTaoForm_() {
+  const box = document.getElementById('w-dk-box');
+  if (!box) return;
+  box.innerHTML = dkFormHTML_('w-dk', null, true);
+  dkCapNhat_('w-dk');
+  dkKhoaTheoSuKien_();
+}
+/** Việc gắn sự kiện thì không đặt lặp lại (checklist sự kiện đã có lịch riêng). */
+function dkKhoaTheoSuKien_() {
+  const sel = document.getElementById('w-dk-kieu'), sk = document.getElementById('w-chuongtrinh');
+  if (!sel || !sk) return;
+  const co = !!sk.value;
+  if (co && sel.value) { sel.value = ''; dkCapNhat_('w-dk'); }
+  sel.disabled = co;
+  const note = document.getElementById('w-dk-note');
+  if (co && !note) sel.insertAdjacentHTML('afterend', '<span class="subtext" id="w-dk-note"> Việc gắn sự kiện không đặt lặp lại.</span>');
+  if (!co && note) note.remove();
+}
+
+/* ---- dữ liệu + nhãn ---- */
+async function dkTai_() {
+  if (dkDangTai) return;
+  dkDangTai = true;
+  const r = await callPtvhApi('getViecDinhKyList', {});
+  dkDangTai = false;
+  dkDaTai = true;
+  if (r.ok && r.data) dkData = { quyTac: r.data.quyTac || [], lichSu: r.data.lichSu || {} };
+  else if (workViewMode === 'dinhky' && r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không tải được việc định kỳ');
+  if (document.getElementById('panel-work')?.classList.contains('active')) renderWork();
+}
+function dkCoQuyen_(q) {
+  if (!currentUser) return false;
+  if (isAdminRole(currentUser.role) || q.nguoiTao === currentUser.name) return true;
+  return (q.nguoi || []).some(n => /^all\s*team$/i.test(String(n).trim()) || n === currentUser.name || khopTenNhanSu_(n) === currentUser.name);
+}
+const DK_MSG_QUYEN = 'Chỉ người phụ trách, người tạo quy tắc hoặc Trưởng nhóm/Trưởng phòng được thao tác.';
+
+/* ---- tab "Việc định kỳ" ---- */
+function dkTheHTML_(q) {
+  const co = dkCoQuyen_(q), tt = q.trangThai, cls = tt === 'Đang chạy' ? 'chay' : tt === 'Tạm dừng' ? 'dung' : 'xong';
+  const dis = co ? '' : ` disabled title="🔒 ${esc(DK_MSG_QUYEN)}"`, ma = jsArg(q.ma);
+  const ky = q.kyTiepTheo ? tlNgayVN_(q.kyTiepTheo) : null, gan = q.lanGanNhat ? tlNgayVN_(q.lanGanNhat) : null;
+  return `<div class="dk-card" id="dk-card-${esc(q.ma)}">
+    <div class="dk-card-top"><div style="min-width:0;"><b>${esc(q.ten)}</b><div class="subtext">${esc(q.ma)} · ${esc(q.mang)} · Phân loại ${esc(q.phanLoai)}</div></div><span class="dk-st ${cls}">${esc(tt)}</span></div>
+    <div class="dk-line">🔁 ${esc(q.moTaLap)}</div>
+    <div class="dk-line">👤 ${esc((q.nguoi || []).join(', '))}</div>
+    <div class="dk-line">⏭ ${ky ? 'Kỳ tiếp theo: <b>' + esc(DK_THU_NGAN[dkThu_(ky)] + ' ' + fmtDate(ky)) + '</b>' : '<span class="subtext">Không còn kỳ tiếp theo</span>'} · Đã tạo ${esc(q.daTao)} việc${gan ? ' · gần nhất ' + esc(fmtDate(gan)) + (q.viecGanNhat ? ' (' + esc(q.viecGanNhat) + ')' : '') : ''}</div>
+    <div class="dk-line subtext">Hạn mỗi việc: ${esc(q.hanSau)} ngày làm việc${q.hanSauTuDat ? '' : ' (theo SLA)'}${q.themKy ? ' · có thêm kỳ vào tên' : ''}</div>
+    <div class="dk-btns">
+      ${tt === 'Đang chạy' ? `<button class="btn secondary sm"${dis} onclick="dkDoiTrangThai_(${ma}, 'Tạm dừng')">⏸ Tạm dừng</button>` : tt === 'Tạm dừng' ? `<button class="btn secondary sm"${dis} onclick="dkDoiTrangThai_(${ma}, 'Đang chạy')">▶ Chạy lại</button>` : ''}
+      <button class="btn secondary sm"${dis} onclick="dkTaoNgay_(${ma})">➕ Tạo việc ngay</button>
+      <button class="btn secondary sm"${dis} onclick="dkMoSua_(${ma})">✏️ Sửa</button>
+      <button class="btn ghost sm" style="color:var(--danger); border-color:var(--danger);"${dis} onclick="dkXoa_(${ma})">🗑 Xoá quy tắc</button>
+    </div></div>`;
+}
+function dkRender_() {
+  const box = document.getElementById('work-view-dinhky');
+  if (!box) return;
+  if (!dkDaTai) { box.innerHTML = '<p class="sub" style="padding:20px;">Đang tải việc định kỳ…</p>'; dkTai_(); return; }
+  const ds = dkData.quyTac, chay = ds.filter(q => q.trangThai === 'Đang chạy').length, admin = currentUser && isAdminRole(currentUser.role);
+  box.innerHTML = `<div class="card"><div class="card-head-row"><div><h2>Việc định kỳ</h2>
+    <p class="sub" style="margin-bottom:0;">${ds.length} quy tắc · ${chay} đang chạy. Hệ thống <b>tự tạo việc mới</b> theo lịch (kiểm tra mỗi sáng khoảng 6h) và gửi thông báo giao việc như thường. Đặt lặp lại khi <b>thêm đầu việc</b>, hoặc bấm 🔁 ở màn <b>chi tiết một việc</b>.</p></div>
+    ${admin ? '<button class="btn secondary sm" onclick="dkChayNgay_()">▶ Tạo các việc đến kỳ ngay</button>' : ''}</div>
+    ${ds.length ? `<div class="dk-list">${ds.map(dkTheHTML_).join('')}</div>` : '<p class="sub" style="text-align:center;padding:24px;">Chưa có việc định kỳ nào. Khi thêm đầu việc, chọn “🔁 Lặp lại” để việc tự được tạo mới theo ngày / tuần / tháng / quý / năm.</p>'}</div>`;
+}
+async function dkSauThaoTac_(r, loiMacDinh, thanhCong, caoViec) {
+  if (!r.ok) { if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || loiMacDinh); return false; }
+  if (thanhCong) showToast(thanhCong);
+  dkDaTai = false; dkDangTai = false;
+  await dkTai_();
+  if (caoViec) await refreshCongViec();
+  return true;
+}
+async function dkDoiTrangThai_(ma, tt) { await dkSauThaoTac_(await callPtvhApi('setTrangThaiViecDinhKy', { maDK: ma, trangThai: tt }), 'Không đổi được trạng thái', (tt === 'Tạm dừng' ? 'Đã tạm dừng ' : 'Đã chạy lại ') + ma); }
+async function dkTaoNgay_(ma) {
+  if (!confirm('Tạo ngay 1 việc mới từ quy tắc ' + ma + ' và gửi thông báo giao việc? (Lịch của quy tắc không đổi.)')) return;
+  const r = await callPtvhApi('taoViecDinhKyNgay', { maDK: ma });
+  await dkSauThaoTac_(r, 'Không tạo được việc', r.ok ? 'Đã tạo việc ' + r.maViec + ' từ quy tắc ' + ma : '', true);
+}
+async function dkXoa_(ma) {
+  if (!confirm('Xoá quy tắc ' + ma + '? Các việc đã được tạo vẫn giữ nguyên trong Công việc.')) return;
+  await dkSauThaoTac_(await callPtvhApi('deleteViecDinhKy', { maDK: ma }), 'Không xoá được quy tắc', 'Đã xoá quy tắc ' + ma, true);
+}
+async function dkChayNgay_() {
+  if (!confirm('Tạo ngay các việc định kỳ đã đến kỳ (giống lần kiểm tra mỗi sáng)?')) return;
+  const r = await callPtvhApi('chayViecDinhKyDenKy', {});
+  await dkSauThaoTac_(r, 'Không chạy được', r.ok ? (r.soViec ? 'Đã tạo ' + r.soViec + ' việc: ' + r.viec.map(x => x.maViec).join(', ') : 'Chưa có quy tắc nào đến kỳ') : '', true);
+}
+function dkMoQuyTac_(ma) {
+  setWorkView('dinhky');
+  setTimeout(() => { const el = document.getElementById('dk-card-' + ma); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('noi'); setTimeout(() => el.classList.remove('noi'), 2500); } }, 200);
+}
+
+/* ---- cửa sổ: sửa quy tắc / đặt lặp lại cho 1 việc ---- */
+function dkDongModal_() { const b = document.getElementById('dk-modal-bg'); if (b) b.remove(); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('dk-modal-bg')) dkDongModal_(); });
+function dkHangNguoi_(ten) {
+  return `<div class="owner-row" style="display:flex; gap:6px; margin-bottom:6px;"><select class="dk-owner-sel" style="flex:1;">${tlLuaChonNguoi_(ten)}</select><button type="button" class="btn secondary sm" onclick="dkBoNguoi_(this)" title="Bỏ người này">×</button></div>`;
+}
+function dkThemNguoi_() { document.getElementById('dkm-owners').insertAdjacentHTML('beforeend', dkHangNguoi_(staffNames()[0] || 'All team')); }
+function dkBoNguoi_(nut) {
+  if (document.querySelectorAll('#dkm-owners .owner-row').length <= 1) { showToast('Cần ít nhất một người phụ trách'); return; }
+  nut.closest('.owner-row').remove();
+}
+function dkMoModal_(html) {
+  dkDongModal_();
+  const bg = document.createElement('div');
+  bg.id = 'dk-modal-bg'; bg.className = 'tl-modal-bg';
+  bg.addEventListener('click', e => { if (e.target === bg) dkDongModal_(); });
+  bg.innerHTML = `<div class="tl-modal dk-modal" role="dialog" aria-modal="true">${html}</div>`;
+  document.body.appendChild(bg);
+}
+function dkTuQuyTac_(q) {
+  return { kieu: q.kieu, moiN: q.moiN, thu: q.thu || 1, ngay: q.ngayTrongThang == null ? 1 : q.ngayTrongThang, thang: q.thang || 1, bct: q.boCuoiTuan, ketKieu: q.ketThuc.kieu, ketNgay: q.ketThuc.ngay || '', ketLan: q.ketThuc.lan || 12, hanSau: q.hanSauTuDat ? q.hanSau : '', themKy: q.themKy };
+}
+function dkMoSua_(ma) {
+  const q = dkData.quyTac.find(x => x.ma === ma);
+  if (!q) return;
+  const mangs = MANG_LIST.includes(q.mang) ? MANG_LIST : MANG_LIST.concat([q.mang]);
+  dkMoModal_(`<div class="tl-m-top"><div style="min-width:0;"><h3>Sửa quy tắc ${esc(q.ma)}</h3><div class="tl-m-sub">Lưu xong, lịch được tính lại từ hôm nay; các việc đã tạo không đổi.</div></div><button class="btn ghost sm" onclick="dkDongModal_()" title="Đóng (Esc)">✕</button></div>
+    <div id="dkm-err"></div>
+    <div class="field"><label>Tên công việc</label><input type="text" id="dkm-ten" maxlength="300" value="${esc(q.ten)}"></div>
+    <div class="grid2"><div class="field"><label>Mảng</label><select id="dkm-mang">${mangs.map(m => `<option ${m === q.mang ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select></div>
+      <div class="field"><label>Phân loại</label><select id="dkm-pl">${['A', 'B', 'C'].map(x => `<option value="${x}" ${x === q.phanLoai ? 'selected' : ''}>${x === 'A' ? 'A — Kế hoạch năm' : x === 'B' ? 'B — Mới phát sinh' : 'C — Khẩn / BLĐ'}</option>`).join('')}</select></div></div>
+    <div class="field"><label>Người phụ trách</label><div id="dkm-owners">${(q.nguoi.length ? q.nguoi : [staffNames()[0] || 'All team']).map(dkHangNguoi_).join('')}</div>
+      <button type="button" class="btn secondary sm" onclick="dkThemNguoi_()">+ Thêm người cùng phụ trách</button></div>
+    <div class="field"><label>Mô tả (tùy chọn)</label><textarea id="dkm-mota" maxlength="5000">${esc(q.moTa)}</textarea></div>
+    ${dkFormHTML_('dkm', dkTuQuyTac_(q), false)}
+    <div class="tl-m-btns"><button class="btn" id="dkm-luu" onclick="dkLuuSua_(${jsArg(q.ma)})">Lưu quy tắc</button><button class="btn ghost" onclick="dkDongModal_()">Huỷ</button></div>`);
+  dkCapNhat_('dkm');
+}
+async function dkLuuSua_(ma) {
+  const err = document.getElementById('dkm-err'), loi = t => { err.innerHTML = t ? `<p class="wde-err">${esc(t)}</p>` : ''; };
+  const ten = document.getElementById('dkm-ten').value.trim(), nguoi = [...document.querySelectorAll('#dkm-owners .dk-owner-sel')].map(s => s.value).filter(Boolean);
+  if (!ten) return loi('Vui lòng nhập Tên công việc');
+  if (new Set(nguoi).size !== nguoi.length) return loi('Một người chỉ được chọn một lần');
+  const f = dkDocForm_('dkm');
+  if (f.loi) return loi(f.loi);
+  loi('');
+  const nut = document.getElementById('dkm-luu'); nut.disabled = true; nut.textContent = 'Đang lưu…';
+  const r = await callPtvhApi('updateViecDinhKy', { maDK: ma, payload: { ten, mang: document.getElementById('dkm-mang').value, phanLoai: document.getElementById('dkm-pl').value, nguoiPhuTrach: nguoi, moTa: document.getElementById('dkm-mota').value.trim(), cauHinh: f.cau } });
+  if (!r.ok) { nut.disabled = false; nut.textContent = 'Lưu quy tắc'; return loi(r.message || 'Không lưu được quy tắc'); }
+  dkDongModal_();
+  await dkSauThaoTac_(r, '', 'Đã lưu quy tắc ' + ma + ' — ' + r.moTaLap + (r.kyTiepTheo ? ', kỳ kế tiếp ' + fmtDate(tlNgayVN_(r.kyTiepTheo)) : ''));
+}
+/** Chi tiết việc: thông tin quy tắc (nếu việc được tạo từ quy tắc) hoặc nút "Đặt lặp lại". */
+function dkCapNhatChiTiet_(w) {
+  const nut = document.getElementById('work-detail-dk-btn'), maDK = dkData.lichSu[w.ma];
+  const coSuKien = !!eventOfWork_(w) || !!String(w.chuongTrinh || '').trim();
+  nut.style.display = (!maDK && !coSuKien) ? '' : 'none';
+  nut.disabled = !coTheSuaViec_(w);
+  nut.title = nut.disabled ? MSG_KHONG_QUYEN_SUA : 'Tự tạo lại việc này theo ngày / tuần / tháng / quý / năm';
+  if (!maDK) return;
+  const q = dkData.quyTac.find(x => x.ma === maDK);
+  const ky = q && q.kyTiepTheo ? tlNgayVN_(q.kyTiepTheo) : null;
+  document.getElementById('work-detail-body').insertAdjacentHTML('afterbegin', q
+    ? `<p class="dk-info" id="work-detail-dk-info">🔁 Việc định kỳ <b>${esc(q.ma)}</b> · ${esc(q.moTaLap)} · ${esc(q.trangThai)}${ky ? ' · kỳ tiếp theo ' + esc(fmtDate(ky)) : ''} · <a onclick="dkMoQuyTac_(${jsArg(q.ma)})">Mở quy tắc</a></p>`
+    : `<p class="dk-info" id="work-detail-dk-info">🔁 Việc này từng được tạo tự động bởi quy tắc ${esc(maDK)} (quy tắc đã xoá).</p>`);
+}
+function dkMoDatTuChiTiet_() {
+  const w = workItems[workDetailIndex_()];
+  if (!w) return;
+  if (!coTheSuaViec_(w)) { showToast(MSG_KHONG_QUYEN_SUA); return; }
+  dkMoModal_(`<div class="tl-m-top"><div style="min-width:0;"><h3>Đặt lặp lại cho việc này</h3><div class="tl-m-sub"><span class="wd-ma">${esc(w.ma)}</span><span>${esc(w.ten)}</span></div></div><button class="btn ghost sm" onclick="dkDongModal_()" title="Đóng (Esc)">✕</button></div>
+    <p class="sub" style="margin:10px 0 6px;">Việc này được tính là <b>kỳ đầu tiên</b>. Các kỳ sau hệ thống tự tạo việc mới (sao chép tên, mảng, phân loại, người phụ trách, mô tả) và gửi thông báo giao việc.</p>
+    <div id="dkd-err"></div>
+    ${dkFormHTML_('dkd', null, false)}
+    <div class="tl-m-btns"><button class="btn" id="dkd-luu" onclick="dkLuuDat_(${jsArg(w.ma)})">Bật lặp lại</button><button class="btn ghost" onclick="dkDongModal_()">Huỷ</button></div>`);
+  dkCapNhat_('dkd');
+}
+async function dkLuuDat_(maViec) {
+  const err = document.getElementById('dkd-err'), f = dkDocForm_('dkd');
+  if (f.loi) { err.innerHTML = `<p class="wde-err">${esc(f.loi)}</p>`; return; }
+  err.innerHTML = '';
+  const nut = document.getElementById('dkd-luu'); nut.disabled = true; nut.textContent = 'Đang lưu…';
+  const r = await callPtvhApi('addViecDinhKy', { payload: { maViec, cauHinh: f.cau } });
+  if (!r.ok) { nut.disabled = false; nut.textContent = 'Bật lặp lại'; err.innerHTML = `<p class="wde-err">${esc(r.message || 'Không đặt được lặp lại')}</p>`; return; }
+  dkDongModal_();
+  await dkSauThaoTac_(r, '', 'Đã bật lặp lại (' + r.maDK + '): ' + r.moTaLap + (r.kyTiepTheo ? ', kỳ kế tiếp ' + fmtDate(tlNgayVN_(r.kyTiepTheo)) : ''));
+  const i = workItems.findIndex(x => x.ma === maViec); if (i >= 0) openWorkDetail(i);
+}
+
 async function addWork() {
   const ten = document.getElementById('w-ten').value.trim();
   const owners = [...document.querySelectorAll('#w-owners .owner-select')].map(s => s.value);
@@ -3395,6 +3729,8 @@ async function addWork() {
   const selPill = document.querySelector('#w-phanloai .pill[data-selected="1"]');
   const phanLoai = selPill ? selPill.dataset.v : 'B';
   // Hạn hoàn thành trên form chỉ là gợi ý client-side — backend tự tính lại theo SLA A/B/C.
+  const dkF = dkDocForm_('w-dk'); // đặt lặp lại (tuỳ chọn)
+  if (dkF.loi) { showToast(dkF.loi); return; }
 
   const btn = document.querySelector('#work-form button[onclick="addWork()"]');
   if (btn) { btn.disabled = true; btn.textContent = 'Đang lưu...'; }
@@ -3407,6 +3743,7 @@ async function addWork() {
       phanLoai,
       nguoiPhuTrach: owners,
       thuocSuKien: document.getElementById('w-chuongtrinh').value || '',
+      dinhKy: dkF.kieu ? dkF.cau : undefined,
     },
   });
 
@@ -3421,7 +3758,13 @@ async function addWork() {
   document.getElementById('w-chuongtrinh').value = '';
   [...document.querySelectorAll('#w-phanloai .pill')].forEach(p => { p.className = 'pill'; delete p.dataset.selected; });
   initOwnerSelects();
-  showToast('Đã thêm đầu việc ' + r.maViec + ' — email thông báo đã gửi cho ' + owners.join(', '));
+  let thongBaoLap = '';
+  if (dkF.kieu) {
+    if (r.dinhKy && r.dinhKy.ok) thongBaoLap = ' · 🔁 ' + r.dinhKy.moTaLap + (r.dinhKy.kyTiepTheo ? ', kỳ kế tiếp ' + fmtDate(tlNgayVN_(r.dinhKy.kyTiepTheo)) : '');
+    else thongBaoLap = ' · ⚠️ ' + ((r.dinhKy && r.dinhKy.message) || 'chưa lưu được lặp lại');
+    dkDaTai = false;
+  }
+  showToast('Đã thêm đầu việc ' + r.maViec + ' — email thông báo đã gửi cho ' + owners.join(', ') + thongBaoLap);
   closeForm('work-form');
   await refreshCongViec();
 }
