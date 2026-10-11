@@ -436,6 +436,7 @@
     padding: 6px 12px; border-radius: var(--radius-pill);
   }
   .demo-chip b { color: var(--primary); font-weight: 800; font-family: monospace; letter-spacing: .04em; }
+  .login-nho { margin:2px 0 14px; color:var(--text-secondary); font-size:13.5px; }
   .login-foot {
     margin-top: 26px; font-size: 13px; color: rgba(255,255,255,.7); text-align: center;
   }
@@ -780,14 +781,22 @@
   .dash-col-names small { display:block; font-weight:700; color:#b3271f; font-size:11.5px; }
   .dash-chart-legend { display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:12px; font-size:12.5px; color:var(--text-secondary); }
   .dash-chart-legend i { width:11px; height:11px; border-radius:3px; display:inline-block; margin-right:6px; vertical-align:-1px; }
-  .dash-ev { display:flex; gap:14px; align-items:flex-start; padding:12px 6px; border-bottom:1px solid var(--gridline); cursor:pointer; border-radius:10px; }
-  .dash-ev:last-child { border-bottom:none; } .dash-ev:hover { background:var(--page); }
-  .dash-ev-date { flex:none; width:54px; text-align:center; border-radius:10px; padding:6px 0; color:#fff; font-weight:800; line-height:1.1; }
-  .dash-ev-date b { display:block; font-size:21px; } .dash-ev-date span { font-size:11.5px; opacity:.92; }
+  /* Sự kiện sắp tới: lưới thẻ nhỏ, mỗi sự kiện 1 thẻ gọn (ngày · tên · tiến độ 1 dòng) */
+  .dash-ev-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap:10px; }
+  .dash-ev { display:flex; gap:10px; align-items:center; padding:9px 11px; border:1.5px solid var(--border); cursor:pointer; border-radius:12px; min-width:0; transition:border-color .15s; }
+  .dash-ev:hover { border-color:var(--primary); background:var(--page); }
+  .dash-ev-date { flex:none; width:42px; text-align:center; border-radius:9px; padding:4px 0; color:#fff; font-weight:800; line-height:1.1; }
+  .dash-ev-date b { display:block; font-size:17px; } .dash-ev-date span { font-size:10.5px; opacity:.92; }
   .dash-ev-body { flex:1; min-width:0; }
-  .dash-ev-ten { font-weight:800; font-size:15px; color:var(--text-primary); word-break:break-word; }
-  .dash-ev-sub { font-size:13px; color:var(--text-muted); margin-top:3px; display:flex; flex-wrap:wrap; gap:4px 8px; align-items:center; }
-  .dash-ev .tl-prog { margin:8px 0 3px; }
+  .dash-ev-ten { font-weight:800; font-size:14px; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dash-ev-sub { font-size:12px; color:var(--text-muted); margin-top:1px; display:flex; flex-wrap:wrap; gap:2px 6px; align-items:center; }
+  .dash-ev-sub .tl-chip { font-size:10.5px; padding:1px 7px; }
+  .dash-ev-prog { display:flex; align-items:center; gap:6px; margin-top:4px; font-size:11.5px; font-weight:700; color:var(--text-secondary); white-space:nowrap; }
+  .dash-ev-prog .tl-prog { flex:1; height:6px; margin:0; min-width:40px; }
+  .dash-ev-prog .tl-chip { font-size:10.5px; padding:1px 7px; }
+  .dash-task-list { position:relative; max-height:320px; overflow-y:auto; padding-right:4px; overscroll-behavior:contain; }
+  .dash-task-list.cuon { border-bottom:1px dashed var(--gridline); }
+  .dash-scroll-hint { font-size:12px; color:var(--text-muted); margin-top:6px; }
   .dash-people { display:grid; grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); gap:14px; }
   .dash-person { border:1.5px solid var(--border); border-radius:14px; padding:12px 14px; background:var(--surface-1); min-width:0; }
   .dash-person-h { display:flex; align-items:center; gap:10px; cursor:pointer; margin-bottom:10px; }
@@ -913,6 +922,7 @@
             <div class="field"><label>Đặt PIN mới (4 số)</label><input type="password" id="f-newpin" placeholder="••••" maxlength="4" inputmode="numeric"></div>
             <div class="field"><label>Nhập lại PIN</label><input type="password" id="f-newpin-confirm" placeholder="••••" maxlength="4" inputmode="numeric"></div>
           </div>
+          <label class="dk-chk login-nho"><input type="checkbox" id="f-nho-otp" checked> Ghi nhớ đăng nhập trên máy này (30 ngày)</label>
           <button class="btn login-submit-btn" id="login-step-otp-btn" onclick="submitOtpStep()">Xác nhận &amp; đăng nhập</button>
           <button class="btn ghost login-submit-btn" onclick="resendOtp()">Gửi lại mã OTP</button>
           <div class="login-hint">
@@ -927,10 +937,15 @@
             <label>Mã PIN</label>
             <input type="password" id="f-pin" placeholder="••••" maxlength="4" inputmode="numeric" onkeydown="if(event.key==='Enter')submitPinStep()">
           </div>
+          <label class="dk-chk login-nho"><input type="checkbox" id="f-nho-pin" checked> Ghi nhớ đăng nhập trên máy này (30 ngày)</label>
           <button class="btn login-submit-btn" id="login-step-pin-btn" onclick="submitPinStep()">Đăng nhập</button>
           <div class="login-hint">
             Quên PIN? Liên hệ Trưởng nhóm/Trưởng phòng để reset — <a href="#" onclick="backToEmailStep(); return false;">nhập email khác</a>
           </div>
+        </div>
+
+        <div class="login-card" id="login-step-wait" style="display:none; text-align:center;">
+          <p class="login-step-note" style="margin:0;">⏳ Đang vào hệ thống…</p>
         </div>
 
         <div class="login-foot">© WinCommerce/Masan · Phòng Phát triển Văn hóa</div>
@@ -973,7 +988,7 @@
 
       <div class="card">
         <h2>Đầu việc đang thực hiện theo nhân sự</h2>
-        <p class="sub">Mỗi người tối đa 4 việc gần hạn nhất; bấm vào việc để mở trong module Công việc</p>
+        <p class="sub">Toàn bộ việc đang thực hiện, gần hạn nhất trước — mỗi người hiện 5 việc, cuộn trong khung để xem tiếp; bấm vào việc để mở trong module Công việc</p>
         <div class="dash-people" id="dash-people"></div>
       </div>
 
@@ -2214,24 +2229,20 @@ let sessionToken = '';     // token phiên trả về từ backend, dùng cho c�
 let pendingEmailPrefix = '';
 
 /** Gọi API backend PTVH — POST text/plain JSON để tránh CORS preflight (đúng kiến trúc đã chốt). */
-async function callPtvhApi(action, payload) {
+async function callPtvhApi(action, payload, _daThuLai) {
   if (!ptvhApiUrl) {
     showToast('Chưa cấu hình URL Backend PTVH — vào tab Cài đặt để nhập (sau khi deploy Apps Script)');
     return { ok: false, error: 'NO_API_URL' };
   }
   try {
-    const res = await fetch(ptvhApiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(Object.assign({ action, token: sessionToken }, payload || {})),
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    // Phiên hết hạn (6 tiếng) hoặc bị huỷ -> đưa về màn hình đăng nhập thay vì báo lỗi khó hiểu.
+    const data = await guiApiTho_(Object.assign({ action, token: sessionToken }, payload || {}));
+    // Phiên hết hạn (6 tiếng) hoặc bị huỷ: máy đã "ghi nhớ đăng nhập" thì tự lấy phiên mới rồi gọi lại 1 lần;
+    // không được thì mới đưa về màn hình đăng nhập.
     if (data && data.error === 'UNAUTHORIZED' && sessionToken) {
+      if (!_daThuLai && await giaHanPhienBangThietBi_()) return callPtvhApi(action, payload, true);
       sessionToken = '';
-      alert('Phiên đăng nhập đã hết hạn — vui lòng đăng nhập lại.');
-      doLogout();
+      xoaPhienDaLuu_();
+      if (!dangKhoiPhucDangNhap) { alert('Phiên đăng nhập đã hết hạn — vui lòng đăng nhập lại.'); doLogout(false); }
     }
     return data;
   } catch (err) {
@@ -2239,15 +2250,107 @@ async function callPtvhApi(action, payload) {
     return { ok: false, error: 'NETWORK_ERROR', message: err.message };
   }
 }
+/** POST thô tới backend (không xử lý phiên) — dùng chung cho callPtvhApi và gia hạn phiên. */
+async function guiApiTho_(body) {
+  const res = await fetch(ptvhApiUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+/* ---------------- GHI NHỚ ĐĂNG NHẬP TRÊN MÁY ----------------
+ * - Phiên (token 6 tiếng) lưu ở localStorage → tải lại trang / mở tab mới không phải đăng nhập lại.
+ * - "Mã thiết bị" (30 ngày, backend GhiNhoDangNhap.gs) → phiên hết hạn thì tự xin phiên mới, không hỏi PIN.
+ *   Mã thiết bị tự mất hiệu lực khi PIN bị reset/đổi, nhân sự nghỉ, hoặc bấm Đăng xuất.
+ * - Luôn nhớ tài khoản (phần trước @) → lần sau chỉ cần nhập PIN.
+ * Bỏ tick "Ghi nhớ" khi dùng máy chung: không lưu phiên/mã thiết bị. */
+const LS_KHOA = { email: 'ptvh_email', ten: 'ptvh_ten', phien: 'ptvh_phien', thietBi: 'ptvh_thietbi' };
+const PHIEN_TTL_MS = (6 * 60 - 5) * 60 * 1000; // khớp SESSION_TTL_SECONDS 6 tiếng của backend, trừ hao 5 phút
+let dangKhoiPhucDangNhap = false;
+let giaHanDangChay = null;
+function lsGet_(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet_(k, v) { try { if (v == null || v === '') localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+function luuPhien_(token, user) { lsSet_(LS_KHOA.phien, JSON.stringify({ token, user, het: Date.now() + PHIEN_TTL_MS })); }
+function xoaPhienDaLuu_() { lsSet_(LS_KHOA.phien, null); }
+function docPhienDaLuu_() {
+  try {
+    const p = JSON.parse(lsGet_(LS_KHOA.phien) || 'null');
+    if (p && p.token && p.user && p.het > Date.now()) return p;
+  } catch (e) {}
+  xoaPhienDaLuu_();
+  return null;
+}
+function nguoiDungTuApi_(u) { return { name: u.hoTen, role: u.vaiTro, email: u.email, msnv: u.msnv }; }
+
+/** Đổi mã thiết bị lấy phiên mới (chạy 1 lần dù nhiều request cùng gặp UNAUTHORIZED). true = đã có phiên mới. */
+function giaHanPhienBangThietBi_() {
+  const ma = lsGet_(LS_KHOA.thietBi);
+  if (!ma || !ptvhApiUrl) return Promise.resolve(false);
+  if (!giaHanDangChay) giaHanDangChay = (async () => {
+    let r;
+    try { r = await guiApiTho_({ action: 'dangNhapThietBi', maThietBi: ma }); } catch (e) { return false; }
+    if (r && r.ok && r.token && r.user) {
+      sessionToken = r.token;
+      currentUser = nguoiDungTuApi_(r.user);
+      luuPhien_(r.token, r.user);
+      return true;
+    }
+    lsSet_(LS_KHOA.thietBi, null); // mã hết hạn / bị thu hồi / backend chưa có tính năng
+    return false;
+  })().finally(() => { giaHanDangChay = null; });
+  return giaHanDangChay;
+}
+/** Sau khi đăng nhập bằng OTP/PIN có tick "Ghi nhớ": xin mã thiết bị (lỗi thì bỏ qua — vẫn còn nhớ phiên 6 tiếng). */
+async function xinMaThietBi_() {
+  try {
+    const r = await guiApiTho_({ action: 'taoMaThietBi', token: sessionToken, moTa: navigator.userAgent.slice(0, 160) });
+    if (r && r.ok && r.maThietBi) lsSet_(LS_KHOA.thietBi, r.maThietBi);
+  } catch (e) {}
+}
+
+/** Mở trang: còn phiên/mã thiết bị thì vào thẳng, không thì hiện màn đăng nhập (đã điền sẵn tài khoản nếu từng đăng nhập). */
+async function khoiPhucDangNhap_() {
+  const p = docPhienDaLuu_();
+  if (!p && !lsGet_(LS_KHOA.thietBi)) { hienManDangNhap_(); return; }
+  go('login');
+  setLoginStep('wait');
+  dangKhoiPhucDangNhap = true;
+  try {
+    if (p) { sessionToken = p.token; currentUser = nguoiDungTuApi_(p.user); }
+    else if (!(await giaHanPhienBangThietBi_())) { dangKhoiPhucDangNhap = false; hienManDangNhap_(); return; }
+    lsSet_(LS_KHOA.ten, currentUser.name);
+    initAllMangSelects();
+    renderSidebar();
+    const ok = await loadBootstrapData();
+    if (!sessionToken) { dangKhoiPhucDangNhap = false; currentUser = null; renderSidebar(); hienManDangNhap_(); return; }
+    dangKhoiPhucDangNhap = false;
+    await sauDangNhap_(ok);
+  } catch (err) {
+    console.error('Lỗi khôi phục đăng nhập:', err);
+    dangKhoiPhucDangNhap = false;
+    hienManDangNhap_();
+  }
+}
+function hienManDangNhap_() {
+  go('login');
+  const email = lsGet_(LS_KHOA.email);
+  if (email) {
+    pendingEmailPrefix = email;
+    document.getElementById('login-pin-name-display').textContent = lsGet_(LS_KHOA.ten) || email;
+    setLoginStep('pin');
+    setTimeout(() => { const f = document.getElementById('f-pin'); if (f) f.focus(); }, 100);
+  } else setLoginStep('email');
+}
 
 function setLoginStep(step) {
   document.getElementById('login-step-email').style.display = step === 'email' ? 'block' : 'none';
   document.getElementById('login-step-otp').style.display = step === 'otp' ? 'block' : 'none';
   document.getElementById('login-step-pin').style.display = step === 'pin' ? 'block' : 'none';
+  document.getElementById('login-step-wait').style.display = step === 'wait' ? 'block' : 'none';
 }
 
 function backToEmailStep() {
   pendingEmailPrefix = '';
+  lsSet_(LS_KHOA.email, null); lsSet_(LS_KHOA.ten, null); // "Nhập email khác" = quên tài khoản đã nhớ
   document.getElementById('f-email').value = '';
   document.getElementById('f-otp').value = '';
   document.getElementById('f-newpin').value = '';
@@ -2300,7 +2403,7 @@ async function submitOtpStep() {
     if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Xác thực OTP thất bại');
     return;
   }
-  loginSuccess(r.user, r.token);
+  loginSuccess(r.user, r.token, document.getElementById('f-nho-otp').checked);
 }
 
 async function resendOtp() {
@@ -2325,18 +2428,32 @@ async function submitPinStep() {
     if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Đăng nhập thất bại');
     return;
   }
-  loginSuccess(r.user, r.token);
+  loginSuccess(r.user, r.token, document.getElementById('f-nho-pin').checked);
 }
 
-async function loginSuccess(user, token) {
+async function loginSuccess(user, token, ghiNho) {
   sessionToken = token;
-  currentUser = { name: user.hoTen, role: user.vaiTro, email: user.email, msnv: user.msnv };
+  currentUser = nguoiDungTuApi_(user);
+  // Luôn nhớ tài khoản (chỉ phần trước @) để lần sau vào thẳng bước nhập PIN.
+  if (pendingEmailPrefix) lsSet_(LS_KHOA.email, pendingEmailPrefix);
+  lsSet_(LS_KHOA.ten, currentUser.name);
+  if (ghiNho) { luuPhien_(token, user); xinMaThietBi_(); }
+  else { xoaPhienDaLuu_(); lsSet_(LS_KHOA.thietBi, null); }
   showToast('Đăng nhập thành công — ' + currentUser.name);
-  backToEmailStep();
+  document.getElementById('f-otp').value = '';
+  document.getElementById('f-newpin').value = '';
+  document.getElementById('f-newpin-confirm').value = '';
+  document.getElementById('f-pin').value = '';
   initAllMangSelects();
   renderSidebar();
+  let bootstrapOk = false;
+  try { bootstrapOk = await loadBootstrapData(); } catch (err) { console.error(err); }
+  await sauDangNhap_(bootstrapOk);
+}
+
+/** Phần chung sau khi đã có phiên (đăng nhập mới hoặc khôi phục): nạp dữ liệu còn thiếu, vào Dashboard, mở link sâu nếu có. */
+async function sauDangNhap_(bootstrapOk) {
   try {
-    const bootstrapOk = await loadBootstrapData(); // 1 lần gọi thay vì 4 lần tuần tự — vào app nhanh hơn hẳn
     if (!bootstrapOk) {
       // Backend cũ chưa có action getBootstrapData (chưa kịp deploy) — fallback cách cũ để app vẫn chạy được.
       await refreshStaffList();
@@ -2356,16 +2473,63 @@ async function loginSuccess(user, token) {
     showToast('Đã đăng nhập nhưng có dữ liệu chưa tải được — kiểm tra Console (F12) hoặc thử tải lại trang');
   }
   go('dashboard');
+  apDungLinkSau_();
 }
 
-async function doLogout() {
-  if (sessionToken) { try { await callPtvhApi('logout', {}); } catch (e) {} }
+/** Đăng xuất. huyThietBi=true (bấm nút Đăng xuất): thu hồi luôn mã thiết bị, máy này lần sau phải nhập PIN. */
+async function doLogout(huyThietBi) {
+  if (huyThietBi !== false) {
+    const ma = lsGet_(LS_KHOA.thietBi);
+    if (ma) { try { await guiApiTho_({ action: 'huyMaThietBi', token: sessionToken, maThietBi: ma }); } catch (e) {} }
+    lsSet_(LS_KHOA.thietBi, null);
+  }
+  if (sessionToken) { try { await guiApiTho_({ action: 'logout', token: sessionToken }); } catch (e) {} }
+  xoaPhienDaLuu_();
   currentUser = null;
   sessionToken = '';
   // Tải lại trang để xoá sạch mọi dữ liệu nội bộ còn nằm trong bộ nhớ/DOM (danh sách công việc,
   // ngân sách...) — quan trọng khi dùng chung máy tính: người sau không thấy dữ liệu người trước.
   location.reload();
 }
+
+/* ---------------- LINK SÂU (từ tin Telegram) ----------------
+ * #viec=CV-0001     → mở chi tiết đầu việc (đánh dấu hoàn thành / xác nhận ngay trong đó)
+ * #xem=choxacnhan   → danh sách việc chờ xác nhận hoàn thành
+ * #xem=quahan       → danh sách việc quá hạn
+ * #sukien=SK-001    → checklist sự kiện
+ * Chưa đăng nhập thì giữ lại, đăng nhập xong mới mở. */
+function docLinkSau_() {
+  const h = (location.hash || '').replace(/^#/, '');
+  if (!h) return null;
+  const q = new URLSearchParams(h);
+  const viec = (q.get('viec') || '').trim(), sk = (q.get('sukien') || '').trim(), xem = (q.get('xem') || '').trim();
+  if (/^CV-\w+$/i.test(viec)) return { viec: viec.toUpperCase() };
+  if (/^SK-\w+$/i.test(sk)) return { sukien: sk.toUpperCase() };
+  if (xem === 'choxacnhan' || xem === 'quahan') return { xem };
+  return null;
+}
+let linkSauCho = docLinkSau_();
+function apDungLinkSau_() {
+  const d = linkSauCho;
+  if (!d || !currentUser || !congViecLoaded) return; // chưa đăng nhập: giữ lại, đăng nhập xong mới mở
+  linkSauCho = null;
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  if (d.viec) {
+    if (workItems.some(w => w.ma === d.viec)) tlMoCongViec(d.viec);
+    else { go('work'); showToast('Không tìm thấy đầu việc ' + d.viec + ' (có thể đã bị xoá)'); }
+  } else if (d.sukien) {
+    if (programs.some(p => p.maSuKien === d.sukien)) dashMoSuKien_(d.sukien);
+    else { go('programs'); showToast('Không tìm thấy sự kiện ' + d.sukien); }
+  } else if (d.xem === 'quahan') dashMoViec_('__late');
+  else if (d.xem === 'choxacnhan') {
+    go('work');
+    if (workViewMode !== 'task') setWorkView('task');
+    clearWorkFilters();
+    document.getElementById('wf-xacnhan').value = 'cho';
+    renderWork();
+  }
+}
+window.addEventListener('hashchange', () => { const d = docLinkSau_(); if (d) { linkSauCho = d; apDungLinkSau_(); } });
 
 function isAdminRole(role) {
   return role === 'Trưởng phòng' || role === 'Trưởng nhóm';
@@ -2573,23 +2737,23 @@ function dashVeSuKien_(sk) {
   const box = document.getElementById('dash-events');
   if (sk.dang) { box.innerHTML = '<div class="tl-skel"></div><div class="tl-skel"></div><div class="tl-skel"></div>'; return; }
   const today = tlHomNay_();
-  const ds = sk.ds.slice(0, 5);
+  const ds = sk.ds.slice(0, 6);
   // Sự kiện chưa có ngày diễn ra không lên được lịch/Gantt: nêu tên để biết vì sao chưa thấy và nhập ngày.
   const chuaNgay = tlExt.loaded ? programs.filter(p => p.trangThai !== 'Hoàn thành' && !tlSuKienNgay_(p).s) : [];
   const ghiChuChuaNgay = chuaNgay.length ? `<p class="dash-none">ℹ️ ${chuaNgay.length} sự kiện chưa có ngày diễn ra nên chưa hiện ở đây: <b>${esc(chuaNgay.slice(0, 5).map(p => p.ten).join(', '))}${chuaNgay.length > 5 ? ', …' : ''}</b>. Mở sự kiện, nhập “Diễn ra từ / đến” để đưa vào lịch.</p>` : '';
   if (!ds.length) { box.innerHTML = '<p class="dash-none">Chưa có sự kiện nào sắp diễn ra. Nhập ngày diễn ra ở màn chi tiết sự kiện để sự kiện hiện ở đây.</p>' + ghiChuChuaNgay; return; }
-  box.innerHTML = (tlExt.loi ? '<p class="dash-none">Chưa tải được tiến độ checklist — đang hiện theo ngày ghi trong tên/thời gian triển khai.</p>' : '') + ds.map(x => {
+  box.innerHTML = (tlExt.loi ? '<p class="dash-none">Chưa tải được tiến độ checklist — đang hiện theo ngày ghi trong tên/thời gian triển khai.</p>' : '') + '<div class="dash-ev-grid">' + ds.map(x => {
     const dangDienRa = x.s <= today && today <= x.e, ngay = tlHieu_(x.s, today);
     const badge = dangDienRa ? '<span class="tl-chip done">Đang diễn ra</span>' : ngay <= 7 ? `<span class="tl-chip soon">${ngay === 1 ? 'Ngày mai' : 'Còn ' + ngay + ' ngày'}</span>` : `<span class="tl-chip none">Còn ${ngay} ngày</span>`;
     const khoang = x.s.getTime() === x.e.getTime() ? tlDM_(x.s) : tlDM_(x.s) + ' – ' + tlDM_(x.e);
     const tk = x.tk;
-    const tien = tk ? `<div class="tl-prog"><div style="width:${tk.pct}%;"></div></div>
-        <div class="tl-card-foot"><span>${tk.xong}/${tk.tong} việc (${tk.pct}%)</span>${tk.quaHan ? `<span class="tl-chip late">${tk.quaHan} quá hạn</span>` : ''}${tk.sap ? `<span class="tl-chip soon">${tk.sap} sắp đến hạn</span>` : ''}${!tk.tong ? '<span class="tl-chip none">Chưa có checklist</span>' : ''}</div>` : '';
-    return `<div class="dash-ev" onclick="dashMoSuKien_(${jsArg(x.ma)})">
+    const tien = !tk ? '' : !tk.tong ? '<div class="dash-ev-prog"><span class="tl-chip none">Chưa có checklist</span></div>'
+      : `<div class="dash-ev-prog"><div class="tl-prog"><div style="width:${tk.pct}%;"></div></div><span>${tk.xong}/${tk.tong}</span>${tk.quaHan ? `<span class="tl-chip late">${tk.quaHan} quá hạn</span>` : tk.sap ? `<span class="tl-chip soon">${tk.sap} sắp hạn</span>` : ''}</div>`;
+    return `<div class="dash-ev" onclick="dashMoSuKien_(${jsArg(x.ma)})" title="${esc(x.ten)} — ${esc(x.ma)}">
       <div class="dash-ev-date" style="background:${esc(x.mau)};"><b>${x.s.getDate()}</b><span>Th${x.s.getMonth() + 1}</span></div>
-      <div class="dash-ev-body"><div class="dash-ev-ten">${esc(x.ten)}</div><div class="dash-ev-sub"><span>${esc(x.ma)} · ${esc(khoang)}</span>${badge}</div>${tien}</div>
+      <div class="dash-ev-body"><div class="dash-ev-ten">${esc(x.ten)}</div><div class="dash-ev-sub"><span>${esc(khoang)}</span>${badge}</div>${tien}</div>
     </div>`;
-  }).join('') + ghiChuChuaNgay;
+  }).join('') + '</div>' + ghiChuChuaNgay;
 }
 
 function dashVeNguoi_(today) {
@@ -2600,8 +2764,7 @@ function dashVeNguoi_(today) {
   box.innerHTML = names.map(n => {
     const dang = workItems.filter(w => w.trangThai === 'Đang thực hiện' && w.nguoi.includes(n)).sort((a, b) => hanKey(a) - hanKey(b));
     const quaHan = dang.filter(workIsLate_).length;
-    const hien = dang.slice(0, 4);
-    const tasks = hien.map(w => {
+    const tasks = dang.map(w => {
       const tre = workIsLate_(w), sk = tenSuKienCuaViec_(w);
       return `<div class="dash-task ${tre ? 'late' : ''}" onclick="tlMoCongViec(${jsArg(w.ma)})" title="Mở ${esc(w.ma)} trong module Công việc">
         <div class="dash-task-ten">${esc(w.ten)}</div>
@@ -2613,10 +2776,12 @@ function dashVeNguoi_(today) {
         <span class="staff-avatar" style="background:${avatarColor_(n)}">${esc(initials_(n).toUpperCase())}</span>
         <div><b>${esc(tlTenGoi_(n))}</b><small>${dang.length} đang thực hiện${quaHan ? ` · <span style="color:#b3271f;font-weight:700;">${quaHan} quá hạn</span>` : ''}</small></div>
       </div>
-      ${tasks || '<div class="dash-none">Không có việc đang thực hiện</div>'}
-      ${dang.length > hien.length ? `<div class="dash-more" onclick="dashMoNguoi_(${jsArg(n)})">+ ${dang.length - hien.length} việc khác →</div>` : ''}
+      ${tasks ? `<div class="dash-task-list ${dang.length > 5 ? 'cuon' : ''}">${tasks}</div>` : '<div class="dash-none">Không có việc đang thực hiện</div>'}
+      ${dang.length > 5 ? `<div class="dash-scroll-hint">↕ Cuộn để xem thêm ${dang.length - 5} việc</div>` : ''}
     </div>`;
   }).join('');
+  // Khung danh sách cao vừa đúng 5 việc đầu (việc có tên 2 dòng vẫn khớp), phần còn lại cuộn trong khung.
+  box.querySelectorAll('.dash-task-list.cuon').forEach(l => { const v = l.children[5]; if (v && v.offsetTop > 0) l.style.maxHeight = (v.offsetTop - 4) + 'px'; });
 }
 
 function setPeriod(p) {
@@ -3280,6 +3445,7 @@ function openWorkDetail(i) {
       <div class="stat-tile flat"><div class="lbl">Hạn hoàn thành</div><div class="val" style="font-size:16px;">${esc(w.han || '—')}</div></div>
       <div class="stat-tile flat"><div class="lbl">Trạng thái</div><div class="val" style="font-size:16px;">${statusPillHTML_(w.trangThai)} ${w.xacNhan ? '<span class="status-pill done">Đã xác nhận</span>' : ''}</div></div>
     </div>
+    ${wdNutTrangThai_(w)}
     <p class="sub" style="margin-bottom:4px;"><b>Thuộc sự kiện</b></p>
     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
       <select id="wd-sukien" style="max-width:420px;">
@@ -3309,6 +3475,28 @@ function openWorkDetail(i) {
   dkCapNhatChiTiet_(w); // thông tin việc định kỳ + nút "Đặt lặp lại"
   document.getElementById('work-detail-card').scrollIntoView({behavior:'smooth', block:'center'});
 }
+/** Nút nhanh trong Chi tiết công việc (dùng khi mở từ link Telegram): Đánh dấu hoàn thành / Xác nhận hoàn thành. */
+function wdNutTrangThai_(w) {
+  if (w.trangThai !== 'Hoàn thành') return `<div style="margin:0 0 14px;"><button class="btn sm" id="wd-nut-tt" onclick="wdDanhDauHoanThanh_(${jsArg(w.ma)})">✓ Đánh dấu hoàn thành</button></div>`;
+  if (!w.xacNhan && currentUser && isAdminRole(currentUser.role)) return `<div style="margin:0 0 14px;"><button class="btn sm" id="wd-nut-tt" onclick="wdXacNhan_(${jsArg(w.ma)})">✔ Xác nhận hoàn thành</button></div>`;
+  if (!w.xacNhan) return '<p class="subtext" style="margin:0 0 14px;">Đã hoàn thành — chờ Trưởng nhóm/Trưởng phòng xác nhận.</p>';
+  return '';
+}
+async function wdChayNut_(action, body, thongBao, maViec) {
+  const nut = document.getElementById('wd-nut-tt');
+  if (nut) { nut.disabled = true; nut.textContent = 'Đang lưu…'; }
+  const r = await callPtvhApi(action, body);
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không cập nhật được');
+    if (nut) nut.disabled = false;
+  } else showToast(thongBao);
+  await refreshCongViec();
+  const i = workItems.findIndex(x => x.ma === maViec);
+  if (i >= 0) openWorkDetail(i);
+}
+function wdDanhDauHoanThanh_(maViec) { return wdChayNut_('updateCongViecTrangThai', { maViec, trangThaiMoi: 'Hoàn thành' }, 'Đã đánh dấu hoàn thành ' + maViec + ' — đã báo Trưởng nhóm/Trưởng phòng xác nhận', maViec); }
+function wdXacNhan_(maViec) { return wdChayNut_('xacNhanHoanThanhCongViec', { maViec }, 'Đã xác nhận hoàn thành ' + maViec, maViec); }
+
 async function deleteWorkItem(maViec) {
   const w = workItems.find(x => x.ma === maViec);
   if (!w) return;
@@ -6019,7 +6207,7 @@ function showToast(msg) {
 initAllMangSelects();
 renderSidebar();
 initOwnerSelects();
-go('login');
+khoiPhucDangNhap_();
 // Ép xoá trắng ô email nếu trình duyệt tự autofill trước khi script kịp chạy (Chrome đôi khi autofill ngay khi vẽ xong DOM)
 setTimeout(() => { const f = document.getElementById('f-email'); if (f) f.value = ''; }, 0);
 window.addEventListener('pageshow', () => { const f = document.getElementById('f-email'); if (f) f.value = ''; });
