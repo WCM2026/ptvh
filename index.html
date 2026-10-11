@@ -436,6 +436,19 @@
     padding: 6px 12px; border-radius: var(--radius-pill);
   }
   .demo-chip b { color: var(--primary); font-weight: 800; font-family: monospace; letter-spacing: .04em; }
+  .tb-row { display:flex; align-items:center; gap:14px; padding:11px 2px; border-bottom:1px solid var(--gridline); }
+  .tb-row:last-child { border-bottom:none; }
+  .tb-row-text { flex:1; min-width:0; }
+  .tb-row-text b { display:block; font-size:14.5px; color:var(--text-primary); }
+  .tb-row-text span { font-size:12.5px; color:var(--text-muted); }
+  .tb-switch { position:relative; flex:none; width:44px; height:24px; }
+  .tb-switch input { opacity:0; width:0; height:0; position:absolute; }
+  .tb-switch i { position:absolute; inset:0; border-radius:99px; background:#d4d4d8; cursor:pointer; transition:background .15s; }
+  .tb-switch i::before { content:''; position:absolute; width:18px; height:18px; left:3px; top:3px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:transform .15s; }
+  .tb-switch input:checked + i { background:var(--success); }
+  .tb-switch input:checked + i::before { transform:translateX(20px); }
+  .tb-switch input:disabled + i { cursor:not-allowed; opacity:.55; }
+  .tb-switch input:focus-visible + i { outline:2px solid var(--primary); outline-offset:2px; }
   .login-nho { margin:2px 0 14px; color:var(--text-secondary); font-size:13.5px; }
   .login-foot {
     margin-top: 26px; font-size: 13px; color: rgba(255,255,255,.7); text-align: center;
@@ -1828,6 +1841,12 @@
         <div class="subtext" id="notify-channel-status" style="margin-top:10px;"></div>
       </div>
 
+      <div class="card">
+        <h2>Thông báo tự động</h2>
+        <p class="sub">Bật/tắt từng loại thông báo. Tắt = hệ thống không gửi loại đó nữa (cả Email lẫn Telegram), dữ liệu vẫn lưu bình thường. Chỉ Trưởng phòng/Trưởng nhóm đổi được — có hiệu lực ngay.</p>
+        <div id="tb-toggle-list"><p class="subtext">Đang tải…</p></div>
+      </div>
+
       <div class="card add-card" id="staff-form-card" style="display:none;">
         <div class="card-head-row">
           <div>
@@ -2570,6 +2589,45 @@ async function refreshNotifySettings() {
       : 'Dán API key nếu hệ thống yêu cầu';
   }
   renderThiDuaSyncStatus((r.data && r.data.thiDuaApiUrl) || '');
+  refreshCaiDatThongBao_();
+}
+
+/* ---------------- BẬT/TẮT THÔNG BÁO TỰ ĐỘNG (Cài đặt — backend CaiDatThongBao.gs) ---------------- */
+let caiDatThongBao = [];
+async function refreshCaiDatThongBao_() {
+  const box = document.getElementById('tb-toggle-list');
+  if (!box) return;
+  const r = await callPtvhApi('getCaiDatThongBao', {});
+  if (!r.ok) {
+    box.innerHTML = '<p class="subtext">' + (r.error === 'UNKNOWN_ACTION' ? 'Backend chưa có tính năng này — dán CaiDatThongBao.gs + WebApp.gs mới rồi Deploy New version.' : 'Chưa tải được cài đặt thông báo.') + '</p>';
+    return;
+  }
+  caiDatThongBao = r.data || [];
+  renderCaiDatThongBao_();
+}
+function renderCaiDatThongBao_() {
+  const box = document.getElementById('tb-toggle-list');
+  if (!box) return;
+  const laAdmin = isAdminRole(currentUser?.role);
+  box.innerHTML = caiDatThongBao.map(l => `<div class="tb-row">
+      <div class="tb-row-text"><b>${esc(l.ten)}</b><span>${esc(l.moTa)}</span></div>
+      <label class="tb-switch" title="${laAdmin ? (l.bat ? 'Đang bật — bấm để tắt' : 'Đang tắt — bấm để bật') : 'Chỉ Trưởng phòng/Trưởng nhóm đổi được'}">
+        <input type="checkbox" ${l.bat ? 'checked' : ''} ${laAdmin ? '' : 'disabled'} aria-label="${esc(l.ten)}" onchange="doiCaiDatThongBao_(${jsArg(l.ma)}, this)"><i></i>
+      </label>
+    </div>`).join('') || '<p class="subtext">Không có loại thông báo nào.</p>';
+}
+async function doiCaiDatThongBao_(ma, input) {
+  const bat = input.checked;
+  input.disabled = true;
+  const r = await callPtvhApi('updateCaiDatThongBao', { payload: { ma, bat } });
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không lưu được');
+    input.checked = !bat; input.disabled = false;
+    return;
+  }
+  caiDatThongBao = r.data || caiDatThongBao;
+  renderCaiDatThongBao_();
+  showToast(r.message || 'Đã lưu');
 }
 
 function renderNotifyChannelUI() {
