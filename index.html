@@ -436,6 +436,8 @@
     padding: 6px 12px; border-radius: var(--radius-pill);
   }
   .demo-chip b { color: var(--primary); font-weight: 800; font-family: monospace; letter-spacing: .04em; }
+  .tl-nguoi-row { display:flex; gap:6px; margin-bottom:6px; }
+  .tl-nguoi-row select { flex:1; min-width:0; }
   .tb-row { display:flex; align-items:center; gap:14px; padding:11px 2px; border-bottom:1px solid var(--gridline); }
   .tb-row:last-child { border-bottom:none; }
   .tb-row-text { flex:1; min-width:0; }
@@ -4902,6 +4904,23 @@ function tlLuaChonNguoi_(chon) {
   if (chon && !ds.includes(chon)) ds.push(chon);
   return ds.map(n => `<option value="${esc(n)}" ${n === chon ? 'selected' : ''}>${esc(n)}</option>`).join('');
 }
+/** 1 dòng "người phụ trách" của form checklist (chọn được NHIỀU người: mỗi người 1 dòng, nút × bỏ dòng). */
+function tlNguoiRow_(chon) {
+  return `<div class="tl-nguoi-row"><select class="tl-f-nguoi" aria-label="Người phụ trách">${tlLuaChonNguoi_(chon)}</select>
+    <button type="button" class="btn secondary sm" onclick="tlBoNguoi_(this)" title="Bỏ người này" aria-label="Bỏ người này">×</button></div>`;
+}
+function tlThemNguoi_() {
+  const box = tlEl_('tl-f-nguoi-ds'); if (!box) return;
+  // Gợi ý sẵn người đầu tiên chưa được chọn, để bấm "+ Thêm" liên tiếp không bị trùng.
+  const da = [...box.querySelectorAll('.tl-f-nguoi')].map(x => x.value);
+  const con = staffNames().concat(['All team']).find(n => !da.includes(n)) || '';
+  box.insertAdjacentHTML('beforeend', tlNguoiRow_(con));
+}
+function tlBoNguoi_(btn) {
+  const box = tlEl_('tl-f-nguoi-ds');
+  if (box && box.querySelectorAll('.tl-nguoi-row').length <= 1) { showToast('Cần ít nhất một người phụ trách'); return; }
+  btn.closest('.tl-nguoi-row').remove();
+}
 function tlVeForm_() {
   const box = tlEl_('tl-d-form'), p = programs.find(x => x.maSuKien === tlDetailMa);
   if (!box || !p || !tlForm) return;
@@ -4917,20 +4936,20 @@ function tlVeForm_() {
   const ev0 = tlSuKienNgay_(p), homNay = tlHomNay_();
   // Mặc định khi thêm: hạn = 7 ngày trước ngày bắt đầu sự kiện (không trước hôm nay); ngày bắt đầu làm để trống = làm trong ngày hạn.
   const hanMacDinh = ev0.s ? (tlCong_(ev0.s, -7) < homNay ? homNay : tlCong_(ev0.s, -7)) : homNay;
-  let v = { ten: '', nguoi: (currentUser && staffNames().includes(currentUser.name)) ? currentUser.name : (staffNames()[0] || 'All team'), han: tlISO_(hanMacDinh), bat: '' };
-  let nguoiGoc = null;
+  let v = { ten: '', nguoi: [(currentUser && staffNames().includes(currentUser.name)) ? currentUser.name : (staffNames()[0] || 'All team')], han: tlISO_(hanMacDinh), bat: '' };
   if (sua) {
     const w = workItems.find(x => x.ma === tlForm.ma);
     if (!w) { tlForm = null; return; }
     const m = tlViec_(w, ev0);
-    nguoiGoc = w.nguoi;
-    v = { ten: w.ten, nguoi: (w.nguoi && w.nguoi[0]) || 'All team', han: m.han ? tlISO_(m.han) : '', bat: (m.han && m.bat && m.bat < m.han && tlHieu_(m.han, m.bat) <= 365) ? tlISO_(m.bat) : '' };
+    v = { ten: w.ten, nguoi: (w.nguoi && w.nguoi.length) ? w.nguoi.slice() : ['All team'], han: m.han ? tlISO_(m.han) : '', bat: (m.han && m.bat && m.bat < m.han && tlHieu_(m.han, m.bat) <= 365) ? tlISO_(m.bat) : '' };
   }
   box.innerHTML = `<div class="tl-form" id="tl-f"><h3>${sua ? 'Sửa việc ' + esc(tlForm.ma) : 'Thêm việc mới vào checklist'}</h3>
     <div id="tl-f-err"></div>
     <div class="field"><label>Tên việc</label><input type="text" id="tl-f-ten" maxlength="200" value="${esc(v.ten)}" oninput="tlXemTruoc_()"></div>
     <div class="grid3">
-      <div class="field"><label>Người phụ trách</label><select id="tl-f-nguoi" onchange="tlXemTruoc_()">${tlLuaChonNguoi_(v.nguoi)}</select>${sua && nguoiGoc && nguoiGoc.length > 1 ? '<span class="subtext">Việc đang có nhiều người — không đổi ô này thì giữ nguyên danh sách.</span>' : ''}</div>
+      <div class="field"><label>Người phụ trách <span class="subtext">(có thể thêm nhiều người)</span></label>
+        <div id="tl-f-nguoi-ds">${v.nguoi.map(tlNguoiRow_).join('')}</div>
+        <button type="button" class="btn secondary sm" onclick="tlThemNguoi_()">+ Thêm người cùng phụ trách</button></div>
       <div class="field"><label>Ngày bắt đầu làm <span class="subtext">(không bắt buộc)</span></label><input type="date" id="tl-f-bat" value="${esc(v.bat)}" onchange="tlXemTruoc_()"></div>
       <div class="field"><label>Hạn hoàn thành</label><input type="date" id="tl-f-han" value="${esc(v.han)}" onchange="tlXemTruoc_()"></div>
     </div>
@@ -4944,12 +4963,13 @@ function tlVeForm_() {
 /** Đọc form: chọn NGÀY trên lịch (Mốc / Tính từ / Độ dài do hệ thống tự tính khi lưu). */
 function tlDocForm_() {
   const p = programs.find(x => x.maSuKien === tlDetailMa), ev = p ? tlSuKienNgay_(p) : { s: null, e: null };
-  const ten = tlEl_('tl-f-ten').value.trim(), nguoi = tlEl_('tl-f-nguoi').value;
+  const ten = tlEl_('tl-f-ten').value.trim();
+  const nguoi = [...new Set([...document.querySelectorAll('#tl-f-nguoi-ds .tl-f-nguoi')].map(x => x.value).filter(Boolean))];
   const han = tlEl_('tl-f-han').value, bat = tlEl_('tl-f-bat').value;
   const dHan = tlNgayVN_(han), dBat = bat ? tlNgayVN_(bat) : dHan;
   let loi = '';
   if (!ten) loi = 'Vui lòng nhập Tên việc';
-  else if (!nguoi) loi = 'Vui lòng chọn Người phụ trách';
+  else if (!nguoi.length) loi = 'Vui lòng chọn ít nhất một Người phụ trách';
   else if (!dHan) loi = 'Vui lòng chọn Hạn hoàn thành';
   else if (bat && !dBat) loi = 'Ngày bắt đầu không hợp lệ';
   else if (dBat > dHan) loi = 'Ngày bắt đầu không được sau hạn hoàn thành';
@@ -4992,11 +5012,9 @@ async function tlLuuViec() {
   tlKhoaForm_(true);
   let r;
   if (tlForm.mode === 'add') {
-    r = await callPtvhApi('addChecklistItem', { maSuKien: p.maSuKien, ten: f.ten, nguoiPhuTrach: [f.nguoi], han: f.han, batDau: f.batDau });
+    r = await callPtvhApi('addChecklistItem', { maSuKien: p.maSuKien, ten: f.ten, nguoiPhuTrach: f.nguoi, han: f.han, batDau: f.batDau });
   } else {
-    const w = workItems.find(x => x.ma === tlForm.ma);
-    const nguoi = (w && w.nguoi && w.nguoi.length > 1 && w.nguoi[0] === f.nguoi) ? w.nguoi : [f.nguoi];
-    r = await callPtvhApi('updateChecklistItem', { maViec: tlForm.ma, ten: f.ten, nguoiPhuTrach: nguoi, han: f.han, batDau: f.batDau, ver: (tlExt.it[tlForm.ma] || {}).ver || '' });
+    r = await callPtvhApi('updateChecklistItem', { maViec: tlForm.ma, ten: f.ten, nguoiPhuTrach: f.nguoi, han: f.han, batDau: f.batDau, ver: (tlExt.it[tlForm.ma] || {}).ver || '' });
   }
   tlKhoaForm_(false);
   const them = tlForm.mode === 'add';
