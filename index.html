@@ -1862,8 +1862,11 @@
         <div id="staff-form" class="collapsible-form" style="display:block;">
           <div class="grid2">
             <div class="field"><label>Họ tên</label><input type="text" id="st-name" placeholder="VD: Nguyễn Văn A — Chuyên viên"></div>
-            <div class="field"><label>Email</label><input type="email" id="st-email" placeholder="ten@wincommerce.vn"></div>
+            <div class="field"><label>Email</label><input type="email" id="st-email" placeholder="ten@winmart.masangroup.com"></div>
+            <div class="field"><label>Vai trò</label><select id="st-vaitro"><option>Chuyên viên</option><option>Nhân viên</option><option>Trưởng nhóm</option><option>Trưởng phòng</option></select></div>
+            <div class="field"><label>MSNV <span class="subtext">(không bắt buộc)</span></label><input type="text" id="st-msnv" maxlength="20"></div>
           </div>
+          <p class="subtext" style="margin:0 0 10px;">Người mới vào web bằng email này → nhận mã OTP qua email → tự đặt PIN. Chỉ Trưởng phòng/Trưởng nhóm thêm được.</p>
           <button class="btn" onclick="addStaffMember()">Lưu nhân sự</button>
         </div>
       </div>
@@ -6161,14 +6164,17 @@ function renderWorkPipeline() {
 }
 
 /* ---------------- CAI DAT NHAN SU ---------------- */
-let staffEditIndex = null;
+let staffEditIndex = null, staffDangLuu = false;
+const STAFF_VAI_TRO = ['Chuyên viên', 'Nhân viên', 'Trưởng nhóm', 'Trưởng phòng'];
 function renderStaffSettings() {
   const el = document.getElementById('staff-settings-body');
   if (!el) return;
   el.innerHTML = STAFF.map((s, i) => {
     if (i === staffEditIndex) {
+      const vts = STAFF_VAI_TRO.includes(s.vaiTro) || !s.vaiTro ? STAFF_VAI_TRO : STAFF_VAI_TRO.concat([s.vaiTro]);
       return `<tr>
-        <td><input type="text" class="inline" style="width:100%" id="se-name-${i}" value="${esc(s.name)}"></td>
+        <td><input type="text" class="inline" style="width:100%" id="se-name-${i}" value="${esc(s.name)}">
+          <select class="inline" id="se-vt-${i}" style="margin-top:6px;">${vts.map(v => `<option ${v === s.vaiTro ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></td>
         <td><input type="email" class="inline" style="width:100%" id="se-email-${i}" value="${esc(s.email || '')}"></td>
         <td style="white-space:nowrap;">
           <button class="btn secondary sm" onclick="saveStaffEdit(${i})">Lưu</button>
@@ -6177,7 +6183,7 @@ function renderStaffSettings() {
       </tr>`;
     }
     return `<tr>
-      <td style="font-weight:700;">${esc(s.name)}</td>
+      <td style="font-weight:700;">${esc(s.name)}${s.vaiTro ? ` <span class="subtext" style="font-weight:400;">· ${esc(s.vaiTro)}</span>` : ''}</td>
       <td>${esc(s.email || '—')}</td>
       <td style="white-space:nowrap;">
         <button class="btn secondary sm" onclick="startStaffEdit(${i})">✏️ Sửa</button>
@@ -6188,30 +6194,42 @@ function renderStaffSettings() {
 }
 function startStaffEdit(i) { staffEditIndex = i; renderStaffSettings(); }
 function cancelStaffEdit() { staffEditIndex = null; renderStaffSettings(); }
-function saveStaffEdit(i) {
+/** Gọi API nhân sự (ghi thật vào sheet 02b.NhanSu). Thành công → nạp lại danh sách từ server. */
+async function staffGoiApi_(action, payload, thanhCong) {
+  if (staffDangLuu) return false;
+  staffDangLuu = true;
+  const r = await callPtvhApi(action, { payload });
+  staffDangLuu = false;
+  if (!r.ok) {
+    if (r.error !== 'NO_API_URL' && r.error !== 'NETWORK_ERROR') showToast(r.message || 'Không lưu được nhân sự');
+    return false;
+  }
+  await refreshStaffList();
+  showToast(r.message || thanhCong);
+  renderStaffSettings();
+  return true;
+}
+async function saveStaffEdit(i) {
+  const s = STAFF[i]; if (!s) return;
   const name = document.getElementById('se-name-' + i).value.trim();
   if (!name) { showToast('Vui lòng nhập Họ tên'); return; }
-  STAFF[i].name = name;
-  STAFF[i].email = document.getElementById('se-email-' + i).value.trim();
-  staffEditIndex = null;
-  showToast('Đã lưu thông tin nhân sự');
-  renderStaffSettings();
+  const ok = await staffGoiApi_('updateStaff', { email: s.email, hoTen: name, emailMoi: document.getElementById('se-email-' + i).value.trim(), vaiTro: document.getElementById('se-vt-' + i).value }, 'Đã lưu thông tin nhân sự');
+  if (ok) { staffEditIndex = null; renderStaffSettings(); }
 }
-function removeStaffMember(i) {
-  STAFF.splice(i, 1);
-  showToast('Đã xóa nhân sự khỏi danh sách');
-  renderStaffSettings();
+async function removeStaffMember(i) {
+  const s = STAFF[i]; if (!s) return;
+  if (!confirm('Cho "' + s.name + '" nghỉ?\n\nNgười này không đăng nhập được nữa và không còn trong danh sách chọn Người phụ trách. Dòng dữ liệu vẫn giữ trong sheet (đổi Trạng thái về "Đang làm việc" để khôi phục).')) return;
+  await staffGoiApi_('removeStaff', { email: s.email }, 'Đã cho nghỉ');
 }
-function addStaffMember() {
+async function addStaffMember() {
   const name = document.getElementById('st-name').value.trim();
   const email = document.getElementById('st-email').value.trim();
   if (!name) { showToast('Vui lòng nhập Họ tên'); return; }
-  staffCounter++;
-  STAFF.push({name, email});
-  ['st-name','st-email'].forEach(id => document.getElementById(id).value = '');
-  showToast('Đã thêm nhân sự — có thể chọn ngay trong Người phụ trách');
+  if (!email) { showToast('Vui lòng nhập Email'); return; }
+  const ok = await staffGoiApi_('addStaff', { hoTen: name, email, vaiTro: document.getElementById('st-vaitro').value, msnv: document.getElementById('st-msnv').value.trim() }, 'Đã thêm nhân sự');
+  if (!ok) return;
+  ['st-name', 'st-email', 'st-msnv'].forEach(id => document.getElementById(id).value = '');
   closeForm('staff-form');
-  renderStaffSettings();
 }
 
 /* ---------------- WEB APP (TAB RIENG — dữ liệu chung sheet 08.Tài liệu, Loại = "Web app") ---------------- */
