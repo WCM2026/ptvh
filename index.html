@@ -609,6 +609,10 @@
   .kpi-construct .ic { font-size: 56px; }
   .kpi-construct h2 { font-size: 22px !important; margin: 12px 0 6px !important; }
   .kpi-construct p { color: var(--text-muted); max-width: 520px; margin: 0 auto 6px; }
+  /* Báo cáo EB: nhúng file cùng nguồn nếu có, không thì thẻ mở link */
+  .ebr-frame-wrap { border: 1px solid var(--gridline); border-radius: 12px; overflow: hidden; background: var(--surface-1); }
+  .ebr-frame { display: block; width: 100%; height: calc(100vh - 190px); min-height: 560px; border: 0; }
+  .ebr-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
   .nav-soon { margin-left: auto; font-size: 10.5px; font-weight: 700; background: #fff7ed; color: #9a3412; border-radius: 999px; padding: 1px 7px; }
 
   /* Nút "+ Thêm ..." đỏ ở góc panel; form thêm mới là card ẩn (.add-card) */
@@ -1764,6 +1768,17 @@
       </div>
     </section>
 
+    <!-- ============ PANEL: BÁO CÁO EB ============ -->
+    <section class="panel" id="panel-ebreport">
+      <div class="panel-top">
+        <div class="flow-note">
+          <b>Báo cáo EB 2026:</b> báo cáo Employer Branding WinCommerce — follower, người xem, tương tác các trang tuyển dụng (FB WinMart, SSC, WinMart+, LinkedIn) theo tháng, top bài và đề xuất.
+        </div>
+        <a class="btn sm add-btn" id="ebr-open-btn" target="_blank" rel="noopener">↗ Mở toàn màn hình</a>
+      </div>
+      <div id="ebr-body"></div>
+    </section>
+
     <!-- ============ PANEL: KPI ============ -->
     <section class="panel" id="panel-kpi">
       <div class="card kpi-construct">
@@ -2197,6 +2212,7 @@ const SIDEBAR_ITEMS = [
   {id:'gifts', label:'Quà tặng', icon:'🎁'},
   {id:'vouchers', label:'Voucher', icon:'🎟️'},
   {id:'webapps', label:'Web App', icon:'🧩'},
+  {id:'ebreport', label:'Báo cáo EB', icon:'📈'},
   {id:'kpi', label:'KPI', icon:'📊', soon:true},
   {id:'docs', label:'Tài liệu/Links', icon:'🔗'},
   {id:'settings', label:'Cài đặt', icon:'⚙️', roleOnly:'Trưởng nhóm'},
@@ -2245,9 +2261,55 @@ function go(id) {
   if (id === 'gifts') renderGifts();
   if (id === 'vouchers') renderVouchers();
   if (id === 'webapps') renderWebApps();
+  if (id === 'ebreport') renderBaoCaoEb();
   if (id === 'kpi') renderKpi();
   if (id === 'docs') renderDocs();
   if (id === 'settings') { renderStaffSettings(); renderThiDuaSyncStatus(); refreshNotifySettings(); }
+}
+
+/* ---------------- BÁO CÁO EB ----------------
+ * Bản gốc là artifact trên claude.ai — claude.ai chặn nhúng iframe từ trang khác (frame-ancestors 'self'),
+ * nên mặc định hiện thẻ "Mở báo cáo". Nếu đặt file HTML của báo cáo vào repo (cùng thư mục với index.html,
+ * tên ở baoCaoEbCfg.fileNoiBo) thì tab tự nhúng file đó ngay trong cổng.
+ */
+const baoCaoEbCfg = {
+  link: 'https://claude.ai/artifact/Dtbf7ShQ2derzduXiXgeQW',
+  fileNoiBo: './bao-cao-eb.html'
+};
+let baoCaoEbCoFile = null; // null = chưa kiểm tra; true/false = đã biết có file nội bộ hay không
+
+async function renderBaoCaoEb() {
+  const body = document.getElementById('ebr-body');
+  const nut = document.getElementById('ebr-open-btn');
+  if (!body) return;
+  if (baoCaoEbCoFile === null) {
+    try {
+      const res = await fetch(baoCaoEbCfg.fileNoiBo, { method: 'HEAD', cache: 'no-store' });
+      baoCaoEbCoFile = res.ok;
+    } catch (e) { baoCaoEbCoFile = false; }
+  }
+  const link = baoCaoEbCoFile ? baoCaoEbCfg.fileNoiBo : baoCaoEbCfg.link;
+  nut.href = link; // hằng số cấu hình, không phải dữ liệu từ Sheet
+  if (baoCaoEbCoFile) {
+    if (!body.querySelector('iframe')) {
+      body.innerHTML = `<div class="ebr-frame-wrap"><iframe class="ebr-frame" src="${safeUrl(baoCaoEbCfg.fileNoiBo)}" title="Báo cáo EB 2026" loading="lazy"></iframe></div>`;
+    }
+    return;
+  }
+  body.innerHTML = `<div class="card kpi-construct">
+      <div class="ic">📈</div>
+      <h2>Báo cáo EB 2026</h2>
+      <p>Báo cáo được lưu trên Claude, nơi không cho phép hiển thị lồng trong trang khác — bấm nút dưới để mở ở tab mới.</p>
+      <div class="ebr-actions">
+        <a class="btn" href="${safeUrl(baoCaoEbCfg.link)}" target="_blank" rel="noopener">Mở báo cáo EB ↗</a>
+        <button class="btn ghost" onclick="saoChepLinkBaoCaoEb_()">Sao chép link</button>
+      </div>
+    </div>`;
+}
+
+async function saoChepLinkBaoCaoEb_() {
+  try { await navigator.clipboard.writeText(baoCaoEbCfg.link); showToast('Đã sao chép link báo cáo EB'); }
+  catch (e) { prompt('Sao chép link báo cáo EB:', baoCaoEbCfg.link); }
 }
 
 /* ---------------- LOGIN (luồng thật: email -> OTP (lần đầu) -> khởi tạo PIN -> đăng nhập PIN) ---------------- */
